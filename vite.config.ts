@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/poe-map-analyzer/',
+  base: '/poe-map-viewer/',
   build: {
     worker: {
       format: 'es'
