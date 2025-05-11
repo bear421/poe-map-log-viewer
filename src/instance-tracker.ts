@@ -156,6 +156,11 @@ enum AreaType {
     Unknown
 }
 
+interface SimpleEvent {
+    name: string;
+    detail: any;
+}
+
 class MapInstance {
     id: string;
     span: MapSpan;
@@ -167,7 +172,7 @@ class MapInstance {
     xph: number;
     waystone: any | null;
     hasBoss: boolean;
-    events = [];
+    events: SimpleEvent[] = [];
 
     constructor(
         id: string,
@@ -512,27 +517,27 @@ class InstanceTracker {
                     this.informInteraction(ts);
                     const slainMatch = EV_SLAIN_REGEX.exec(line);
                     if (slainMatch) {
-                        this.dispatchEvent("death", { event: "death", character: slainMatch[1], ts: ts });
+                        this.dispatchEvent("death", { event: "death", character: slainMatch[1], ts: ts }, true);
                         return true;
                     }
                     const joinedMatch = EV_JOINED_AREA_REGEX.exec(line);
                     if (joinedMatch) {
-                        this.dispatchEvent("joinedArea", { event: "joinedArea", character: joinedMatch[1], ts: ts });
+                        this.dispatchEvent("joinedArea", { event: "joinedArea", character: joinedMatch[1], ts: ts }, true);
                         return true;
                     }
                     const leftMatch = EV_LEFT_AREA_REGEX.exec(line);
                     if (leftMatch) {
-                        this.dispatchEvent("leftArea", { event: "leftArea", character: leftMatch[1], ts: ts });
+                        this.dispatchEvent("leftArea", { event: "leftArea", character: leftMatch[1], ts: ts }, true);
                         return true;
                     }
                     const levelMatch = EV_LEVEL_UP_REGEX.exec(line);
                     if (levelMatch) {
-                        this.dispatchEvent("levelUp", { event: "levelUp", character: levelMatch[1], level: levelMatch[2], ts: ts });
+                        this.dispatchEvent("levelUp", { event: "levelUp", character: levelMatch[1], level: levelMatch[2], ts: ts }, true);
                         return true;
                     }
                     const tradeAcceptedMatch = EV_TRADE_ACCEPTED.exec(line);
                     if (tradeAcceptedMatch) {
-                        this.dispatchEvent("tradeAccepted", { event: "tradeAccepted", ts: ts });
+                        this.dispatchEvent("tradeAccepted", { event: "tradeAccepted", ts: ts }, true);
                         return true;
                     }
                 }
@@ -544,7 +549,9 @@ class InstanceTracker {
     enterArea(areaInfo: AreaInfo): void {
         const currentMap = this.currentMap;
         if (currentMap && areaInfo.ts <= currentMap.span.start && currentMap.seed !== areaInfo.seed) {
-            throw new Error(`new areas must be entered in chronological order: ${areaInfo.ts} <= ${currentMap.span.start}`);
+            logger.warn(`new areas must be entered in chronological order: ${areaInfo.ts} <= ${currentMap.span.start}. discarding current map.`);
+            this.currentMap = null;
+            return;
         }
         if (currentMap && currentMap.seed !== areaInfo.seed) {
             // stale map handling
@@ -619,12 +626,10 @@ class InstanceTracker {
         this.dispatchEvent("mapEntered", { map: this.currentMap, previousMap });
     }
 
-    private dispatchEvent(name: string, detail: any): boolean {
-        /*
-        if (detail.map) {
-            detail.map.events.push(detail);
+    private dispatchEvent(name: string, detail: any, asMapEvent: boolean = false): boolean {
+        if (this.inMap() && asMapEvent) {
+            this.currentMap!.events.push({ name, detail });
         }
-        */
         return this.events.dispatchEvent(new CustomEvent(name, { detail }));
     }
 

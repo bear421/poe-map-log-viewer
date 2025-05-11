@@ -1,4 +1,4 @@
-import { MapInstance, MapSpan } from './instance-tracker';
+import { Filter, MapInstance, MapSpan } from './instance-tracker';
 import {
     Chart,
     ArcElement,
@@ -10,11 +10,13 @@ import {
 Chart.register(ArcElement, Tooltip, Legend, PieController);
 
 class MapAnalyzer {
+
     private worker: Worker;
     private uploadButton!: HTMLButtonElement;
     private fileInput!: HTMLInputElement;
     private resultsDiv!: HTMLDivElement;
     private progressBar!: HTMLDivElement;
+    private currentMaps: MapInstance[] | null = null;
 
     constructor() {
         this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
@@ -26,6 +28,39 @@ class MapAnalyzer {
         const container = document.createElement('div');
         container.className = 'container mt-5';
         document.body.appendChild(container);
+
+        const filterCard = document.createElement('div');
+        filterCard.className = 'card mb-3';
+        filterCard.innerHTML = `
+            <div class="card-header">
+                <h5 class="mb-0">Filter Maps</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label for="minLevelFilter" class="form-label">Min Level</label>
+                        <input type="number" class="form-control" id="minLevelFilter" min="1" max="100">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="maxLevelFilter" class="form-label">Max Level</label>
+                        <input type="number" class="form-control" id="maxLevelFilter" min="1" max="100">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="fromDateFilter" class="form-label">From Date</label>
+                        <input type="date" class="form-control" id="fromDateFilter">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="toDateFilter" class="form-label">To Date</label>
+                        <input type="date" class="form-control" id="toDateFilter">
+                    </div>
+                    <div class="col-12">
+                        <button id="applyFiltersBtn" class="btn btn-primary">Apply Filters</button>
+                        <button id="resetFiltersBtn" class="btn btn-outline-secondary ms-2">Reset</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(filterCard);
 
         const searchGroup = document.createElement('div');
         searchGroup.className = 'input-group mb-3';
@@ -78,6 +113,77 @@ class MapAnalyzer {
         inputGroup.appendChild(this.uploadButton);
         container.appendChild(inputGroup);
 
+        // Create collapsible path helper with Bootstrap Card layout
+        const pathHelperCard = document.createElement('div');
+        pathHelperCard.className = 'card mb-4';
+        
+        // Create card header that acts as the collapse trigger
+        const cardHeader = document.createElement('div');
+        cardHeader.className = 'card-header';
+        
+        const headerButton = document.createElement('button');
+        headerButton.className = 'btn btn-link w-100 text-start p-0';
+        headerButton.setAttribute('type', 'button');
+        headerButton.setAttribute('data-bs-toggle', 'collapse');
+        headerButton.setAttribute('data-bs-target', '#pathHelperContent');
+        headerButton.setAttribute('aria-expanded', 'true');
+        headerButton.setAttribute('aria-controls', 'pathHelperContent');
+        
+        // Add header content with toggle indicators
+        headerButton.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">ℹ️ Looking for your Client.txt file?</h5>
+                <span class="when-closed"><i class="bi bi-chevron-down"></i></span>
+                <span class="when-open"><i class="bi bi-chevron-up"></i></span>
+            </div>
+        `;
+        
+        // Add custom styles for the toggle indicators
+        const style = document.createElement('style');
+        style.textContent = `
+            [aria-expanded="true"] .when-closed { display: none; }
+            [aria-expanded="false"] .when-open { display: none; }
+        `;
+        document.head.appendChild(style);
+        
+        cardHeader.appendChild(headerButton);
+        pathHelperCard.appendChild(cardHeader);
+        
+        const collapseDiv = document.createElement('div');
+        collapseDiv.className = 'collapse show';
+        collapseDiv.id = 'pathHelperContent';
+        
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        cardBody.innerHTML = `
+            <div class="mb-2">
+                <strong>Standalone client:</strong>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Grinding Gear Games\\Path of Exile 2\\logs\\Client.txt" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copy-standard-path">Copy</button>
+                </div>
+            </div>
+            <div>
+                <strong>Steam client:</strong>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Steam\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copy-steam-path">Copy</button>
+                </div>
+            </div>
+            <small class="text-muted mt-2 d-block">Note: If you installed Steam in a custom location, you'll need to adjust the path accordingly.</small>
+        `;
+        
+        collapseDiv.appendChild(cardBody);
+        pathHelperCard.appendChild(collapseDiv);
+        container.appendChild(pathHelperCard);
+
+        document.getElementById('copy-standard-path')?.addEventListener('click', (e) => {
+            this.copyToClipboard(e.target as HTMLButtonElement);
+        });
+        document.getElementById('copy-steam-path')?.addEventListener('click', (e) => {
+            this.copyToClipboard(e.target as HTMLButtonElement);
+        });
+
         this.progressBar = document.createElement('div');
         this.progressBar.className = 'd-none text-center mb-3';
         this.progressBar.innerHTML = `
@@ -87,33 +193,91 @@ class MapAnalyzer {
         `;
         container.appendChild(this.progressBar);
 
-        // Create results container
         this.resultsDiv = document.createElement('div');
         this.resultsDiv.className = 'row';
         container.appendChild(this.resultsDiv);
     }
 
     private setupEventListeners() {
-        this.uploadButton.addEventListener('click', () => this.handleUpload());
+        this.uploadButton.addEventListener('click', () => {
+            this.handleUpload();
+            this.collapsePathHelper();
+        });
+        
+        document.getElementById('applyFiltersBtn')?.addEventListener('click', () => {
+            this.applyFilters();
+        });
+        
+        document.getElementById('resetFiltersBtn')?.addEventListener('click', () => {
+            this.resetFilters();
+        });
         
         this.worker.onmessage = (e: MessageEvent) => {
             const { type, data } = e.data;
             switch (type) {
                 case 'complete':
+                    this.currentMaps = data.maps;
                     this.displayResults(data.maps);
                     this.hideProgress();
                     break;
                 case 'search':
+                    this.currentMaps = null; // let GC free mem
                     this.displaySearchResults(data.lines);
                     this.hideProgress();
                     break;
                 case 'error':
+                    this.currentMaps = null; // let GC free mem
                     console.error(data.error);
                     this.showError(data.error);
                     this.hideProgress();
                     break;
             }
         };
+    }
+
+    private applyFilters() {
+        if (!this.currentMaps) {
+            this.showError('No map data available to filter');
+            return;
+        }
+        
+        const minLevelInput = (document.getElementById('minLevelFilter') as HTMLInputElement).value;
+        const maxLevelInput = (document.getElementById('maxLevelFilter') as HTMLInputElement).value;
+        const fromDateInput = (document.getElementById('fromDateFilter') as HTMLInputElement).value;
+        const toDateInput = (document.getElementById('toDateFilter') as HTMLInputElement).value;
+        
+        const filter = new Filter();
+        
+        if (minLevelInput) {
+            filter.fromAreaLevel = parseInt(minLevelInput);
+        }
+        if (maxLevelInput) {
+            filter.toAreaLevel = parseInt(maxLevelInput);
+        }
+        
+        if (fromDateInput) {
+            filter.fromMillis = new Date(fromDateInput).getTime();
+        }
+        if (toDateInput) {
+            const toDate = new Date(toDateInput);
+            toDate.setHours(23, 59, 59, 999);
+            filter.toMillis = toDate.getTime();
+        }
+        
+        this.clearResults();
+        this.displayResults(Filter.filterAll(filter, this.currentMaps));
+    }
+
+    private resetFilters() {
+        (document.getElementById('minLevelFilter') as HTMLInputElement).value = '';
+        (document.getElementById('maxLevelFilter') as HTMLInputElement).value = '';
+        (document.getElementById('fromDateFilter') as HTMLInputElement).value = '';
+        (document.getElementById('toDateFilter') as HTMLInputElement).value = '';
+        
+        if (this.currentMaps) {
+            this.clearResults();
+            this.displayResults(this.currentMaps);
+        }
     }
 
     private handleUpload() {
@@ -129,7 +293,6 @@ class MapAnalyzer {
     }
 
     private displayResults(maps: MapInstance[]) {
-        // Calculate median times
         const times = maps.map(map => {
             const mapTime = MapSpan.mapTime(map.span);
             const loadTime = map.span.loadTime;
@@ -147,7 +310,6 @@ class MapAnalyzer {
         const medianLoadTime = getMedian(times.map(t => t.loadTime));
         const medianIdleTime = getMedian(times.map(t => t.hideoutTime));
 
-        // Create pie chart container
         const chartCard = document.createElement('div');
         chartCard.className = 'col-12 mb-4';
         chartCard.innerHTML = `
@@ -296,6 +458,26 @@ class MapAnalyzer {
 
     private clearResults() {
         this.resultsDiv.innerHTML = '';
+    }
+
+    private copyToClipboard(button: HTMLButtonElement) {
+        const input = button.previousElementSibling as HTMLInputElement;
+        input.select();
+        document.execCommand('copy');
+        
+        const originalText = button.textContent;
+        button.textContent = 'Copied!';
+        setTimeout(() => {
+            button.textContent = originalText;
+        }, 2000);
+    }
+
+    private collapsePathHelper() {
+        const collapseElement = document.getElementById('pathHelperContent');
+        
+        if (collapseElement && collapseElement.classList.contains('show')) {
+            bootstrap.Collapse.getInstance(collapseElement)?.hide();
+        }
     }
 }
 
