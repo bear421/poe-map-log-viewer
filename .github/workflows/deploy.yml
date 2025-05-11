@@ -25,6 +25,10 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: prevent Jekyll processing
+        run: |
+          touch .nojekyll
+          touch dist/.nojekyll
       - name: Build
         run: npm run build
       - name: Debug - List directories
@@ -41,4 +45,4 @@ jobs:
           path: 'dist'
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4 
+        uses: actions/deploy-pages@v4
