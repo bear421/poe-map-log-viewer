@@ -25,12 +25,12 @@ jobs:
           node-version: 22
       - name: Install dependencies
         run: npm install
+      - name: Build
+        run: npm run build
       - name: prevent Jekyll processing
         run: |
           touch .nojekyll
           touch dist/.nojekyll
-      - name: Build
-        run: npm run build
       - name: Debug - List directories
         run: |
           echo "Current directory contents:"
