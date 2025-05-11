@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/poe-map-viewer/',
+  base: '/poe-map-log-viewer/',
   root: 'src',
   build: {
     outDir: '../dist',
