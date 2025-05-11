@@ -31,4 +31,5 @@ pnpm-debug.log*
 Thumbs.db
 
 # Build output
-*.local 
+*.local
+build/
