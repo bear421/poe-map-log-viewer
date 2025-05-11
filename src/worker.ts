@@ -8,13 +8,6 @@ interface WorkerMessage {
     filter?: Filter;
 }
 
-interface ProgressMessage {
-    type: 'progress';
-    data: {
-        progress: number;
-    };
-}
-
 interface CompleteMessage {
     type: 'complete';
     data: {
@@ -35,8 +28,6 @@ interface SearchMessage {
         lines: string[];
     };
 }
-
-type WorkerResponse = ProgressMessage | CompleteMessage | ErrorMessage;
 
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const { type, file } = e.data;

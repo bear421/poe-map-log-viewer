@@ -1,11 +1,12 @@
 import { MapInstance, MapSpan } from './instance-tracker';
+import { Chart } from 'chart.js';
 
 class MapAnalyzer {
     private worker: Worker;
-    private uploadButton: HTMLButtonElement;
-    private fileInput: HTMLInputElement;
-    private resultsDiv: HTMLDivElement;
-    private progressBar: HTMLDivElement;
+    private uploadButton!: HTMLButtonElement;
+    private fileInput!: HTMLInputElement;
+    private resultsDiv!: HTMLDivElement;
+    private progressBar!: HTMLDivElement;
 
     constructor() {
         this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });

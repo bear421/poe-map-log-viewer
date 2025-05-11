@@ -392,6 +392,7 @@ class InstanceTracker {
         try {
             const decoder = new TextDecoder();
             let tail = '';
+            let seekAhead = filter && !!filter.fromMillis;
             for (;;) {
                 const { done, value } = await reader.read();
                 if (done) {
@@ -412,14 +413,14 @@ class InstanceTracker {
                     ix = chunk.indexOf('\n');
                     if (ix !== -1) {
                         const line = tail + chunk.slice(0, ix);
+                        tail = '';
+                        start = ix + 1;
                         if (pattern.test(line)) {
                             lines.push(line);
                             if (limit > 0 && lines.length >= limit) {
                                 return lines;
                             }
                         }
-                        tail = '';
-                        start = ix + 1;
                     } else {
                         tail += chunk;
                         continue;
@@ -428,6 +429,15 @@ class InstanceTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
+                    if (seekAhead) {
+                        const ts = this.parseTs(line);
+                        if (ts && ts >= filter!.fromMillis!) {
+                            // logfiles are chronologically ordered, so we don't need to test fromMillis anymore
+                            seekAhead = false;
+                        } else {
+                            continue;
+                        }
+                    }
                     if (pattern.test(line)) {
                         lines.push(line);
                         if (limit > 0 && lines.length >= limit) {
