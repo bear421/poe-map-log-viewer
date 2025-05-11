@@ -1,5 +1,13 @@
 import { MapInstance, MapSpan } from './instance-tracker';
-import { Chart } from 'chart.js';
+import {
+    Chart,
+    ArcElement,
+    Tooltip,
+    Legend,
+    PieController
+} from 'chart.js';
+
+Chart.register(ArcElement, Tooltip, Legend, PieController);
 
 class MapAnalyzer {
     private worker: Worker;
