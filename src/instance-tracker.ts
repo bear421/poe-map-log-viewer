@@ -430,7 +430,7 @@ const EVENT_PATTERNS = [
     `%(?<g${EventCG.MsgParty}>[^ ]+): (.*)`,
     `Generating level (?<g${EventCG.Generating}>\\d+) area \"(.+?)\"(?:.*seed (\\d+))?`,
     `(?<g${EventCG.TradeAccepted}>Trade accepted\\.)`,
-    `(?<g${EventCG.ItemsIdentified}>\\d+) Items identified`,
+    `: (?<g${EventCG.ItemsIdentified}>\\d+) Items identified`,
     `: (?<g${EventCG.Slain}>[^ ]+) has been slain`,
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
     `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
@@ -678,7 +678,7 @@ class InstanceTracker {
                     this.dispatchEvent("tradeAccepted", ts);
                     break;
                 case EventCG.ItemsIdentified:
-                    this.dispatchEvent("itemsIdentified", ts);
+                    this.dispatchEvent("itemsIdentified", ts, { count: parseInt(m[offset]) });
                     break;
             }
             this.informInteraction(ts);
@@ -725,13 +725,13 @@ class InstanceTracker {
                         if (lastInteraction > currentMap.span.start) {
                             endTime = lastInteraction;
                         } else {
-                            logger.warn(`unable to determine stale map's end time: ${currentMap}`);
+                            logger.warn(`unable to determine stale map's end time: ${JSON.stringify(currentMap)}`);
                             endTime = areaInfo.ts;
                         }
                     } else if (currentMap.span.hideoutStartTime) {
                         endTime = currentMap.span.hideoutStartTime;
                     } else {
-                        logger.warn(`unable to determine stale map's end time: ${currentMap}`);
+                        logger.warn(`unable to determine stale map's end time: ${JSON.stringify(currentMap)}`);
                         endTime = areaInfo.ts;
                     }
                 }
@@ -808,7 +808,7 @@ class InstanceTracker {
         }
     }
 
-    // real time functions, not utility for analysis of logs
+    // real time functions, no utility for analysis of logs
 
     getCurrentMap(): MapInstance | null {
         return this.currentMap;

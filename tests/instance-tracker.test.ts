@@ -116,8 +116,10 @@ describe('InstanceTracker', () => {
     test('should detect items identified events', () => {
         const eventSpy = jest.fn();
         tracker.eventDispatcher.on("itemsIdentified", eventSpy);
-        tracker.processLogLine("2023/06/15 12:35:05 123456789 abc [INFO Client 123] 5 Items identified");
+        tracker.processLogLine("2023/06/15 12:35:05 123456789 abc [INFO Client 123] : 5 Items identified");
         expect(eventSpy).toHaveBeenCalled();
+        const eventDetail = eventSpy.mock.calls[0][0].detail;
+        expect(eventDetail.count).toBe(5);
     });
 
 });
