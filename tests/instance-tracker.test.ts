@@ -102,7 +102,7 @@ describe('InstanceTracker', () => {
     test('should detect trade accepted events', () => {
         const eventSpy = jest.fn();
         tracker.eventDispatcher.on("tradeAccepted", eventSpy);
-        tracker.processLogLine("2023/06/15 12:35:04 123456789 abc [INFO Client 123] Trade accepted.");
+        tracker.processLogLine("2023/06/15 12:35:04 123456789 abc [INFO Client 123] : Trade accepted.");
         expect(eventSpy).toHaveBeenCalled();
     });
 
