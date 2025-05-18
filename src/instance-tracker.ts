@@ -352,38 +352,18 @@ class Filter {
         return true;
     }
 
-    static filterMaps(maps: MapInstance[], filter?: Filter): MapInstance[] {
-        if (!filter || Filter.isEmpty(filter)) return maps; 
+    static filterMaps(maps: MapInstance[], filter: Filter): MapInstance[] {
+        if (Filter.isEmpty(filter)) return maps; 
 
         let ix = 0;
         if (filter.fromMillis) {
-            // find starting index via binary search when filtering lower bound
-            let left = 0, right = maps.length - 1, startIx = maps.length;
-            while (left <= right) {
-                const mid = Math.floor((left + right) / 2);
-                if (maps[mid].span.start >= filter.fromMillis) {
-                    startIx = mid;
-                    right = mid - 1;
-                } else {
-                    left = mid + 1;
-                }
-            }
-            if (ix >= maps.length) return [];
-
-            ix = startIx;
+            ix = binarySearch(maps, filter.fromMillis, (map) => map.span.start, BinarySearchMode.FIRST);
+            if (ix === -1) return [];
         }
         let endIx = maps.length;
         if (filter.toMillis) {
-            let left = ix, right = maps.length - 1;
-            while (left <= right) {
-                const mid = Math.floor((left + right) / 2);
-                if (maps[mid].span.start <= filter.toMillis) {
-                    left = mid + 1;
-                } else {
-                    endIx = mid;
-                    right = mid - 1;
-                }
-            }
+            endIx = binarySearch(maps, filter.toMillis, (map) => map.span.start, BinarySearchMode.LAST, ix);
+            if (endIx === -1) return [];
         } else if (!filter.fromAreaLevel && !filter.toAreaLevel) {
             return maps.slice(ix);
         }
@@ -401,16 +381,18 @@ class Filter {
         return res;
     }
 
-    static filterEvents(events: LogEvent[], filter?: Filter): LogEvent[] {
-        if (!filter || Filter.isEmpty(filter)) return events; 
+    static filterEvents(events: LogEvent[], filter: Filter): LogEvent[] {
+        if (Filter.isEmpty(filter)) return events; 
 
         let ix = 0;
         if (filter.fromMillis) {
             ix = binarySearch(events, filter.fromMillis, (event) => event.ts, BinarySearchMode.FIRST);
+            if (ix === -1) return [];
         }
         let endIx = events.length;
         if (filter.toMillis) {
             endIx = binarySearch(events, filter.toMillis, (event) => event.ts, BinarySearchMode.LAST, ix);
+            if (endIx === -1) return [];
         }
         return events.slice(ix, endIx);
     }
