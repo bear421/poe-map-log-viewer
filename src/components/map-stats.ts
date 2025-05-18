@@ -18,13 +18,13 @@ export class MapStatsComponent {
         return this.element;
     }
 
-    public update(maps: MapInstance[], events: LogEvent[]): void {
+    public update(maps: MapInstance[], events: LogEvent[]) {
         this.currentMaps = maps;
         this.currentEvents = events;
         this.render();
     }
 
-    private render(): void {
+    private render() {
         this.element.innerHTML = '';
 
         const mapStats = new Map<string, {
@@ -53,31 +53,25 @@ export class MapStatsComponent {
             mapStats.set(map.name, stats);
         });
 
-        const tableCard = document.createElement('div');
-        tableCard.innerHTML = `
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Map Statistics</h5>
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Map Name</th>
-                                    <th>Count</th>
-                                    <th>Levels</th>
-                                    <th>Avg Time (min)</th>
-                                    <th>Total Time (min)</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="mapStatsTableBodyLocal">
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        const tableContainer = document.createElement('div');
+        tableContainer.className = 'table-responsive';
+        tableContainer.innerHTML = `
+            <table class="table table-striped table-hover">
+                <thead>
+                    <tr>
+                        <th>Map Name</th>
+                        <th>Count</th>
+                        <th>Levels</th>
+                        <th>Avg Time (min)</th>
+                        <th>Total Time (min)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="mapStatsTableBodyLocal">
+                </tbody>
+            </table>
         `;
-        this.element.appendChild(tableCard);
+        this.element.appendChild(tableContainer);
 
         const mapStatsTableBody = this.element.querySelector('#mapStatsTableBodyLocal');
         if (mapStatsTableBody) {
@@ -261,10 +255,9 @@ export class MapStatsComponent {
             const hi = binarySearch(this.currentEvents, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
 
             if (lo !== -1 && hi !== -1 && lo <= hi) {
-                if (hi - lo + 1 > 1000) { // Limit events to prevent performance issues
+                if (hi - lo + 1 > 1000) {
                     console.warn(`Slicing events for map ${map.name} due to large number: ${hi - lo + 1}`);
                     relevantEvents = this.currentEvents.slice(lo, lo + 1000); 
-                    // Potentially add a message in UI that not all events are shown
                 } else {
                     relevantEvents = this.currentEvents.slice(lo, hi + 1);
                 }
@@ -274,20 +267,14 @@ export class MapStatsComponent {
         timeline.innerHTML += relevantEvents.map(event => {
             const eventTime = new Date(event.ts).toLocaleString();
             let badgeClass = 'bg-secondary';
-            let icon = 'bi-info-circle-fill'; // Default icon
+            let icon = 'bi-info-circle-fill';
             let details = '';
 
-            // Customize badge, icon, and details based on event type
             switch(event.name) {
                 case "death":
                     badgeClass = 'bg-danger';
-                    icon = 'bi-heartbreak-fill'; // Corrected icon name
+                    icon = 'bi-heartbreak-fill';
                     details = `Character: ${event.detail.character}`;
-                    break;
-                case "bossKill": // Assuming a 'bossKill' event
-                    badgeClass = 'bg-warning';
-                    icon = 'bi-trophy-fill';
-                    details = `Boss: ${event.detail.bossName}, Zone: ${event.detail.zone}`;
                     break;
                 case "levelUp":
                     badgeClass = 'bg-success';
@@ -300,14 +287,16 @@ export class MapStatsComponent {
                      details = `Area: ${event.detail.area}, Character: ${event.detail.character}`;
                     break;
                 case "msgFrom":
+                    details = `@From ${event.detail.character}: ${event.detail.msg}`;
+                    break;
                 case "msgTo":
+                    details = `@To ${event.detail.character}: ${event.detail.msg}`;
+                    break;
                 case "msgParty":
                     icon = 'bi-chat-dots-fill';
-                    details = `${event.name === "msgParty" ? "Party" : event.detail.player}: ${event.detail.msg}`;
+                    details = `%${event.detail.character}: ${event.detail.msg}`;
                     break;
-                // Add more cases as needed for other event types
                 default:
-                    // Fallback for unstyled events, or use JSON.stringify for raw details
                     details = typeof event.detail === 'object' ? JSON.stringify(event.detail) : String(event.detail);
             }
             

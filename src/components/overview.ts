@@ -130,35 +130,35 @@ export class OverviewComponent {
         summaryCard.innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Summary</h5>
+                    <h4 class="card-title">Totals</h4>
                     <div class="card-text">
-                        <dl class="row mb-0">
-                            <dt class="col-9">Maps</dt>
+                        <dl class="row mb-0 fs-5">
+                            <dt class="col-9"><i class="bi bi-map me-2"></i>Maps</dt>
                             <dd class="col-3 text-end">${maps.length}</dd>
 
-                            <dt class="col-9">Total map time</dt>
+                            <dt class="col-9"><i class="bi bi-clock-history me-2"></i>Total map time</dt>
                             <dd class="col-3 text-end">${(maps.reduce((acc, map) => acc + MapSpan.mapTime(map.span), 0) / (1000 * 60 * 60)).toFixed(1)}h</dd>
 
-                            <dt class="col-9">Total load time</dt>
+                            <dt class="col-9"><i class="bi bi-stopwatch me-2"></i>Total load time</dt>
                             <dd class="col-3 text-end">${(maps.reduce((acc, map) => acc + map.span.loadTime, 0) / (1000 * 60 * 60)).toFixed(1)}h</dd>
 
-                            <dt class="col-9">Deaths</dt>
+                            <dt class="col-9"><i class="bi bi-heartbreak text-danger me-2"></i>Deaths</dt>
                             <dd class="col-3 text-end">${totalDeaths}</dd>
 
-                            <dt class="col-9">Items identified by "The Hooded One"</dt>
+                            <dt class="col-9"><i class="bi bi-magic me-2"></i>Items identified</dt>
                             <dd class="col-3 text-end">${events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0)}</dd>
 
-                            <dt class="col-9">Item purchases</dt>
+                            <dt class="col-9"><i class="bi bi-cart-plus text-success me-2"></i>Item purchases</dt>
                             <dd class="col-3 text-end">${totalItemsBought}</dd>
 
-                            <dt class="col-9">Item purchases failed</dt>
-                            <dd class="col-3 text-end text-danger">${totalBuysAttempted - totalItemsBought}</dd>
+                            <dt class="col-9"><i class="bi bi-cart-x text-danger me-2"></i>Item purchases failed</dt>
+                            <dd class="col-3 text-end">${totalBuysAttempted - totalItemsBought}</dd>
 
-                            <dt class="col-9">Item sales</dt>
+                            <dt class="col-9"><i class="bi bi-tags text-success me-2"></i>Item sales</dt>
                             <dd class="col-3 text-end">${totalItemsSold}</dd>
 
-                            <dt class="col-9">Item sales failed</dt>
-                            <dd class="col-3 text-end text-danger">${totalSalesAttempted - totalItemsSold}</dd>
+                            <dt class="col-9"><i class="bi bi-tags text-danger me-2"></i>Item sales failed</dt>
+                            <dd class="col-3 text-end">${totalSalesAttempted - totalItemsSold}</dd>
                         </dl>
                     </div>
                 </div>
@@ -171,7 +171,7 @@ export class OverviewComponent {
         chartCard.innerHTML = `
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Time Distribution (Median)</h5>
+                    <h4 class="card-title">Time Distribution (Median)</h5>
                     <canvas id="timeDistributionChartOverview"></canvas>
                 </div>
             </div>

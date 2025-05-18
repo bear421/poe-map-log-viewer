@@ -67,6 +67,7 @@ class MapAnalyzer {
         const titleElement = document.createElement('h1');
         titleElement.textContent = 'PoE Map Log Viewer';
         titleElement.style.marginLeft = '20px';
+        titleElement.className = 'display-1';
         headerContainer.appendChild(titleElement);
 
         container.prepend(headerContainer);
@@ -197,7 +198,7 @@ class MapAnalyzer {
                     this.currentMaps = [];
                     this.currentEvents = [];
                     console.error(data.error);
-                    this.showError(data.error); // showError will handle UI visibility
+                    this.showError(data.error);
                     this.hideProgress();
                     break;
             }
