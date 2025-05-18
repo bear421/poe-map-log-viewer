@@ -31,6 +31,18 @@ function parseTs(line: string): number | null {
     return Date.UTC(yr, mo - 1, day, hh, mm, ss) + getOffsetMs(yr, mo, day);
 }
 
+function parseUptimeMillis(line: string): number {
+    let millis = 0;
+    for (let i = 20; i < line.length; i++) {
+        const c = line.charCodeAt(i);
+        if (c < 0x30 || c > 0x39) {
+            break;
+        }
+        millis = millis * 10 + (c - 0x30);
+    }
+    return millis;
+}
+
 const TS_REGEX = new RegExp("^(\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2})");
 
 function parseTsSlow(line: string): number | null {
@@ -44,4 +56,4 @@ function clearOffsetCache(): void {
     tzOffsetCache.clear();
 }
 
-export { parseTs, parseTsSlow, clearOffsetCache };
+export { parseTs, parseUptimeMillis, parseTsSlow, clearOffsetCache };

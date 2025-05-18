@@ -1,16 +1,19 @@
 class AreaInfo {
     ts: number;
+    uptimeMillis: number;
     level: number;
     name: string;
     seed: number;
 
     constructor(
         ts: number,
+        uptimeMillis: number,
         areaLevel: number,
         name: string,
         seed: number
     ) {
         this.ts = ts;
+        this.uptimeMillis = uptimeMillis;
         this.level = areaLevel;
         this.name = name;
         this.seed = seed;
@@ -64,6 +67,8 @@ class MapSpan {
     loadTime: number; 
     pauseTime: number;
     pausedAt: number | null;
+    preloadTs: number | null = null;
+    preloadUptimeMillis: number | null = null;
 
     constructor(
         start: number,
@@ -115,7 +120,7 @@ class MapSpan {
         }
         const compactTime = baseTime - MapSpan.idleTime(span);
         if (compactTime < 0) {
-            throw new Error(`invariant: map time excluding idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
+            throw new Error(`invariant: map time minus idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
         }
         return compactTime;
     }
@@ -239,21 +244,28 @@ class MapInstance {
         this.state = MapState.LOADING;
     }
 
-    applyLoadedAt(ts: number): number {
+    applyLoadedAt(ts: number, uptimeMillis: number): number {
+        let delta;
+        {
+            const tsDelta = ts - this.span.preloadTs!;
+            const uptimeDelta = uptimeMillis - this.span.preloadUptimeMillis!;
+            if (Math.abs(uptimeDelta - tsDelta) <= 1000) {
+                delta = uptimeDelta;
+            } else {
+                logger.warn(`tsDelta and uptimeDelta are too different: ${tsDelta} ${uptimeDelta} - using tsDelta instead`);
+                delta = tsDelta;
+            }
+        }
         if (this.state === MapState.LOADING) {
-            const delta = ts - (this.span.hideoutExitTime || this.span.start);
-            this.span.addToLoadTime(delta);
             this.state = MapState.ENTERED;
-            return delta;
         } else if (this.state === MapState.UNLOADING) {
-            const delta = ts - this.span.hideoutStartTime!;
-            this.span.addToLoadTime(delta);
             this.span.hideoutStartTime! += delta;
             this.state = MapState.EXITED;
-            return delta;
         } else {
             throw new Error(`illegal state: ${this.state}, only call addLoadTime in LOADING or UNLOADING state`);
         }
+        this.span.addToLoadTime(delta);
+        return delta;
     }
 
     isUnlockableHideout(): boolean {
@@ -340,7 +352,7 @@ class Filter {
         return true;
     }
 
-    static filterAll(maps: MapInstance[], filter?: Filter): MapInstance[] {
+    static filterMaps(maps: MapInstance[], filter?: Filter): MapInstance[] {
         if (!filter || Filter.isEmpty(filter)) return maps; 
 
         let ix = 0;
@@ -389,8 +401,23 @@ class Filter {
         return res;
     }
 
+    static filterEvents(events: LogEvent[], filter?: Filter): LogEvent[] {
+        if (!filter || Filter.isEmpty(filter)) return events; 
+
+        let ix = 0;
+        if (filter.fromMillis) {
+            ix = binarySearch(events, filter.fromMillis, (event) => event.ts, BinarySearchMode.FIRST);
+        }
+        let endIx = events.length;
+        if (filter.toMillis) {
+            endIx = binarySearch(events, filter.toMillis, (event) => event.ts, BinarySearchMode.LAST, ix);
+        }
+        return events.slice(ix, endIx);
+    }
+
 }
 
+// example 2024/12/06 21:38:54 35930140 403248f7 [INFO Client 1444] [SHADER] Delay: ON
 const POST_LOAD_REGEX = new RegExp(`\\[SHADER\\] Delay:`, "i");
 
 enum EventCG {
@@ -412,13 +439,13 @@ enum EventCG {
  * MsgTo:           2024/12/09 17:20:32 161926000 3ef2336d [INFO Client 12528] @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
  * MsgParty:        2024/12/08 16:07:33 125147609 3ef2336d [INFO Client 12528] %Player1: meow
  * Generating:      2024/12/06 21:38:41 35916765 2caa1679 [DEBUG Client 1444] Generating level 1 area "G1_1" with seed 2665241567
+ * TradeAccepted:   2024/12/06 23:53:01 43976781 3ef2336d [INFO Client 19904] : Trade accepted.
+ * ItemsIdentified: 2024/12/07 01:41:51 50507140 3ef2336d [INFO Client 18244] : 5 Items identified
  * Slain:           2024/12/06 23:47:07 43622984 3ef2336d [INFO Client 19904] : Player1 has been slain.
  * Joined:          2024/12/06 23:05:09 41105484 3ef2336d [INFO Client 22004] : Player1 has joined the area.
  * Left:            2024/12/06 23:12:20 41536000 3ef2336d [INFO Client 22004] : Player1 has left the area.
  * LevelUp:         2024/12/06 22:44:59 39895562 3ef2336d [INFO Client 2636] : Player1 (Sorceress) is now level 2
  * LevelUp:         2025/02/10 09:47:04 937716484 3ef2336a [INFO Client 13352] : Player1 (Stormweaver) is now level 100
- * TradeAccepted:   2024/12/06 23:53:01 43976781 3ef2336d [INFO Client 19904] : Trade accepted.
- * ItemsIdentified: 2024/12/07 01:41:51 50507140 3ef2336d [INFO Client 18244] : 5 Items identified
  */
 
 
@@ -429,7 +456,7 @@ const EVENT_PATTERNS = [
     `@To (?<g${EventCG.MsgTo}>[^ ]+): (.*)`,
     `%(?<g${EventCG.MsgParty}>[^ ]+): (.*)`,
     `Generating level (?<g${EventCG.Generating}>\\d+) area \"(.+?)\"(?:.*seed (\\d+))?`,
-    `(?<g${EventCG.TradeAccepted}>Trade accepted\\.)`,
+    `: (?<g${EventCG.TradeAccepted}>Trade accepted\\.)`,
     `: (?<g${EventCG.ItemsIdentified}>\\d+) Items identified`,
     `: (?<g${EventCG.Slain}>[^ ]+) has been slain`,
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
@@ -465,8 +492,9 @@ const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 const logger = console;
 
 import { RingBuffer } from "./ringbuffer";
-import { parseTs, clearOffsetCache } from "./ts-parser";
-import { EventDispatcher } from "./event-dispatcher";
+import { parseTs, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
+import { EventDispatcher, LogEvent } from "./event-dispatcher";
+import { binarySearch, BinarySearchMode } from "./binary-search";
 
 class InstanceTracker {
     
@@ -609,6 +637,16 @@ class InstanceTracker {
      * @returns false, if the filter would reject subsequent lines (toMillis filtering).
      */
     processLogLine(line: string, filter?: Filter): boolean {
+        try {
+            return this.processLogLineUnchecked(line, filter);
+        } catch (e) {
+            logger.error(`error processing log line, discarding current map: ${line}`, e);
+            this.currentMap = null;
+            return true;
+        }
+    }
+
+    private processLogLineUnchecked(line: string, filter?: Filter): boolean {
         let ts;
         if (filter && (filter.fromMillis || filter.toMillis)) {
             ts = parseTs(line);
@@ -626,7 +664,8 @@ class InstanceTracker {
                 logger.warn(`no timestamp found in post load match: ${line}`);
                 return true;
             }
-            const delta = this.currentMap!.applyLoadedAt(ts);
+            const uptimeMillis = parseUptimeMillis(line);
+            const delta = this.currentMap!.applyLoadedAt(ts, uptimeMillis);
             this.dispatchEvent("areaPostLoad", ts, { delta });
         } else {
             const m = COMPOSITE_EV_REGEX.exec(line);
@@ -643,20 +682,22 @@ class InstanceTracker {
             const offset = COMPOSITE_PATTERN_OFFSETS[eventCG];
             switch (eventCG) {
                 case EventCG.MsgFrom:
-                    this.dispatchEvent("msgFrom", ts, { character: m[offset], message: m[offset + 1] });
+                    this.dispatchEvent("msgFrom", ts, { character: m[offset], msg: m[offset + 1] });
                     break;
                 case EventCG.MsgTo:
-                    this.dispatchEvent("msgTo", ts, { character: m[offset], message: m[offset + 1] });
+                    this.dispatchEvent("msgTo", ts, { character: m[offset], msg: m[offset + 1] });
                     break;
                 case EventCG.MsgParty:
-                    this.dispatchEvent("msgParty", ts, { character: m[offset], message: m[offset + 1] });
+                    this.dispatchEvent("msgParty", ts, { character: m[offset], msg: m[offset + 1] });
                     break;
                 case EventCG.Generating:
+                    const uptimeMillis = parseUptimeMillis(line);
                     const areaLevel = parseInt(m[offset]);
                     const mapName = m[offset + 1];
                     const mapSeed = parseInt(m[offset + 2]);
                     this.enterArea(new AreaInfo(
                         ts,
+                        uptimeMillis,
                         areaLevel,
                         mapName,
                         mapSeed
@@ -711,9 +752,9 @@ class InstanceTracker {
             }
         }
         if (currentMap && currentMap.seed !== areaInfo.seed) {
+            // stale map handling, could possibly be made more accurate using client uptime millis
             const mapTime = currentMap.span.mapTime(areaInfo.ts);
             if (mapTime > STALE_MAP_THRESHOLD) {
-                // stale map handling, could possibly be made more accurate using client uptime micros
                 let endTime: number;
                 if (currentMap.span.hideoutStartTime) {
                     // player exited client while in hideout
@@ -740,11 +781,11 @@ class InstanceTracker {
             }
         }
 
-        this.dispatchEvent("areaEntered", areaInfo.ts);
-
         if (!areaInfo.isMap) {
             if (currentMap) {
                 currentMap.enterHideout(areaInfo.ts);
+                currentMap.span.preloadTs = areaInfo.ts;
+                currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
                 this.dispatchEvent("hideoutEntered", areaInfo.ts);
             }
             return;
@@ -752,6 +793,8 @@ class InstanceTracker {
 
         if (currentMap) {
             currentMap.span.areaEnteredAt = areaInfo.ts;
+            currentMap.span.preloadTs = areaInfo.ts;
+            currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
             if (currentMap.inHideout()) {
                 currentMap.exitHideout(areaInfo.ts);
                 this.dispatchEvent("hideoutExited", areaInfo.ts);
@@ -776,6 +819,8 @@ class InstanceTracker {
             0,
             this.nextWaystone
         );
+        this.currentMap.span.preloadTs = areaInfo.ts;
+        this.currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
         this.nextWaystone = null;
         this.dispatchEvent("mapEntered", areaInfo.ts);
     }

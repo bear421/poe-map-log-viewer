@@ -9,37 +9,30 @@ import {
     Legend,
     PieController
 } from 'chart.js';
+import { Mascot } from './components/mascot';
 
-import mascotHappy from './assets/images/mascot_happy.webp';
-import mascotHmm from './assets/images/mascot_hmm.webp';
-import mascotHmm2 from './assets/images/mascot_hmm2.webp';
-import mascotSurprised from './assets/images/mascot_surprised.webp';
+import './assets/css/styles.css';
 
 Chart.register(ArcElement, Tooltip, Legend, PieController);
 
 class MapAnalyzer {
 
     private worker: Worker;
-    private uploadButton!: HTMLButtonElement;
     private fileInput!: HTMLInputElement;
     private progressBar!: HTMLDivElement;
     private overviewTabPane!: HTMLDivElement;
     private mapsTabPane!: HTMLDivElement;
     private searchLogTabPane!: HTMLDivElement;
-    private currentMaps: MapInstance[] | null = null;
-    private currentEvents: LogEvent[] | null = null;
-    private mascotElement!: HTMLImageElement;
-    private mascotAnimationInterval: number | null = null;
-    private mascotCurrentFrame: number = 0;
-    private mascotFrameImagePaths = [
-        mascotHappy,
-        mascotHmm,
-        mascotHmm2,
-        mascotSurprised
-    ];
-    private mascotSearchAnimationFrames = [1, 2, 3];
-    private mascotShouldAnimateForSearch: boolean = false;
-    private mascotShouldAnimateForHover: boolean = false;
+    private currentMaps: MapInstance[] = [];
+    private currentEvents: LogEvent[] = [];
+    private mascot!: Mascot;
+
+    // Properties to manage UI element visibility
+    private filterCardElement!: HTMLDivElement;
+    private tabNavElement!: HTMLUListElement;
+    private tabContentElement!: HTMLDivElement;
+    private inputGroupElement!: HTMLDivElement;
+    private pathHelperCardElement!: HTMLDivElement;
 
     constructor() {
         this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
@@ -49,51 +42,21 @@ class MapAnalyzer {
 
     private setupElements() {
         const container = document.createElement('div');
-        container.className = 'container mt-5';
+        container.className = 'container py-2 flex-grow-1 bg-white';
         document.body.appendChild(container);
+
+        const faviconLink = document.createElement('link');
+        faviconLink.rel = 'icon';
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y=".9em" font-size="80" text-anchor="middle">🐻</text></svg>`;
+        faviconLink.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
+        document.head.appendChild(faviconLink);
 
         const headerContainer = document.createElement('div');
         headerContainer.style.display = 'flex';
         headerContainer.style.alignItems = 'flex-start';
         headerContainer.style.marginBottom = '-10px';
 
-        this.mascotElement = document.createElement('img');
-        this.mascotElement.style.width = '128px';
-        this.mascotElement.style.height = '128px';
-        this.mascotElement.style.display = 'block';
-        this.mascotElement.style.position = 'relative';
-        this.mascotElement.style.zIndex = '1';
-        this.setMascotFrame(0);
-        headerContainer.appendChild(this.mascotElement);
-
-        this.mascotElement.addEventListener('mouseenter', () => {
-            this.mascotElement.classList.remove('mascot-wiggle');
-            // Trigger a reflow to restart the animation
-            void this.mascotElement.offsetWidth;
-            this.mascotElement.classList.add('mascot-wiggle');
-        });
-        this.mascotElement.addEventListener('mouseleave', () => {
-            this.mascotElement.classList.remove('mascot-wiggle');
-        });
-
-        const wiggleStyle = document.createElement('style');
-        wiggleStyle.textContent = `
-            @keyframes wiggle {
-                0% { transform: rotate(0deg); }
-                20% { transform: rotate(-5deg); }
-                40% { transform: rotate(5deg); }
-                60% { transform: rotate(-3deg); }
-                80% { transform: rotate(3deg); }
-                100% { transform: rotate(0deg); }
-            }
-            .mascot-wiggle {
-                animation-name: wiggle;
-                animation-duration: 1s;
-                animation-timing-function: ease-in-out;
-                transform-origin: bottom center;
-            }
-        `;
-        document.head.appendChild(wiggleStyle);
+        this.mascot = new Mascot(headerContainer);
 
         const titleElement = document.createElement('h1');
         titleElement.textContent = 'PoE Map Log Viewer';
@@ -102,11 +65,11 @@ class MapAnalyzer {
 
         container.prepend(headerContainer);
 
-        const filterCard = document.createElement('div');
-        filterCard.className = 'card mb-3';
-        filterCard.innerHTML = `
+        this.filterCardElement = document.createElement('div');
+        this.filterCardElement.className = 'card mb-3 d-none'; // Initially hidden
+        this.filterCardElement.innerHTML = `
             <div class="card-header">
-                <h5 class="mb-0">Filter Maps</h5>
+                <h5 class="mb-0">Filter Data</h5>
             </div>
             <div class="card-body">
                 <div class="row g-3">
@@ -142,7 +105,7 @@ class MapAnalyzer {
                 </div>
             </div>
         `;
-        container.appendChild(filterCard);
+        container.appendChild(this.filterCardElement);
 
         const searchGroup = document.createElement('div');
         searchGroup.className = 'input-group mb-3';
@@ -150,7 +113,7 @@ class MapAnalyzer {
         const searchInput = document.createElement('input');
         searchInput.type = 'text';
         searchInput.className = 'form-control';
-        searchInput.placeholder = 'Search logs...';
+        searchInput.placeholder = 'Enter pattern...';
         
         const searchButton = document.createElement('button');
         searchButton.className = 'btn btn-secondary';
@@ -160,10 +123,9 @@ class MapAnalyzer {
             if (searchTerm) {
                 const file = this.fileInput.files?.[0];
                 if (!file) {
-                    this.showError('Please select a client.txt file');
+                    this.showError('Please select a Client.txt file');
                     return;
                 }
-                this.clearResults();
                 this.showProgress();
                 this.worker.postMessage({ 
                     type: 'search', 
@@ -177,81 +139,48 @@ class MapAnalyzer {
         searchGroup.appendChild(searchInput);
         searchGroup.appendChild(searchButton);
 
-        const inputGroup = document.createElement('div');
-        inputGroup.className = 'input-group mb-3';
+        this.inputGroupElement = document.createElement('div');
+        this.inputGroupElement.className = 'input-group mb-3';
 
         this.fileInput = document.createElement('input');
         this.fileInput.type = 'file';
-        this.fileInput.className = 'form-control';
+        this.fileInput.className = 'form-control custom-file-input-tall';
         this.fileInput.accept = '.txt';
 
-        this.uploadButton = document.createElement('button');
-        this.uploadButton.className = 'btn btn-primary';
-        this.uploadButton.textContent = 'Analyze Maps';
+        this.inputGroupElement.appendChild(this.fileInput);
+        container.appendChild(this.inputGroupElement);
 
-        inputGroup.appendChild(this.fileInput);
-        inputGroup.appendChild(this.uploadButton);
-        container.appendChild(inputGroup);
-
-        const pathHelperCard = document.createElement('div');
-        pathHelperCard.className = 'card mb-4';
+        this.pathHelperCardElement = document.createElement('div');
+        this.pathHelperCardElement.className = 'card mb-4';
         
         const cardHeader = document.createElement('div');
         cardHeader.className = 'card-header';
+        cardHeader.innerHTML = `<h4 class="mb-0">ℹ️ Looking for your Client.txt file?</h5>`;
         
-        const headerButton = document.createElement('button');
-        headerButton.className = 'btn btn-link w-100 text-start p-0';
-        headerButton.setAttribute('type', 'button');
-        headerButton.setAttribute('data-bs-toggle', 'collapse');
-        headerButton.setAttribute('data-bs-target', '#pathHelperContent');
-        headerButton.setAttribute('aria-expanded', 'true');
-        headerButton.setAttribute('aria-controls', 'pathHelperContent');
+        this.pathHelperCardElement.appendChild(cardHeader);
         
-        headerButton.innerHTML = `
-            <div class="d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">ℹ️ Looking for your Client.txt file?</h5>
-                <span class="when-closed"><i class="bi bi-chevron-down"></i></span>
-                <span class="when-open"><i class="bi bi-chevron-up"></i></span>
-            </div>
-        `;
-        
-        const style = document.createElement('style');
-        style.textContent = `
-            [aria-expanded="true"] .when-closed { display: none; }
-            [aria-expanded="false"] .when-open { display: none; }
-        `;
-        document.head.appendChild(style);
-        
-        cardHeader.appendChild(headerButton);
-        pathHelperCard.appendChild(cardHeader);
-        
-        const collapseDiv = document.createElement('div');
-        collapseDiv.className = 'collapse show';
-        collapseDiv.id = 'pathHelperContent';
-        
-        const cardBody = document.createElement('div');
-        cardBody.className = 'card-body';
-        cardBody.innerHTML = `
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'card-body';
+        contentDiv.innerHTML = `
             <div class="mb-2">
                 <strong>Standalone client:</strong>
                 <div class="input-group">
                     <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Grinding Gear Games\\Path of Exile 2\\logs\\Client.txt" readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="copy-standard-path">Copy</button>
+                    <button class="btn btn-primary" type="button" id="copy-standard-path">Copy</button>
                 </div>
             </div>
             <div>
                 <strong>Steam client:</strong>
                 <div class="input-group">
                     <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Steam\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt" readonly>
-                    <button class="btn btn-outline-secondary" type="button" id="copy-steam-path">Copy</button>
+                    <button class="btn btn-primary" type="button" id="copy-steam-path">Copy</button>
                 </div>
             </div>
             <small class="text-muted mt-2 d-block">Note: If you installed Steam in a custom location, you'll need to adjust the path accordingly.</small>
         `;
         
-        collapseDiv.appendChild(cardBody);
-        pathHelperCard.appendChild(collapseDiv);
-        container.appendChild(pathHelperCard);
+        this.pathHelperCardElement.appendChild(contentDiv);
+        container.appendChild(this.pathHelperCardElement);
 
         document.getElementById('copy-standard-path')?.addEventListener('click', (e) => {
             this.copyToClipboard(e.target as HTMLButtonElement);
@@ -269,26 +198,26 @@ class MapAnalyzer {
         `;
         container.appendChild(this.progressBar);
 
-        const tabNav = document.createElement('ul');
-        tabNav.className = 'nav nav-tabs mt-4';
-        tabNav.id = 'resultsTabs';
-        tabNav.setAttribute('role', 'tablist');
-        tabNav.innerHTML = `
+        this.tabNavElement = document.createElement('ul');
+        this.tabNavElement.className = 'nav nav-tabs mt-4 d-none'; // Initially hidden
+        this.tabNavElement.id = 'resultsTabs';
+        this.tabNavElement.setAttribute('role', 'tablist');
+        this.tabNavElement.innerHTML = `
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-tab-pane" type="button" role="tab" aria-controls="overview-tab-pane" aria-selected="true">Overview</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Maps</button>
+                <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Map stats</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="search-log-tab" data-bs-toggle="tab" data-bs-target="#search-log-tab-pane" type="button" role="tab" aria-controls="search-log-tab-pane" aria-selected="false">Search Logs</button>
+                <button class="nav-link" id="search-log-tab" data-bs-toggle="tab" data-bs-target="#search-log-tab-pane" type="button" role="tab" aria-controls="search-log-tab-pane" aria-selected="false">Search raw log</button>
             </li>
         `;
-        container.appendChild(tabNav);
+        container.appendChild(this.tabNavElement);
 
-        const tabContent = document.createElement('div');
-        tabContent.className = 'tab-content';
-        tabContent.id = 'resultsTabContent';
+        this.tabContentElement = document.createElement('div');
+        this.tabContentElement.className = 'tab-content d-none'; // Initially hidden
+        this.tabContentElement.id = 'resultsTabContent';
 
         this.overviewTabPane = document.createElement('div');
         this.overviewTabPane.className = 'tab-pane fade show active p-3 border border-top-0 rounded-bottom';
@@ -313,17 +242,13 @@ class MapAnalyzer {
         this.searchLogTabPane.setAttribute('tabindex', '0');
         this.searchLogTabPane.appendChild(searchGroup); // Append the searchGroup here
 
-        tabContent.appendChild(this.overviewTabPane);
-        tabContent.appendChild(this.mapsTabPane);
-        tabContent.appendChild(this.searchLogTabPane); // Add new search tab pane to tab content
-        container.appendChild(tabContent);
+        this.tabContentElement.appendChild(this.overviewTabPane);
+        this.tabContentElement.appendChild(this.mapsTabPane);
+        this.tabContentElement.appendChild(this.searchLogTabPane); // Add new search tab pane to tab content
+        container.appendChild(this.tabContentElement);
     }
 
     private setupEventListeners() {
-        this.uploadButton.addEventListener('click', () => {
-            this.handleUpload();
-        });
-        
         this.fileInput.addEventListener('change', () => {
             this.handleUpload();
         });
@@ -358,9 +283,18 @@ class MapAnalyzer {
                 case 'complete':
                     this.currentMaps = data.maps;
                     this.currentEvents = data.events;
-                    this.clearResults();
-                    this.displayResults(data.maps);
+                    this.displayResults(data.maps, data.events);
                     this.hideProgress();
+
+                    // Hide input and helper now that processing is done and we have data
+                    this.inputGroupElement.classList.add('d-none');
+                    this.pathHelperCardElement.classList.add('d-none');
+
+                    // Show filter and tabs
+                    this.filterCardElement.classList.remove('d-none');
+                    this.tabNavElement.classList.remove('d-none');
+                    this.tabContentElement.classList.remove('d-none');
+
                     const overviewTabButton = document.getElementById('overview-tab');
                     if (overviewTabButton) {
                         bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
@@ -369,15 +303,21 @@ class MapAnalyzer {
                 case 'search':
                     this.displaySearchLogResults(data.lines);
                     this.hideProgress();
+                    // Ensure tabs are visible if search results come, assumes 'complete' might not have run yet or if search is independent.
+                    // This makes the search results always try to show their container.
+                    this.tabNavElement.classList.remove('d-none');
+                    this.tabContentElement.classList.remove('d-none');
+
                     const searchLogTabButton = document.getElementById('search-log-tab');
                     if (searchLogTabButton) {
                         bootstrap.Tab.getOrCreateInstance(searchLogTabButton).show();
                     }
                     break;
                 case 'error':
-                    this.currentMaps = null;
+                    this.currentMaps = [];
+                    this.currentEvents = [];
                     console.error(data.error);
-                    this.showError(data.error);
+                    this.showError(data.error); // showError will handle UI visibility
                     this.hideProgress();
                     break;
             }
@@ -412,9 +352,7 @@ class MapAnalyzer {
             toDate.setHours(23, 59, 59, 999);
             filter.toMillis = toDate.getTime();
         }
-
-        this.clearResults();
-        this.displayResults(Filter.filterAll(this.currentMaps, filter));
+        this.displayResults(Filter.filterMaps(this.currentMaps, filter), Filter.filterEvents(this.currentEvents, filter));
     }
 
     private applyPreset(presetType: 'lastHour' | 'last24Hours' | 'last7Days' | 'last30Days') {
@@ -456,8 +394,7 @@ class MapAnalyzer {
         (document.getElementById('toDateFilter') as HTMLInputElement).value = '';
         
         if (this.currentMaps) {
-            this.clearResults();
-            this.displayResults(this.currentMaps);
+            this.displayResults(this.currentMaps, this.currentEvents);
         }
     }
 
@@ -470,13 +407,25 @@ class MapAnalyzer {
         this.collapsePathHelper();
         this.clearResults();
         this.showProgress();
+
+        // Input and helper remain visible during loading
+        // this.inputGroupElement.classList.add('d-none');
+        // this.pathHelperCardElement.classList.add('d-none');
+
+        // Ensure filter and tabs are hidden (they should be from initial state or error)
+        this.filterCardElement.classList.add('d-none');
+        this.tabNavElement.classList.add('d-none');
+        this.tabContentElement.classList.add('d-none');
+
         this.worker.postMessage({ type: 'process', file });
     }
 
-    private displayResults(maps: MapInstance[]) {
+    private displayResults(maps: MapInstance[], events: LogEvent[]) {
+        this.clearResults();
         this.overviewTabPane.innerHTML = '';
         this.mapsTabPane.innerHTML = '';
 
+        const then = performance.now();
         const times = maps.map(map => {
             try {
                 const mapTime = MapSpan.mapTime(map.span);
@@ -499,8 +448,117 @@ class MapAnalyzer {
         const medianLoadTime = getMedian(times.map(t => t.loadTime));
         const medianIdleTime = getMedian(times.map(t => t.hideoutTime));
 
+        const overviewRow = document.createElement('div');
+        overviewRow.className = 'row';
+
+        const summaryCard = document.createElement('div');
+        summaryCard.className = 'col-md-6 mb-4';
+        const foreignCharacters = new Set<string>();
+        const characters = new Map<string, any>();
+        let characterTsIndex: LogEvent[] = [];
+        let totalItemsBought = 0, totalItemsSold = 0, totalBuysAttempted = 0, totalSalesAttempted = 0;
+        let totalDeaths = 0;
+        {
+            enum TradeState {
+                buying, selling, none
+            }
+            let tradeState: TradeState = TradeState.none;
+            events.forEach(event => {
+                switch (event.name) {
+                    case "msgFrom":
+                        if (event.detail.msg.startsWith("Hi, I would like to buy your")) {
+                            tradeState = TradeState.selling;
+                            totalSalesAttempted++;
+                        }
+                        break;
+                    case "msgTo":
+                        if (event.detail.msg.startsWith("Hi, I would like to buy your")) {
+                            tradeState = TradeState.buying;
+                            totalBuysAttempted++;
+                        }
+                        break;
+                    case "tradeAccepted":
+                        // this implementation is inaccurate: 
+                        // A) buy / sell request order does not necessarily match tradeAccepted order
+                        // B) tradeAccepted may come from a non-trade site trade (e.g. party member)
+                        // FIXME instead, buffer "pending" trades and have tradeAccepted events consume them with a certain timeout threshold
+                        // (otherwise, this severely overcounts failed trades for concurrent trades)
+                        if (tradeState == TradeState.buying) {
+                            totalItemsBought++;
+                        } else if (tradeState == TradeState.selling) {
+                            totalItemsSold++;
+                        }
+                        tradeState = TradeState.none;
+                        break;
+                    case "levelUp":
+                        characters.set(event.detail.character, event.detail.level);
+                        characterTsIndex.push(event);
+                        break;
+                    case "death":
+                        // FIXME make area level filter work, either add area level to death event or keep track of prior maps
+                        //  binary searching the maps for every death might be a bit inefficient (?)
+                        // maybe add to filterEvents
+                        characterTsIndex.push(event);
+                        totalDeaths++;
+                        break;
+                    case "msgParty":
+                        characterTsIndex.push(event);
+                        break;
+                    case "joinedArea":
+                        foreignCharacters.add(event.detail.character);
+                        break;
+                }
+            });
+        }
+        foreignCharacters.forEach(character => {
+            characters.delete(character);
+        });
+        characterTsIndex = characterTsIndex.filter(event => characters.has(event.detail.character));
+        console.log("aggregations took", (performance.now() - then) + " ms");
+        console.log(characters);
+        summaryCard.innerHTML = `
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Summary</h5>
+                    <div class="card-text">
+                        <dl class="row mb-0">
+                            <dt class="col-9">Maps</dt>
+                            <dd class="col-3 text-end">${maps.length}</dd>
+
+                            <dt class="col-9">Map time</dt>
+                            <dd class="col-3 text-end">${(maps.reduce((acc, map) => acc + MapSpan.mapTime(map.span), 0) / (1000 * 60 * 60)).toFixed(0)}h</dd>
+
+                            <dt class="col-9">Load time</dt>
+                            <dd class="col-3 text-end">${(maps.reduce((acc, map) => acc + map.span.loadTime, 0) / (1000 * 60 * 60)).toFixed(0)}h</dd>
+
+                            <dt class="col-9">Deaths</dt>
+                            <dd class="col-3 text-end">${totalDeaths}</dd>
+
+                            <dt class="col-9">Items identified by "The Hooded One"</dt>
+                            <dd class="col-3 text-end">${events.reduce((acc, event) => {
+                                return acc + (event.name == "itemsIdentified" ? event.detail.count : 0);
+                            }, 0)}</dd>
+
+                            <dt class="col-9">Item purchases</dt>
+                            <dd class="col-3 text-end">${totalItemsBought}</dd>
+
+                            <dt class="col-9">Item purchases failed</dt>
+                            <dd class="col-3 text-end text-danger">${totalBuysAttempted - totalItemsBought}</dd>
+
+                            <dt class="col-9">Item sales</dt>
+                            <dd class="col-3 text-end">${totalItemsSold}</dd>
+
+                            <dt class="col-9">Item sales failed</dt>
+                            <dd class="col-3 text-end text-danger">${totalSalesAttempted - totalItemsSold}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        `;
+        overviewRow.appendChild(summaryCard);
+
         const chartCard = document.createElement('div');
-        chartCard.className = 'col-12 mb-4';
+        chartCard.className = 'col-md-6 mb-4';
         chartCard.innerHTML = `
             <div class="card">
                 <div class="card-body">
@@ -509,7 +567,9 @@ class MapAnalyzer {
                 </div>
             </div>
         `;
-        this.overviewTabPane.appendChild(chartCard);
+        overviewRow.appendChild(chartCard);
+
+        this.overviewTabPane.appendChild(overviewRow);
 
         const ctx = (document.getElementById('timeDistributionChart') as HTMLCanvasElement).getContext('2d');
         if (ctx) {
@@ -536,8 +596,15 @@ class MapAnalyzer {
                             callbacks: {
                                 label: (context) => {
                                     const seconds = context.raw as number;
+                                    const dataset = context.dataset.data;
+                                    const total = dataset.reduce((acc, val) => acc + (val as number), 0);
+                                    const percentage = ((seconds / total) * 100).toFixed(1);
+
+                                    if (context.label === 'Load time') {
+                                        return `${context.label}: ${seconds.toFixed(1)} seconds (${percentage}%)`;
+                                    }
                                     const minutes = (seconds / 60).toFixed(1);
-                                    return `${context.label}: ${minutes} minutes`;
+                                    return `${context.label}: ${minutes} minutes (${percentage}%)`;
                                 }
                             }
                         }
@@ -577,25 +644,6 @@ class MapAnalyzer {
 
             mapStats.set(map.name, stats);
         });
-
-        const summaryCard = document.createElement('div');
-        summaryCard.className = 'col-12 mb-4';
-        summaryCard.innerHTML = `
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Summary</h5>
-                    <p class="card-text">
-                        Total maps: ${maps.length}<br>
-                        Unique map types: ${mapStats.size}<br>
-                        Total map time: ${(maps.reduce((acc, map) => acc + MapSpan.mapTime(map.span), 0) / (1000 * 60 * 60)).toFixed(2)} hours<br>
-                        Total items identified by the hooded one: ${this.currentEvents!.reduce((acc, event) => {
-                            return acc + (event.name == "itemsIdentified" ? event.detail.count : 0);
-                        }, 0)}
-                    </p>
-                </div>
-            </div>
-        `;
-        this.overviewTabPane.appendChild(summaryCard);
 
         const tableCard = document.createElement('div');
         tableCard.innerHTML = `
@@ -646,7 +694,7 @@ class MapAnalyzer {
                 const target = e.target as HTMLElement;
                 const mapName = target.getAttribute('data-map-name') || '';
                 const mapInstances = maps.filter(map => map.name === mapName);
-                this.showMapInstancesModal(mapName, mapInstances);
+                this.showMapInstancesModal(mapName, mapInstances, events);
             });
         });
         
@@ -680,14 +728,12 @@ class MapAnalyzer {
 
     private showProgress() {
         this.progressBar.classList.remove('d-none');
-        this.mascotShouldAnimateForSearch = true;
-        this.updateMascotAnimationState();
+        this.mascot.setSearchAnimation(true);
     }
 
     private hideProgress() {
         this.progressBar.classList.add('d-none');
-        this.mascotShouldAnimateForSearch = false;
-        this.updateMascotAnimationState();
+        this.mascot.setSearchAnimation(false);
     }
 
     private showError(message: string) {
@@ -698,12 +744,19 @@ class MapAnalyzer {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
         this.overviewTabPane.prepend(alert);
+
+        // Show input and helper, hide filter and tabs
+        this.inputGroupElement.classList.remove('d-none');
+        this.pathHelperCardElement.classList.remove('d-none');
+        this.filterCardElement.classList.add('d-none');
+        this.tabNavElement.classList.add('d-none');
+        this.tabContentElement.classList.add('d-none');
+
         const overviewTabButton = document.getElementById('overview-tab');
         if (overviewTabButton) {
             bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
         }
-        this.mascotShouldAnimateForSearch = false;
-        this.updateMascotAnimationState();
+        this.mascot.setSearchAnimation(false);
     }
 
     private clearResults() {
@@ -728,14 +781,15 @@ class MapAnalyzer {
     }
 
     private collapsePathHelper() {
-        const collapseElement = document.getElementById('pathHelperContent');
-        
-        if (collapseElement && collapseElement.classList.contains('show')) {
-            bootstrap.Collapse.getInstance(collapseElement)?.hide();
-        }
+        // This method is no longer needed as the toggle is removed.
+        // const collapseElement = document.getElementById('pathHelperContent');
+        // 
+        // if (collapseElement && collapseElement.classList.contains('show')) {
+        //     bootstrap.Collapse.getInstance(collapseElement)?.hide();
+        // }
     }
 
-    private showMapInstancesModal(mapName: string, maps: MapInstance[]) {
+    private showMapInstancesModal(mapName: string, maps: MapInstance[], events: LogEvent[]) {
         const modalTitle = document.getElementById('mapDetailsModalLabel');
         const modalBody = document.getElementById('mapDetailsModalBody');
         
@@ -787,7 +841,7 @@ class MapAnalyzer {
             button.addEventListener('click', (e) => {
                 const target = e.target as HTMLElement;
                 const mapIndex = parseInt(target.getAttribute('data-map-index') || '0');
-                this.showMapEventsModal(maps[mapIndex]);
+                this.showMapEventsModal(maps[mapIndex], events);
             });
         });
         
@@ -854,7 +908,7 @@ class MapAnalyzer {
         }
     }
 
-    private showMapEventsModal(map: MapInstance) {
+    private showMapEventsModal(map: MapInstance, currentEvents: LogEvent[]) {
         const mapDetailsModal = bootstrap.Modal.getInstance(document.getElementById('mapDetailsModal') as HTMLElement);
         mapDetailsModal?.hide();
         
@@ -881,16 +935,16 @@ class MapAnalyzer {
             </div>
         `;
         let events: LogEvent[] = [];
-        if (this.currentEvents && map.span.end) {
-            const lo = binarySearch(this.currentEvents, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
-            const hi = binarySearch(this.currentEvents, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
+        if (currentEvents && map.span.end) {
+            const lo = binarySearch(currentEvents, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
+            const hi = binarySearch(currentEvents, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
             if (lo === -1 || hi === -1) {
                 events = [];
             } else {
                 if (hi - lo > 1000) {
                     throw new Error("skipping map with excessive events: " + (hi - lo));
                 }
-                events = this.currentEvents.slice(lo, hi + 1);
+                events = currentEvents.slice(lo, hi + 1);
             }
         }
         timeline.innerHTML += events.map(event => {
@@ -939,52 +993,6 @@ class MapAnalyzer {
         
         modalBody.appendChild(timeline);
         
-        const style = document.createElement('style');
-        style.textContent = `
-            .timeline {
-                position: relative;
-                padding: 20px 0;
-            }
-            .timeline:before {
-                content: '';
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                left: 20px;
-                width: 4px;
-                background: #e9ecef;
-            }
-            .timeline-item {
-                position: relative;
-                margin-bottom: 30px;
-            }
-            .timeline-badge {
-                position: absolute;
-                left: 0;
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-                text-align: center;
-                line-height: 40px;
-                color: white;
-            }
-            .timeline-badge i {
-                font-size: 1.2rem;
-                line-height: 40px;
-            }
-            .timeline-content {
-                margin-left: 60px;
-                background: #f8f9fa;
-                padding: 15px;
-                border-radius: 5px;
-            }
-            .timeline-header {
-                margin: 0;
-                font-weight: bold;
-            }
-        `;
-        document.head.appendChild(style);
-        
         const modal = new bootstrap.Modal(document.getElementById('mapEventsModal') as HTMLElement);
         modal.show();
         
@@ -992,51 +1000,6 @@ class MapAnalyzer {
             modal.hide();
             mapDetailsModal?.show();
         });
-    }
-
-    private setMascotFrame(frameIndex: number) {
-        if (this.mascotElement && this.mascotFrameImagePaths[frameIndex]) {
-            this.mascotElement.src = this.mascotFrameImagePaths[frameIndex];
-            this.mascotCurrentFrame = frameIndex;
-        }
-    }
-
-    private startMascotAnimation() {
-        const selectNewRandomFrame = () => {
-            let nextFrameToDisplay;
-            const currentlyDisplayedFrame = this.mascotCurrentFrame;
-            do {
-                const randomIndex = Math.floor(Math.random() * this.mascotSearchAnimationFrames.length);
-                nextFrameToDisplay = this.mascotSearchAnimationFrames[randomIndex];
-            } while (this.mascotSearchAnimationFrames.length > 1 && nextFrameToDisplay === currentlyDisplayedFrame);
-            this.setMascotFrame(nextFrameToDisplay);
-        };
-
-        selectNewRandomFrame();
-
-        this.mascotAnimationInterval = window.setInterval(() => {
-            selectNewRandomFrame();
-        }, 450);
-    }
-
-    private stopMascotAnimation() {
-        if (this.mascotAnimationInterval) {
-            clearInterval(this.mascotAnimationInterval);
-            this.mascotAnimationInterval = null;
-        }
-        this.setMascotFrame(0);
-    }
-
-    private updateMascotAnimationState() {
-        if (this.mascotShouldAnimateForSearch || this.mascotShouldAnimateForHover) {
-            if (!this.mascotAnimationInterval) {
-                this.startMascotAnimation();
-            }
-        } else {
-            if (this.mascotAnimationInterval) {
-                this.stopMascotAnimation();
-            }
-        }
     }
 }
 

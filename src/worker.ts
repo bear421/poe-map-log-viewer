@@ -45,6 +45,10 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
                     case 'mapCompleted':
                         maps.push(event.detail.map);
                         break;
+                    // discard for now
+                    case "mapEntered":
+                    case "hideoutExited":
+                        break;
                     default:
                         events.push(event);
                         break;

@@ -7,13 +7,6 @@ describe('InstanceTracker', () => {
         tracker = new InstanceTracker();
     });
 
-    test('should detect instance generation events', () => {
-        const eventSpy = jest.fn();
-        tracker.eventDispatcher.on("areaEntered", eventSpy);
-        tracker.processLogLine("2023/06/15 12:34:56 123456789 abc [INFO Client 123] Generating level 83 area \"MapBeach\" with seed 12345");
-        expect(eventSpy).toHaveBeenCalled();
-    });
-
     test('should detect post load events', () => {
         tracker.processLogLine("2023/06/15 12:34:56 123456789 abc [INFO Client 123] Generating level 83 area \"MapBeach\" with seed 12345");
         const eventSpy = jest.fn();
@@ -55,7 +48,7 @@ describe('InstanceTracker', () => {
         expect(eventSpy).toHaveBeenCalled();
         const eventDetail = eventSpy.mock.calls[0][0].detail;
         expect(eventDetail.character).toBe("PlayerOne");
-        expect(eventDetail.message).toBe("Hello there!");
+        expect(eventDetail.msg).toBe("Hello there!");
     });
 
     test('should detect message to events', () => {
@@ -65,7 +58,7 @@ describe('InstanceTracker', () => {
         expect(eventSpy).toHaveBeenCalled();
         const eventDetail = eventSpy.mock.calls[0][0].detail;
         expect(eventDetail.character).toBe("PlayerTwo");
-        expect(eventDetail.message).toBe("How are you?");
+        expect(eventDetail.msg).toBe("How are you?");
     });
 
     test('should detect player slain events', () => {

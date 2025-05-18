@@ -1,0 +1,116 @@
+@font-face {
+    font-family: 'Fontin';
+    src: url('../fonts/Fontin-SmallCaps.otf') format('opentype'),
+         url('../fonts/Fontin-SmallCaps.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+body {
+    font-family: 'Fontin', Arial, sans-serif;
+    min-height: 100vh; /* Ensure body is at least viewport height */
+    display: flex;
+    flex-direction: column;
+}
+
+#app-main-container {
+    flex-grow: 1; /* Allows the container to grow and fill available vertical space */
+    display: flex; /* Added to make managing children like a potential footer easier */
+    flex-direction: column; /* Ensures children stack vertically */
+}
+
+.timeline {
+    position: relative;
+    padding: 20px 0;
+}
+.timeline:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 20px;
+    width: 4px;
+    background: #e9ecef;
+}
+.timeline-item {
+    position: relative;
+    margin-bottom: 30px;
+}
+.timeline-badge {
+    position: absolute;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 40px;
+    color: white;
+}
+.timeline-badge i {
+    font-size: 1.2rem;
+    line-height: 40px;
+}
+.timeline-content {
+    margin-left: 60px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+}
+.timeline-header {
+    margin: 0;
+    font-weight: bold;
+}
+
+.custom-file-input-tall {
+    font-size: 2rem;
+}
+
+.custom-file-input-tall::file-selector-button {
+    padding: 0.8rem 1rem;
+    font-size: 2rem;
+    background-color: rgb(13, 110, 253);
+    color: rgb(255, 255, 255);
+}
+
+.custom-file-input-tall:hover::file-selector-button {
+    background-color: #0b5ed7  !important;
+}
+
+.custom-file-input-tall::-webkit-file-upload-button {
+    padding: 0.8rem 1rem;
+    font-size: 2rem;
+}
+
+.custom-file-input-tall::-moz-file-upload-button {
+    padding: 0.8rem 1rem;
+    font-size: 2rem;
+}
+
+.mascot-image {
+    width: 8rem;
+    height: 8rem;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes mascotWiggleAnimation {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(-5deg); }
+    40% { transform: rotate(5deg); }
+    60% { transform: rotate(-3deg); }
+    80% { transform: rotate(3deg); }
+    100% { transform: rotate(0deg); }
+}
+
+.mascot-wiggle-on-hover {
+    animation-name: mascotWiggleAnimation;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    transform-origin: bottom center;
+}
+
+/* Full height layout styles REMOVED - Handled by Bootstrap utilities */
+
+/* GitHub Link Button Styles Removed */
