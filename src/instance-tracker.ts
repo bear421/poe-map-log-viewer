@@ -109,11 +109,15 @@ class MapSpan {
                 end = Date.now();
             }
         }
-        const totalTime = end - span.start;
-        if (totalTime < 0) {
-            throw new Error(`invariant: map time is negative: ${totalTime}`);
+        const baseTime = end - span.start;
+        if (baseTime < 0) {
+            throw new Error(`invariant: map time is negative: ${baseTime}`);
         }
-        return totalTime - MapSpan.idleTime(span);
+        const compactTime = baseTime - MapSpan.idleTime(span);
+        if (compactTime < 0) {
+            throw new Error(`invariant: map time excluding idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
+        }
+        return compactTime;
     }
 
     idleTime(): number {
@@ -150,15 +154,11 @@ enum AreaType {
     Map,
     Hideout,
     Campaign,
+    Town,
     Sanctum,
     Logbook,
     Tower,
     Unknown
-}
-
-interface SimpleEvent {
-    name: string;
-    detail: any;
 }
 
 enum MapState {
@@ -180,7 +180,6 @@ class MapInstance {
     xph: number;
     waystone: any | null;
     hasBoss: boolean;
-    events: SimpleEvent[] = [];
     state: MapState;
 
     constructor(
@@ -217,42 +216,12 @@ class MapInstance {
         this.state = MapState.LOADING;
     }
 
-    get areaType(): AreaType {
-        const towerMaps = [
-            "maplosttowers",
-            "mapmesa",
-            "mapalpineridge",
-            "mapbluff",
-            "mapswamptower"
-        ];
-        const name = this.name.toLowerCase();
-        if (towerMaps.includes(name)) {
-            return AreaType.Tower;
-        } else if (name.startsWith("map")) {
-            return AreaType.Map;
-        } else if (name.startsWith("sanctum")) {
-            return AreaType.Sanctum;
-        } else if (name.startsWith("expeditionlogbook")) {
-            return AreaType.Logbook;
-        } else if (MAP_NAME_CAMPAIGN.test(this.name)) {
-            return AreaType.Campaign;
-        } else {
-            return AreaType.Unknown;
-        }
-    }
-
     inHideout(): boolean {
         return this.span.hideoutStartTime !== null;
     }
 
     inMap(): boolean {
         return !this.inHideout();
-    }
-
-    get mapLabel(): string {
-        const map_name = this.name.replace(/^Map/, '');
-        const words = map_name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
-        return words.join(' ');
     }
 
     enterHideout(ts: number): void {
@@ -270,15 +239,16 @@ class MapInstance {
         this.state = MapState.LOADING;
     }
 
-    addLoadTime(ts: number): number {
+    applyLoadedAt(ts: number): number {
         if (this.state === MapState.LOADING) {
-            const delta = ts - this.span.areaEnteredAt!;
+            const delta = ts - (this.span.hideoutExitTime || this.span.start);
             this.span.addToLoadTime(delta);
             this.state = MapState.ENTERED;
             return delta;
         } else if (this.state === MapState.UNLOADING) {
-            const delta = ts - this.span.hideoutExitTime!;
+            const delta = ts - this.span.hideoutStartTime!;
             this.span.addToLoadTime(delta);
+            this.span.hideoutStartTime! += delta;
             this.state = MapState.EXITED;
             return delta;
         } else {
@@ -289,6 +259,50 @@ class MapInstance {
     isUnlockableHideout(): boolean {
         return this.name.toLowerCase().endsWith("_claimable");
     }
+    
+    static label(map: MapInstance): string {
+        const areaType = MapInstance.areaType(map);
+        switch (areaType) {
+            case AreaType.Campaign:
+                return "Campaign " + map.name;
+            case AreaType.Town:
+                return "Town " + map.name;
+        }
+        const name = map.name.replace(/^Map/, '');
+        const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
+        return words.join(' ');
+    }
+
+    static areaType(map: MapInstance): AreaType {
+        const towerMaps = [
+            "maplosttowers",
+            "mapmesa",
+            "mapalpineridge",
+            "mapbluff",
+            "mapswamptower"
+        ];
+        const name = map.name.toLowerCase();
+        if (map.seed > 1) {
+            if (towerMaps.includes(name)) {
+                return AreaType.Tower;
+            } else if (name.startsWith("map")) {
+                return AreaType.Map;
+            } else if (name.startsWith("sanctum")) {
+                return AreaType.Sanctum;
+            } else if (name.startsWith("expeditionlogbook")) {
+                return AreaType.Logbook;
+            } else if (MAP_NAME_CAMPAIGN.test(name)) {
+                return AreaType.Campaign;
+            }
+        } else {
+            if (MAP_NAME_TOWN.test(name)) {
+                return AreaType.Town;
+            } else {
+                return AreaType.Hideout;
+            }
+        }
+        return AreaType.Unknown;
+    }
 
 }
 
@@ -298,7 +312,37 @@ class Filter {
     fromAreaLevel?: number;
     toAreaLevel?: number;
 
-    static filterAll(filter: Filter, maps: MapInstance[]): MapInstance[] {
+    constructor(
+        fromMillis?: number,
+        toMillis?: number,
+        fromAreaLevel?: number,
+        toAreaLevel?: number
+    ) {
+        this.fromMillis = fromMillis;
+        this.toMillis = toMillis;
+        this.fromAreaLevel = fromAreaLevel;
+        this.toAreaLevel = toAreaLevel;
+    }
+
+    static isEmpty(filter?: Filter): boolean {
+        if (!filter) return true;
+
+        return !filter.fromMillis && !filter.toMillis && !filter.fromAreaLevel && !filter.toAreaLevel;
+    }
+
+    static testAreaLevel(map: MapInstance, filter?: Filter): boolean {
+        if (!filter) return true;
+
+        if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) return false;
+
+        if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) return false;
+
+        return true;
+    }
+
+    static filterAll(maps: MapInstance[], filter?: Filter): MapInstance[] {
+        if (!filter || Filter.isEmpty(filter)) return maps; 
+
         let ix = 0;
         if (filter.fromMillis) {
             // find starting index via binary search when filtering lower bound
@@ -316,28 +360,24 @@ class Filter {
 
             ix = startIx;
         }
-        if (!filter.fromAreaLevel && !filter.toAreaLevel) {
-            if (!filter.toMillis) return maps.slice(ix);
-
-            // only find upper bound if no other filters are used, otherwise there's no gain
-            let left = ix, right = maps.length - 1, endIx = maps.length;
+        let endIx = maps.length;
+        if (filter.toMillis) {
+            let left = ix, right = maps.length - 1;
             while (left <= right) {
                 const mid = Math.floor((left + right) / 2);
                 if (maps[mid].span.start <= filter.toMillis) {
-                    endIx = mid;
                     left = mid + 1;
                 } else {
+                    endIx = mid;
                     right = mid - 1;
                 }
             }
-            return maps.slice(ix, endIx + 1);
+        } else if (!filter.fromAreaLevel && !filter.toAreaLevel) {
+            return maps.slice(ix);
         }
         const res = [];
-        for (let i = ix; i < maps.length; i++) {
+        for (let i = ix; i < endIx; i++) {
             const map = maps[i];
-            if (filter.toMillis && map.span.start > filter.toMillis) {
-                break;
-            }
             if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
                 continue;
             }
@@ -351,50 +391,92 @@ class Filter {
 
 }
 
-const MAP_ENTRY_REGEX = new RegExp(`Generating level (\\d+) area \"(.+?)\"(?:.*seed (\\d+))?`, "i");
 const POST_LOAD_REGEX = new RegExp(`\\[SHADER\\] Delay:`, "i");
-const EV_SLAIN_REGEX = new RegExp(`: (.*?) has been slain`, "i");
-const EV_JOINED_AREA_REGEX = new RegExp(`: (.*?) has joined the area`, "i");
-const EV_LEFT_AREA_REGEX = new RegExp(`: (.*?) has left the area`, "i");
-const EV_LEVEL_UP_REGEX = new RegExp(`: (.*?) \\((.*?)\\) is now level (\\d+)`, "i");
-const EV_TRADE_ACCEPTED = new RegExp(`: Trade accepted.`, "i");
 
 enum EventCG {
+    MsgFrom, 
+    MsgTo, 
+    MsgParty,
+    Generating,
+    TradeAccepted,
+    ItemsIdentified,
     Slain,           
     Joined,          
     Left,            
-    LevelUp,         
-    TradeAccepted    
+    LevelUp         
 }
-  
-const EV_ALL_REGEX = new RegExp(
-    `: (?:` +
-        `(?<g${EventCG.Slain}>[^()]+?) has been slain|` +
-        `(?<g${EventCG.Joined}>[^()]+?) has joined the area|` +
-        `(?<g${EventCG.Left}>[^()]+?) has left the area|` +
-        `(?<g${EventCG.LevelUp}>[^()]+?) \\(([^)]+?)\\) is now level (\\d+)|` +
-        `(?<g${EventCG.TradeAccepted}>Trade accepted\\.)` +
-    `)`);
- 
 
-const MAP_NAME_CAMPAIGN = new RegExp(`^(g\\d*_)|(c\\d*_)`);
+/**
+ * example logs:
+ * MsgFrom:         2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
+ * MsgTo:           2024/12/09 17:20:32 161926000 3ef2336d [INFO Client 12528] @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
+ * MsgParty:        2024/12/08 16:07:33 125147609 3ef2336d [INFO Client 12528] %Player1: meow
+ * Generating:      2024/12/06 21:38:41 35916765 2caa1679 [DEBUG Client 1444] Generating level 1 area "G1_1" with seed 2665241567
+ * Slain:           2024/12/06 23:47:07 43622984 3ef2336d [INFO Client 19904] : Player1 has been slain.
+ * Joined:          2024/12/06 23:05:09 41105484 3ef2336d [INFO Client 22004] : Player1 has joined the area.
+ * Left:            2024/12/06 23:12:20 41536000 3ef2336d [INFO Client 22004] : Player1 has left the area.
+ * LevelUp:         2024/12/06 22:44:59 39895562 3ef2336d [INFO Client 2636] : Player1 (Sorceress) is now level 2
+ * LevelUp:         2025/02/10 09:47:04 937716484 3ef2336a [INFO Client 13352] : Player1 (Stormweaver) is now level 100
+ * TradeAccepted:   2024/12/06 23:53:01 43976781 3ef2336d [INFO Client 19904] : Trade accepted.
+ * ItemsIdentified: 2024/12/07 01:41:51 50507140 3ef2336d [INFO Client 18244] : 5 Items identified
+ */
+
+
+// if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
+// very important to fail fast on those patterns, e.g. avoid starting off with wildcard matches
+const EVENT_PATTERNS = [
+    `@From (?<g${EventCG.MsgFrom}>[^ ]+): (.*)`,
+    `@To (?<g${EventCG.MsgTo}>[^ ]+): (.*)`,
+    `%(?<g${EventCG.MsgParty}>[^ ]+): (.*)`,
+    `Generating level (?<g${EventCG.Generating}>\\d+) area \"(.+?)\"(?:.*seed (\\d+))?`,
+    `(?<g${EventCG.TradeAccepted}>Trade accepted\\.)`,
+    `(?<g${EventCG.ItemsIdentified}>\\d+) Items identified`,
+    `: (?<g${EventCG.Slain}>[^ ]+) has been slain`,
+    `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
+    `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
+    `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`
+];
+
+// Runtime check to ensure EVENT_PATTERNS are correctly aligned with EventCG numeric values
+// TODO maybe implement this a bit better, technically unnecessary, could simply reorder offset table
+for (let i = 0; i < EVENT_PATTERNS.length; i++) {
+    const pattern = EVENT_PATTERNS[i];
+    const expectedNamedGroup = `(?<g${i}>`;
+    if (!pattern.includes(expectedNamedGroup)) {
+        throw new Error(`pattern ${pattern} is missing named capture group ${expectedNamedGroup}`);
+    }
+}
+
+const COMPOSITE_EV_REGEX = new RegExp(`] (?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
+const COMPOSITE_PATTERN_OFFSETS: number[] = [];
+{
+    let currentOffset = 2; // own group + enclosing group
+    for (const pattern of EVENT_PATTERNS) {
+        COMPOSITE_PATTERN_OFFSETS.push(currentOffset);
+        const captureGroupCount = new RegExp("^|" + pattern).exec("")!.length!;
+        currentOffset += captureGroupCount;
+    }
+}
+
+const MAP_NAME_CAMPAIGN = /^([cg]\d?_g?([a-z0-9]+)_?([a-z0-9]*)_?([a-z0-9]*))$/;
+const MAP_NAME_TOWN = /^(g([a-z0-9]+)_town)$/;
 const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 const logger = console;
 
 import { RingBuffer } from "./ringbuffer";
-import { parseTsUnchecked as parseTs, clearOffsetCache } from "./ts-parser";
+import { parseTs, clearOffsetCache } from "./ts-parser";
+import { EventDispatcher } from "./event-dispatcher";
 
 class InstanceTracker {
     
-    private events: EventTarget;
+    public eventDispatcher = new EventDispatcher();
     private recentMaps: RingBuffer<MapInstance>;
     private recentXpSnapshots: RingBuffer<XPSnapshot>;
     private currentMap: MapInstance | null;
     private nextWaystone: any | null;
 
     constructor() {
-        this.events = new EventTarget();
         this.recentMaps = new RingBuffer<MapInstance>(100);
         this.recentXpSnapshots = new RingBuffer<XPSnapshot>(100);
         this.currentMap = null;
@@ -402,17 +484,23 @@ class InstanceTracker {
     }
 
     async processLogFile(file: File, filter?: Filter): Promise<boolean> {
+        if (Filter.isEmpty(filter)) {
+            filter = undefined;
+        } else {
+            // create defensive copy since instance-tracker may modify filter
+            filter = new Filter(filter!.fromMillis, filter!.toMillis, filter!.fromAreaLevel, filter!.toAreaLevel);
+        }
         const reader = file.stream().getReader();
         try {
             const decoder = new TextDecoder();
             let tail = '';
-            let seekAhead = filter && !!filter.fromMillis;
             for (;;) {
                 const { done, value } = await reader.read();
                 if (done) {
                     if (tail) {
                         this.processLogLine(tail, filter);
                     }
+                    this.processEOF(filter);
                     return true;
                 }
                 const chunk = decoder.decode(value, { stream: true });
@@ -433,15 +521,6 @@ class InstanceTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
-                    if (seekAhead) {
-                        const ts = parseTs(line);
-                        if (ts && ts >= filter!.fromMillis!) {
-                            // logfiles are chronologically ordered, so we don't need to test fromMillis anymore
-                            seekAhead = false;
-                        } else {
-                            continue;
-                        }
-                    }
                     if (!this.processLogLine(line, filter)) return false;
                 }
                 if (start < chunk.length) {
@@ -531,85 +610,111 @@ class InstanceTracker {
      */
     processLogLine(line: string, filter?: Filter): boolean {
         let ts;
-        if (filter && !!filter.toMillis) {
+        if (filter && (filter.fromMillis || filter.toMillis)) {
             ts = parseTs(line);
-            if (ts && ts > filter.toMillis) {
-                return false;
+            if (ts) {
+                if (filter.fromMillis && ts < filter.fromMillis) {
+                    filter.fromMillis = undefined;
+                }
+                if (filter.toMillis && ts > filter.toMillis) return false;
             }
         }
-        const mapMatch = MAP_ENTRY_REGEX.exec(line);
-        if (mapMatch) {
+        const postLoadMatch = (this.currentMap && (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING)) && POST_LOAD_REGEX.exec(line);
+        if (postLoadMatch) {
             ts ??= parseTs(line);
-            if (!ts) throw new Error(`no timestamp found in map match: ${line}`);
-
-            const areaLevel = parseInt(mapMatch[1]);
-            const mapName = mapMatch[2];
-            const mapSeed = parseInt(mapMatch[3]);
-            this.enterArea(new AreaInfo(
-                ts,
-                areaLevel,
-                mapName,
-                mapSeed
-            ));
-        } else if (this.currentMap) {
-            const postLoadMatch = (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING) && POST_LOAD_REGEX.exec(line);
-            if (postLoadMatch) {
-                ts ??= parseTs(line);
-                if (!ts) throw new Error(`no timestamp found in post load match: ${line}`);
-
-                const delta = this.currentMap.addLoadTime(ts);
-                this.dispatchEvent("areaPostLoad", { delta, ts }, true);
-            } else if (this.currentMap.state === MapState.ENTERED) {
-                ts ??= parseTs(line);
-                if (ts) {
-                    const m = EV_ALL_REGEX.exec(line);
-                    if (!m) return true;
-
-                    const g = m.groups!;
-                    const cg = Object.keys(g).find(k => g[k] !== undefined)!;
-                    const k = parseInt(cg.substring(1), 10);
-                    switch (k) {
-                        case EventCG.Slain:
-                            this.dispatchEvent("death", { character: m[0], ts }, true);
-                            break;
-                        case EventCG.Joined:
-                            this.dispatchEvent("joinedArea", { character: m[0], ts }, true);
-                            break;
-                        case EventCG.Left:
-                            this.dispatchEvent("leftArea", { character: m[0], ts }, true);
-                            break;
-                        case EventCG.LevelUp:
-                            this.dispatchEvent("levelUp", { character: m[0], level: m[1], ts }, true);
-                            break;
-                        case EventCG.TradeAccepted:
-                            this.dispatchEvent("tradeAccepted", { ts }, true);
-                            break;
-                    }
-                    this.informInteraction(ts);
-                    return true;
-                }
+            if (!ts) {
+                logger.warn(`no timestamp found in post load match: ${line}`);
+                return true;
             }
+            const delta = this.currentMap!.applyLoadedAt(ts);
+            this.dispatchEvent("areaPostLoad", ts, { delta });
+        } else {
+            const m = COMPOSITE_EV_REGEX.exec(line);
+            if (!m) return true;
+
+            ts ??= parseTs(line);
+            if (!ts) {
+                logger.warn(`no timestamp found in event match: ${line}`);
+                return true;
+            }
+            const g = m.groups!;
+            const strGroup = Object.keys(g).find(k => g[k] !== undefined)!;
+            const eventCG = parseInt(strGroup.substring(1), 10) as EventCG;
+            const offset = COMPOSITE_PATTERN_OFFSETS[eventCG];
+            switch (eventCG) {
+                case EventCG.MsgFrom:
+                    this.dispatchEvent("msgFrom", ts, { character: m[offset], message: m[offset + 1] });
+                    break;
+                case EventCG.MsgTo:
+                    this.dispatchEvent("msgTo", ts, { character: m[offset], message: m[offset + 1] });
+                    break;
+                case EventCG.MsgParty:
+                    this.dispatchEvent("msgParty", ts, { character: m[offset], message: m[offset + 1] });
+                    break;
+                case EventCG.Generating:
+                    const areaLevel = parseInt(m[offset]);
+                    const mapName = m[offset + 1];
+                    const mapSeed = parseInt(m[offset + 2]);
+                    this.enterArea(new AreaInfo(
+                        ts,
+                        areaLevel,
+                        mapName,
+                        mapSeed
+                    ), filter);
+                    break;
+                case EventCG.Slain:
+                    this.dispatchEvent("death", ts, { character: m[offset] });
+                    break;
+                case EventCG.Joined:
+                    this.dispatchEvent("joinedArea", ts, { character: m[offset] });
+                    break;
+                case EventCG.Left:
+                    this.dispatchEvent("leftArea", ts, { character: m[offset] });
+                    break;
+                case EventCG.LevelUp:
+                    this.dispatchEvent("levelUp", ts, { character: m[offset], ascendancy: m[offset + 1], level: m[offset + 2] });
+                    break;
+                case EventCG.TradeAccepted:
+                    this.dispatchEvent("tradeAccepted", ts);
+                    break;
+                case EventCG.ItemsIdentified:
+                    this.dispatchEvent("itemsIdentified", ts);
+                    break;
+            }
+            this.informInteraction(ts);
+            return true;
         }
         return true;
     }
 
-    getMessageFromLine(line: string): string | null {
-        return line.substring(line.indexOf("]", 90) + 1);
+    processEOF(filter?: Filter): void {
+        // TODO EOF map can undercount mapTime because hideoutStartTime precedes trailing POSTLOAD event
+        const currentMap = this.currentMap;
+        if (currentMap) {
+            const end = Math.max(currentMap.span.hideoutStartTime ?? 0, currentMap.span.lastInteraction ?? 0);
+            if (end) {
+                this.completeMap(currentMap, end, filter);
+                this.currentMap = null;
+            }
+        }
     }
 
-    enterArea(areaInfo: AreaInfo): void {
-        const currentMap = this.currentMap;
-        if (currentMap && areaInfo.ts <= currentMap.span.start && currentMap.seed !== areaInfo.seed) {
-            logger.warn(`new areas must be entered in chronological order: ${areaInfo.ts} <= ${currentMap.span.start}. discarding current map.`);
-            this.currentMap = null;
-            return;
+    enterArea(areaInfo: AreaInfo, filter?: Filter): void {
+        let currentMap = this.currentMap;
+        {
+            const prevMap = currentMap || this.recentMaps.last();
+            if (prevMap && areaInfo.ts <= prevMap.span.start && prevMap.seed !== areaInfo.seed) {
+                const delta = (areaInfo.ts - prevMap.span.start);
+                logger.warn(`new areas must be ingested chronologically, discarding current map: ${areaInfo.ts} (${areaInfo.name}) <= ${prevMap.span.start} (${prevMap.name}) (offset: ${delta / 1000}s).`);
+                this.currentMap = null;
+                return;
+            }
         }
         if (currentMap && currentMap.seed !== areaInfo.seed) {
-            // stale map handling
             const mapTime = currentMap.span.mapTime(areaInfo.ts);
-            let endTime: number | null = null;
-            
             if (mapTime > STALE_MAP_THRESHOLD) {
+                // stale map handling, could possibly be made more accurate using client uptime micros
+                let endTime: number;
                 if (currentMap.span.hideoutStartTime) {
                     // player exited client while in hideout
                     endTime = currentMap.span.hideoutStartTime;
@@ -617,7 +722,7 @@ class InstanceTracker {
                     // player exited client while in map
                     const lastInteraction = currentMap.span.lastInteraction;
                     if (lastInteraction) {
-                        if (lastInteraction >= currentMap.span.start) {
+                        if (lastInteraction > currentMap.span.start) {
                             endTime = lastInteraction;
                         } else {
                             logger.warn(`unable to determine stale map's end time: ${currentMap}`);
@@ -630,18 +735,17 @@ class InstanceTracker {
                         endTime = areaInfo.ts;
                     }
                 }
-                this.completeCurrentMap(endTime);
-                this.currentMap = null;
-                return;
+                this.completeMap(currentMap, endTime, filter);
+                currentMap = this.currentMap = null;
             }
         }
 
-        this.dispatchEvent("areaEntered", { areaInfo });
+        this.dispatchEvent("areaEntered", areaInfo.ts);
 
         if (!areaInfo.isMap) {
             if (currentMap) {
                 currentMap.enterHideout(areaInfo.ts);
-                this.dispatchEvent("hideoutEntered", { map: currentMap });
+                this.dispatchEvent("hideoutEntered", areaInfo.ts);
             }
             return;
         }
@@ -650,18 +754,17 @@ class InstanceTracker {
             currentMap.span.areaEnteredAt = areaInfo.ts;
             if (currentMap.inHideout()) {
                 currentMap.exitHideout(areaInfo.ts);
-                this.dispatchEvent("hideoutExited", { map: currentMap });
+                this.dispatchEvent("hideoutExited", areaInfo.ts);
             }
             if (areaInfo.seed === currentMap.seed) {
-                this.dispatchEvent("mapReentered", { map: currentMap });
+                this.dispatchEvent("mapReentered", areaInfo.ts);
                 return;
             }
             // player entered a map with a different seed, this can be inaccurate if player entered a map of another party member
-            this.completeCurrentMap(areaInfo.ts);
+            this.completeMap(currentMap, areaInfo.ts, filter);
         }
 
         const initialXp = this.recentXpSnapshots.last()?.xp ?? null;
-        const previousMap = currentMap;
         this.currentMap = new MapInstance(
             crypto.randomUUID(),
             new MapSpan(areaInfo.ts),
@@ -674,22 +777,12 @@ class InstanceTracker {
             this.nextWaystone
         );
         this.nextWaystone = null;
-        this.dispatchEvent("mapEntered", { map: this.currentMap, previousMap });
+        this.dispatchEvent("mapEntered", areaInfo.ts);
     }
 
-    private dispatchEvent(name: string, detail: any, asMapEvent: boolean = false): boolean {
-        if (asMapEvent && this.inMap()) {
-            this.currentMap!.events.push({ name, detail });
-        }
-        return this.events.dispatchEvent(new CustomEvent(name, { detail }));
-    }
-
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
-        this.events.addEventListener(type, listener);
-    }
-
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject): void {
-        this.events.removeEventListener(type, listener);
+    private dispatchEvent(name: string, ts: number, detail: any = {}) {
+        const event = {name, detail, ts};
+        this.eventDispatcher.emit(event);
     }
 
     informInteraction(ts: number): void {
@@ -698,20 +791,21 @@ class InstanceTracker {
         }
     }
 
-    private completeCurrentMap(endTime: number): void {
-        const currentMap = this.currentMap;
-        if (!currentMap) throw new Error("no current map to complete");
+    private completeMap(map: MapInstance, endTime: number, filter?: Filter): void {
+        if (!map) throw new Error("no current map to complete");
 
-        currentMap.span.end = endTime;
-        currentMap.state = MapState.COMPLETED;
-        const mapTimeMs = currentMap.span.mapTime();
+        map.span.end = endTime;
+        map.state = MapState.COMPLETED;
         const xpEnd = this.recentXpSnapshots.last()?.xp;
         if (xpEnd) {
-            currentMap.xpGained = (xpEnd && currentMap.xpStart) ? (xpEnd - currentMap.xpStart) : 0;
-            currentMap.xph = mapTimeMs > 0 ? (currentMap.xpGained / mapTimeMs) * 3600 * 1000 : 0;
+            const mapTimeMs = map.span.mapTime();
+            map.xpGained = (xpEnd && map.xpStart) ? (xpEnd - map.xpStart) : 0;
+            map.xph = mapTimeMs > 0 ? (map.xpGained / mapTimeMs) * 3600 * 1000 : 0;
         }
-        this.recentMaps.push(currentMap);
-        this.dispatchEvent("mapCompleted", { map: currentMap });
+        this.recentMaps.push(map);
+        if (Filter.testAreaLevel(map, filter)) {
+            this.dispatchEvent("mapCompleted", map.span.start, { map });
+        }
     }
 
     // real time functions, not utility for analysis of logs
@@ -802,7 +896,7 @@ class InstanceTracker {
         );
 
         this.recentXpSnapshots.push(snapshot);
-        this.dispatchEvent("xpSnapshot", { snapshot });
+        this.dispatchEvent("xpSnapshot", ts, { snapshot });
 
         if (currentMap) {
             if (currentMap.xpStart !== null) {

@@ -10,6 +10,11 @@ function getOffsetMs(year: number, month: number, day: number): number {
     return off;
 }
 
+/**
+ * optmizied ts parser that doesn't create a date object internally. the supplied timestamp is expected to be in the users timezone.
+ * @param line a log line that starts with a timestamp with the exact format YYYY/MM/DD HH:MM:SS
+ * @returns epoch millis
+ */
 function parseTs(line: string): number | null {
     const c0 = line.charCodeAt(0);
     if (c0 < 0x30 || c0 > 0x39) return null;
@@ -23,22 +28,7 @@ function parseTs(line: string): number | null {
     const mm  = d(14)*10 + d(15);
     const ss  = d(17)*10 + d(18);
 
-    const utcMs = Date.UTC(yr, mo - 1, day, hh, mm, ss);
-    const epochMs = utcMs + getOffsetMs(yr, mo, day);
-    return epochMs;
-}
-
-function parseTsUnchecked(line: string): number {
-    const d = (i: number) => line.charCodeAt(i) - 0x30;
-    const yr  = d(0)*1000 + d(1)*100 + d(2)*10 + d(3);
-    const mo  = d(5)*10 + d(6);
-    const day = d(8)*10 + d(9);
-    const hh  = d(11)*10 + d(12);
-    const mm  = d(14)*10 + d(15);
-    const ss  = d(17)*10 + d(18);
-
-    const utcMs = Date.UTC(yr, mo - 1, day, hh, mm, ss);
-    return utcMs + getOffsetMs(yr, mo, day);
+    return Date.UTC(yr, mo - 1, day, hh, mm, ss) + getOffsetMs(yr, mo, day);
 }
 
 const TS_REGEX = new RegExp("^(\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2})");
@@ -54,4 +44,4 @@ function clearOffsetCache(): void {
     tzOffsetCache.clear();
 }
 
-export { parseTs, parseTsUnchecked, parseTsSlow, clearOffsetCache };
+export { parseTs, parseTsSlow, clearOffsetCache };

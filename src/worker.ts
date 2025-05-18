@@ -1,4 +1,5 @@
 import { InstanceTracker, MapInstance, Filter } from './instance-tracker';
+import { LogEvent } from './event-dispatcher';
 
 interface WorkerMessage {
     type: string;
@@ -12,6 +13,7 @@ interface CompleteMessage {
     type: 'complete';
     data: {
         maps: MapInstance[];
+        events: LogEvent[];
     };
 }
 
@@ -37,23 +39,22 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     try {
         if (type === 'process') {
             const maps: MapInstance[] = [];
-            // instance-tracker currently only filters by ts
-            const filterFn = filter ? (m: MapInstance) => {
-                if (filter!.fromAreaLevel && m.areaLevel < filter!.fromAreaLevel) return false;
-
-                if (filter!.toAreaLevel && m.areaLevel > filter!.toAreaLevel) return false;
-
-                return true;
-            } : () => true;
-            tracker.addEventListener('mapCompleted', ((event: CustomEvent) => {
-                filterFn(event.detail.map) && maps.push(event.detail.map);
-            }) as EventListener);
-
+            const events: LogEvent[] = [];
+            tracker.eventDispatcher.onAll((event: LogEvent) => {
+                switch (event.name) {
+                    case 'mapCompleted':
+                        maps.push(event.detail.map);
+                        break;
+                    default:
+                        events.push(event);
+                        break;
+                }
+            });
             await tracker.processLogFile(file, filter);
             const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
             self.postMessage({
                 type: 'complete',
-                data: { maps }
+                data: { maps, events }
             } as CompleteMessage);
             console.info(`Processed ${maps.length} maps in ${tookSeconds} seconds`);
             console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s`);

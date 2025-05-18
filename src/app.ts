@@ -1,4 +1,7 @@
+declare var bootstrap: any;
 import { Filter, MapInstance, MapSpan } from './instance-tracker';
+import { LogEvent } from './event-dispatcher';
+import { binarySearch, BinarySearchMode } from './binary-search';
 import {
     Chart,
     ArcElement,
@@ -17,6 +20,7 @@ class MapAnalyzer {
     private resultsDiv!: HTMLDivElement;
     private progressBar!: HTMLDivElement;
     private currentMaps: MapInstance[] | null = null;
+    private currentEvents: LogEvent[] | null = null;
 
     constructor() {
         this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
@@ -201,7 +205,10 @@ class MapAnalyzer {
     private setupEventListeners() {
         this.uploadButton.addEventListener('click', () => {
             this.handleUpload();
-            this.collapsePathHelper();
+        });
+        
+        this.fileInput.addEventListener('change', () => {
+            this.handleUpload();
         });
         
         document.getElementById('applyFiltersBtn')?.addEventListener('click', () => {
@@ -217,6 +224,7 @@ class MapAnalyzer {
             switch (type) {
                 case 'complete':
                     this.currentMaps = data.maps;
+                    this.currentEvents = data.events;
                     this.displayResults(data.maps);
                     this.hideProgress();
                     break;
@@ -263,9 +271,9 @@ class MapAnalyzer {
             toDate.setHours(23, 59, 59, 999);
             filter.toMillis = toDate.getTime();
         }
-        
+
         this.clearResults();
-        this.displayResults(Filter.filterAll(filter, this.currentMaps));
+        this.displayResults(Filter.filterAll(this.currentMaps, filter));
     }
 
     private resetFilters() {
@@ -286,18 +294,24 @@ class MapAnalyzer {
             this.showError('Please select a client.txt file');
             return;
         }
-
+        this.collapsePathHelper();
         this.clearResults();
         this.showProgress();
         this.worker.postMessage({ type: 'process', file });
     }
 
     private displayResults(maps: MapInstance[]) {
+        console.log("displayResults", maps, this.currentEvents);
         const times = maps.map(map => {
-            const mapTime = MapSpan.mapTime(map.span);
-            const loadTime = map.span.loadTime;
-            const hideoutTime = map.span.hideoutTime;
-            return { mapTime, loadTime, hideoutTime };
+            try {
+                const mapTime = MapSpan.mapTime(map.span);
+                const loadTime = map.span.loadTime;
+                const hideoutTime = map.span.hideoutTime;
+                return { mapTime, loadTime, hideoutTime };
+            } catch (e) {
+                console.error(e, map);
+                throw e;
+            }
         });
 
         const getMedian = (arr: number[]) => {
@@ -359,6 +373,7 @@ class MapAnalyzer {
         }
 
         const mapStats = new Map<string, {
+            label: string,
             count: number,
             avgTime: number,
             avgXp: number,
@@ -370,6 +385,7 @@ class MapAnalyzer {
         maps.forEach(map => {
             const mapTime = MapSpan.mapTime(map.span) / (1000 * 60); // Convert to minutes
             const stats = mapStats.get(map.name) || {
+                label: MapInstance.label(map),
                 count: 0,
                 avgTime: 0,
                 avgXp: 0,
@@ -410,18 +426,30 @@ class MapAnalyzer {
             card.innerHTML = `
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">${mapName}</h5>
+                        <h5 class="card-title">${stats.label}</h5>
                         <p class="card-text">
                             Count: ${stats.count}<br>
                             Levels: ${Array.from(stats.levels).sort((a, b) => a - b).join(', ')}<br>
                             Avg Time: ${stats.avgTime.toFixed(2)} minutes<br>
                             Total Time: ${stats.totalTime.toFixed(2)} minutes<br>
                         </p>
+                        <button class="btn btn-primary view-map-instances-btn" data-map-name="${mapName}">View Instances</button>
                     </div>
                 </div>
             `;
             this.resultsDiv.appendChild(card);
         });
+        
+        document.querySelectorAll('.view-map-instances-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                const mapName = target.getAttribute('data-map-name') || '';
+                const mapInstances = maps.filter(map => map.name === mapName);
+                this.showMapInstancesModal(mapName, mapInstances);
+            });
+        });
+        
+        this.createMapDetailsModal();
     }
 
     private displaySearchResults(lines: string[]) {
@@ -478,6 +506,271 @@ class MapAnalyzer {
         if (collapseElement && collapseElement.classList.contains('show')) {
             bootstrap.Collapse.getInstance(collapseElement)?.hide();
         }
+    }
+
+    private showMapInstancesModal(mapName: string, maps: MapInstance[]) {
+        const modalTitle = document.getElementById('mapDetailsModalLabel');
+        const modalBody = document.getElementById('mapDetailsModalBody');
+        
+        if (!modalTitle || !modalBody) return;
+        
+        modalTitle.textContent = `${mapName} Instances`;
+        modalBody.innerHTML = '';
+        
+        const table = document.createElement('table');
+        table.className = 'table table-striped table-hover';
+        table.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Level</th>
+                    <th>Duration</th>
+                    <th>XP Gained</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="mapInstancesTableBody"></tbody>
+        `;
+        
+        modalBody.appendChild(table);
+        const tableBody = document.getElementById('mapInstancesTableBody');
+        
+        if (!tableBody) return;
+        
+        maps.forEach((map, index) => {
+            const row = document.createElement('tr');
+            const mapTime = MapSpan.mapTime(map.span) / (1000 * 60); // Convert to minutes
+            
+            row.innerHTML = `
+                <td>${map.span.start.toLocaleString()}</td>
+                <td>${map.areaLevel}</td>
+                <td>${mapTime.toFixed(2)} min</td>
+                <td>${map.xpGained.toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-info view-events-btn" data-map-index="${index}">
+                        View Events
+                    </button>
+                </td>
+            `;
+            
+            tableBody.appendChild(row);
+        });
+        
+        document.querySelectorAll('.view-events-btn').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const target = e.target as HTMLElement;
+                const mapIndex = parseInt(target.getAttribute('data-map-index') || '0');
+                this.showMapEventsModal(maps[mapIndex]);
+            });
+        });
+        
+        const modal = new bootstrap.Modal(document.getElementById('mapDetailsModal') as HTMLElement);
+        modal.show();
+    }
+
+    private createMapDetailsModal() {
+        // Create map details modal if it doesn't exist
+        if (!document.getElementById('mapDetailsModal')) {
+            const mapDetailsModal = document.createElement('div');
+            mapDetailsModal.className = 'modal fade';
+            mapDetailsModal.id = 'mapDetailsModal';
+            mapDetailsModal.tabIndex = -1;
+            mapDetailsModal.setAttribute('aria-labelledby', 'mapDetailsModalLabel');
+            mapDetailsModal.setAttribute('aria-hidden', 'true');
+            
+            mapDetailsModal.innerHTML = `
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="mapDetailsModalLabel">Map Instances</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="mapDetailsModalBody">
+                            <!-- Map details will be inserted here -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(mapDetailsModal);
+        }
+        
+        // Create map events modal if it doesn't exist
+        if (!document.getElementById('mapEventsModal')) {
+            const mapEventsModal = document.createElement('div');
+            mapEventsModal.className = 'modal fade';
+            mapEventsModal.id = 'mapEventsModal';
+            mapEventsModal.tabIndex = -1;
+            mapEventsModal.setAttribute('aria-labelledby', 'mapEventsModalLabel');
+            mapEventsModal.setAttribute('aria-hidden', 'true');
+            
+            mapEventsModal.innerHTML = `
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="mapEventsModalTitle">Map Events</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="mapEventsModalBody">
+                            <!-- Map events will be inserted here -->
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="backToMapsBtn">Back to Maps</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(mapEventsModal);
+        }
+    }
+
+    private showMapEventsModal(map: MapInstance) {
+        const mapDetailsModal = bootstrap.Modal.getInstance(document.getElementById('mapDetailsModal') as HTMLElement);
+        mapDetailsModal?.hide();
+        
+        const modalTitle = document.getElementById('mapEventsModalTitle');
+        const modalBody = document.getElementById('mapEventsModalBody');
+        
+        if (!modalTitle || !modalBody) return;
+        
+        modalTitle.textContent = `${MapInstance.label(map)} (Level ${map.areaLevel})`;
+        modalBody.innerHTML = '';
+        
+        const timeline = document.createElement('div');
+        timeline.className = 'timeline';
+        
+        timeline.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-badge bg-primary">
+                    <i class="bi bi-flag-fill"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6 class="timeline-header">Map Started</h6>
+                    <p class="mb-0">${new Date(map.span.start)}</p>
+                </div>
+            </div>
+        `;
+        let events: LogEvent[] = [];
+        if (this.currentEvents && map.span.end) {
+            const lo = binarySearch(this.currentEvents, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
+            const hi = binarySearch(this.currentEvents, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
+            if (lo === -1 || hi === -1) {
+                events = [];
+            } else {
+                if (hi - lo > 1000) {
+                    throw new Error("skipping map with excessive events: " + (hi - lo));
+                }
+                events = this.currentEvents.slice(lo, hi + 1); // +1 because slice excludes the end index
+            }
+        }
+        timeline.innerHTML += events.map(event => {
+            const eventTime = new Date(event.ts);
+            
+            let badgeClass = 'bg-secondary';
+            let icon = 'bi-info-circle-fill';
+            
+            // Customize badge based on event type
+            if (event.name.includes('death')) {
+                badgeClass = 'bg-danger';
+                icon = 'bi-heart-break-fill';
+            } else if (event.name.includes('boss')) {
+                badgeClass = 'bg-warning';
+                icon = 'bi-trophy-fill';
+            } else if (event.name.includes('level')) {
+                badgeClass = 'bg-success';
+                icon = 'bi-arrow-up-circle-fill';
+            }
+            
+            return `
+                <div class="timeline-item">
+                    <div class="timeline-badge ${badgeClass}">
+                        <i class="bi ${icon}"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <h6 class="timeline-header">${event.name}</h6>
+                        <p class="mb-0">${eventTime}</p>
+                        <p class="mb-0">${event.detail}</p>
+                    </div>
+                </div>
+            `;
+        }).join('\n');
+        
+        timeline.innerHTML += `
+            <div class="timeline-item">
+                <div class="timeline-badge bg-danger">
+                    <i class="bi bi-flag-fill"></i>
+                </div>
+                <div class="timeline-content">
+                    <h6 class="timeline-header">Map Ended</h6>
+                    <p class="mb-0">${new Date(map.span.end!)}</p>
+                    <p class="mb-0">Duration: ${(MapSpan.mapTime(map.span) / 1000 / 60).toFixed(2)} minutes</p>
+                </div>
+            </div>
+        `;
+        
+        modalBody.appendChild(timeline);
+        
+        // Add custom styles for timeline
+        const style = document.createElement('style');
+        style.textContent = `
+            .timeline {
+                position: relative;
+                padding: 20px 0;
+            }
+            .timeline:before {
+                content: '';
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 20px;
+                width: 4px;
+                background: #e9ecef;
+            }
+            .timeline-item {
+                position: relative;
+                margin-bottom: 30px;
+            }
+            .timeline-badge {
+                position: absolute;
+                left: 0;
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+                text-align: center;
+                line-height: 40px;
+                color: white;
+            }
+            .timeline-badge i {
+                font-size: 1.2rem;
+                line-height: 40px;
+            }
+            .timeline-content {
+                margin-left: 60px;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+            }
+            .timeline-header {
+                margin: 0;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Show the events modal
+        const modal = new bootstrap.Modal(document.getElementById('mapEventsModal') as HTMLElement);
+        modal.show();
+        
+        // Add event listener to back button
+        document.getElementById('backToMapsBtn')?.addEventListener('click', () => {
+            modal.hide();
+            mapDetailsModal?.show();
+        });
     }
 }
 
