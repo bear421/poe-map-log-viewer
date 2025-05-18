@@ -10,6 +10,11 @@ import {
     PieController
 } from 'chart.js';
 
+import mascotHappy from './assets/images/mascot_happy.webp';
+import mascotHmm from './assets/images/mascot_hmm.webp';
+import mascotHmm2 from './assets/images/mascot_hmm2.webp';
+import mascotSurprised from './assets/images/mascot_surprised.webp';
+
 Chart.register(ArcElement, Tooltip, Legend, PieController);
 
 class MapAnalyzer {
@@ -27,10 +32,10 @@ class MapAnalyzer {
     private mascotAnimationInterval: number | null = null;
     private mascotCurrentFrame: number = 0;
     private mascotFrameImagePaths = [
-        './assets/images/mascot_happy.webp',
-        './assets/images/mascot_hmm.webp',
-        './assets/images/mascot_hmm2.webp',
-        './assets/images/mascot_surprised.webp'
+        mascotHappy,
+        mascotHmm,
+        mascotHmm2,
+        mascotSurprised
     ];
     private mascotSearchAnimationFrames = [1, 2, 3];
     private mascotShouldAnimateForSearch: boolean = false;

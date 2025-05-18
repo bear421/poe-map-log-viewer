@@ -27,12 +27,6 @@ jobs:
         run: npm install
       - name: Build
         run: npm run build
-      - name: Debug - List directories
-        run: |
-          echo "Current directory contents:"
-          ls -la
-          echo "\nContents of dist directory:"
-          ls -la dist/
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
