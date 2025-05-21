@@ -1,23 +1,17 @@
 declare var bootstrap: any;
 import { Filter, MapInstance } from './instance-tracker';
 import { LogEvent } from './event-dispatcher';
-import {
-    Chart,
-    ArcElement,
-    Tooltip,
-    Legend,
-    PieController
-} from 'chart.js';
 import { Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
 import { SearchComponent } from './components/search';
 import { MapStatsComponent } from './components/map-stats';
 import { OverviewComponent } from './components/overview';
 import { FileSelectorComponent } from './components/file-selector';
+import { JourneyComponent } from './components/journey';
+import { MessagesComponent } from './components/messages';
+import { LogAggregation, aggregate } from './aggregation';
 
 import './assets/css/styles.css';
-
-Chart.register(ArcElement, Tooltip, Legend, PieController);
 
 class MapAnalyzer {
 
@@ -35,10 +29,16 @@ class MapAnalyzer {
     private overviewComponent!: OverviewComponent;
     private fileSelectorComponent!: FileSelectorComponent;
     private selectedFile: File | null = null;
+    private modalMascot!: Mascot;
+    private journeyComponent!: JourneyComponent;
+    private journeyTabPane!: HTMLDivElement;
+    private messagesComponent!: MessagesComponent;
+    private messagesTabPane!: HTMLDivElement;
 
     // Properties to manage UI element visibility
     private tabNavElement!: HTMLUListElement;
     private tabContentElement!: HTMLDivElement;
+    private progressModalInstance!: any;
 
     constructor() {
         this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
@@ -49,18 +49,22 @@ class MapAnalyzer {
     private setupElements() {
         const container = document.createElement('div');
         container.className = 'container py-2 flex-grow-1 bg-white';
+        const gradientSpaceLeft = document.createElement('div');
+        gradientSpaceLeft.className = 'gradient-space-left';
+        document.body.appendChild(gradientSpaceLeft);
         document.body.appendChild(container);
+        const gradientSpaceRight = document.createElement('div');
+        gradientSpaceRight.className = 'gradient-space-right';
+        document.body.appendChild(gradientSpaceRight);
 
         const faviconLink = document.createElement('link');
         faviconLink.rel = 'icon';
-        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y=".9em" font-size="80" text-anchor="middle">🐻</text></svg>`;
+        const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50" y=".9em" font-size="80" text-anchor="middle">🔎</text></svg>`;
         faviconLink.href = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgContent)}`;
         document.head.appendChild(faviconLink);
 
         const headerContainer = document.createElement('div');
-        headerContainer.style.display = 'flex';
-        headerContainer.style.alignItems = 'flex-start';
-        headerContainer.style.marginBottom = '-10px';
+        headerContainer.className = 'app-header-container';
 
         this.mascot = new Mascot(headerContainer);
 
@@ -70,6 +74,22 @@ class MapAnalyzer {
         titleElement.className = 'display-1';
         headerContainer.appendChild(titleElement);
 
+        const githubButton = document.createElement('a');
+        githubButton.href = 'https://github.com/bear421/poe-map-log-viewer';
+        githubButton.target = '_blank';
+        githubButton.rel = 'noopener noreferrer';
+        githubButton.className = 'btn btn-outline-secondary ms-auto mt-2';
+        githubButton.style.textDecoration = 'none';
+
+        const githubIcon = document.createElement('i');
+        githubIcon.className = 'bi bi-github me-2';
+
+        const buttonText = document.createTextNode('View on GitHub');
+
+        githubButton.appendChild(githubIcon);
+        githubButton.appendChild(buttonText);
+        headerContainer.appendChild(githubButton);
+
         container.prepend(headerContainer);
 
         this.filterComponent = new FilterComponent((filter: Filter) => {
@@ -77,9 +97,9 @@ class MapAnalyzer {
                 this.showError('No map data available to filter');
                 return;
             }
-            this.displayResults(Filter.filterMaps(this.currentMaps, filter), Filter.filterEvents(this.currentEvents, filter));
-        });
-        container.appendChild(this.filterComponent.getElement());
+            const aggregation = aggregate(this.currentMaps, this.currentEvents, filter);
+            this.displayResults(aggregation);
+        }, container);
 
         this.fileSelectorComponent = new FileSelectorComponent((file: File) => {
             this.selectedFile = file;
@@ -92,7 +112,7 @@ class MapAnalyzer {
                 this.showError('Please select a Client.txt file to search');
                 return;
             }
-            this.showProgress();
+            this.showProgress("Searching Log File...");
             this.worker.postMessage({
                 type: 'search',
                 file: this.selectedFile,
@@ -102,13 +122,44 @@ class MapAnalyzer {
         });
 
         this.progressBar = document.createElement('div');
-        this.progressBar.className = 'd-none text-center mb-3';
+        this.progressBar.className = 'progress-container mb-3';
         this.progressBar.innerHTML = `
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
+            <div class="progress" style="height: 25px;">
+                <div class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
             </div>
         `;
-        container.appendChild(this.progressBar);
+
+        const modalId = 'progressModal';
+        const modalHtml = `
+            <div class="modal" id="${modalId}" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header" style="position: relative;">
+                            <h5 class="modal-title" id="progressModalLabel">Processing...</h5>
+                        </div>
+                        <div class="modal-body"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        const modalTemplate = document.createElement('template');
+        modalTemplate.innerHTML = modalHtml.trim();
+        const modalElement = modalTemplate.content.firstChild as HTMLElement;
+        
+        this.modalMascot = new Mascot();
+        const modalMascotElement = this.modalMascot.getElement();
+        modalMascotElement.classList.add('mascot-on-modal');
+        
+        const modalHeader = modalElement.querySelector('.modal-header');
+        if (modalHeader) {
+            modalHeader.prepend(modalMascotElement);
+        }
+        
+        modalElement.querySelector('.modal-body')!.appendChild(this.progressBar);
+        container.appendChild(modalElement);
+        
+        this.progressModalInstance = new bootstrap.Modal(document.getElementById(modalId) as HTMLElement);
 
         this.tabNavElement = document.createElement('ul');
         this.tabNavElement.className = 'nav nav-tabs mt-4 d-none';
@@ -122,7 +173,19 @@ class MapAnalyzer {
                 <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Map stats</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="search-log-tab" data-bs-toggle="tab" data-bs-target="#search-log-tab-pane" type="button" role="tab" aria-controls="search-log-tab-pane" aria-selected="false">Search raw log</button>
+                <button class="nav-link" id="journey-tab" data-bs-toggle="tab" data-bs-target="#journey-tab-pane" type="button" role="tab" aria-controls="journey-tab-pane" aria-selected="false">Journey</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-tab-pane" type="button" role="tab" aria-controls="messages-tab-pane" aria-selected="false">Messages</button>
+            </li>
+            <li class="nav-item dropdown" role="presentation">
+                <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false" id="advanced-tab">Advanced</a>
+                <ul class="dropdown-menu" aria-labelledby="advanced-tab">
+                    <li><button class="dropdown-item" id="search-log-tab" data-bs-toggle="tab" data-bs-target="#search-log-tab-pane" type="button" role="tab" aria-controls="search-log-tab-pane" aria-selected="false">Search raw log</button></li>
+                    <li><button class="dropdown-item" type="button">Live Buffer</button></li>
+                    <li><button class="dropdown-item" id="download-json-tab" type="button">Export processed JSON Data</button></li>
+                    <li><button class="dropdown-item" id="import-json-tab" type="button">Import processed JSON Data</button></li>
+                </ul>
             </li>
         `;
         container.appendChild(this.tabNavElement);
@@ -145,6 +208,20 @@ class MapAnalyzer {
         this.mapsTabPane.setAttribute('aria-labelledby', 'maps-tab');
         this.mapsTabPane.setAttribute('tabindex', '0');
 
+        this.journeyTabPane = document.createElement('div');
+        this.journeyTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.journeyTabPane.id = 'journey-tab-pane';
+        this.journeyTabPane.setAttribute('role', 'tabpanel');
+        this.journeyTabPane.setAttribute('aria-labelledby', 'journey-tab');
+        this.journeyTabPane.setAttribute('tabindex', '0');
+
+        this.messagesTabPane = document.createElement('div');
+        this.messagesTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.messagesTabPane.id = 'messages-tab-pane';
+        this.messagesTabPane.setAttribute('role', 'tabpanel');
+        this.messagesTabPane.setAttribute('aria-labelledby', 'messages-tab');
+        this.messagesTabPane.setAttribute('tabindex', '0');
+
         this.searchLogTabPane = document.createElement('div');
         this.searchLogTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
         this.searchLogTabPane.id = 'search-log-tab-pane';
@@ -155,11 +232,25 @@ class MapAnalyzer {
 
         this.mapStatsComponent = new MapStatsComponent();
         this.overviewComponent = new OverviewComponent();
+        this.journeyComponent = new JourneyComponent();
+        this.journeyTabPane.appendChild(this.journeyComponent.getElement());
+
+        this.messagesComponent = new MessagesComponent();
+        this.messagesTabPane.appendChild(this.messagesComponent.getElement());
 
         this.tabContentElement.appendChild(this.overviewTabPane);
         this.tabContentElement.appendChild(this.mapsTabPane);
+        this.tabContentElement.appendChild(this.journeyTabPane);
+        this.tabContentElement.appendChild(this.messagesTabPane);
         this.tabContentElement.appendChild(this.searchLogTabPane);
         container.appendChild(this.tabContentElement);
+
+        const importJsonInput = document.createElement('input');
+        importJsonInput.type = 'file';
+        importJsonInput.accept = '.json,application/json';
+        importJsonInput.style.display = 'none';
+        importJsonInput.id = 'import-json-input';
+        container.appendChild(importJsonInput);
     }
 
     private setupEventListeners() {
@@ -169,12 +260,13 @@ class MapAnalyzer {
                 case 'complete':
                     this.currentMaps = data.maps;
                     this.currentEvents = data.events;
-                    this.displayResults(data.maps, data.events);
+                    const agg = aggregate(this.currentMaps, this.currentEvents, new Filter());
+                    this.displayResults(agg);
                     this.hideProgress();
 
                     this.fileSelectorComponent.hide();
 
-                    this.filterComponent.show();
+                    this.filterComponent.setVisible(true);
                     this.tabNavElement.classList.remove('d-none');
                     this.tabContentElement.classList.remove('d-none');
 
@@ -191,7 +283,20 @@ class MapAnalyzer {
 
                     const searchLogTabButton = document.getElementById('search-log-tab');
                     if (searchLogTabButton) {
-                        bootstrap.Tab.getOrCreateInstance(searchLogTabButton).show();
+                        const tabInstance = bootstrap.Tab.getOrCreateInstance(searchLogTabButton);
+                        tabInstance.show();
+                    }
+                    break;
+                case 'progress':
+                    const { bytesRead, totalBytes } = data;
+                    if (totalBytes > 0) {
+                        const percent = Math.round((bytesRead / totalBytes) * 100);
+                        const progressBarElement = this.progressBar.querySelector('.progress-bar') as HTMLElement;
+                        if (progressBarElement) {
+                            progressBarElement.style.width = `${percent}%`;
+                            progressBarElement.textContent = `${percent}%`;
+                            progressBarElement.setAttribute('aria-valuenow', percent.toString());
+                        }
                     }
                     break;
                 case 'error':
@@ -203,6 +308,28 @@ class MapAnalyzer {
                     break;
             }
         };
+
+        const downloadJsonButton = document.getElementById('download-json-tab');
+        if (downloadJsonButton) {
+            downloadJsonButton.addEventListener('click', () => this.exportJsonData());
+        }
+
+        const importJsonButton = document.getElementById('import-json-tab');
+        const importJsonInput = document.getElementById('import-json-input') as HTMLInputElement;
+
+        if (importJsonButton && importJsonInput) {
+            importJsonButton.addEventListener('click', () => {
+                importJsonInput.click();
+            });
+
+            importJsonInput.addEventListener('change', (event) => {
+                const target = event.target as HTMLInputElement;
+                if (target.files && target.files.length > 0) {
+                    this.handleImportJson(target.files[0]);
+                    target.value = ''; // Reset file input
+                }
+            });
+        }
     }
 
     private handleUpload(file: File) {
@@ -211,29 +338,39 @@ class MapAnalyzer {
             return;
         }
         this.clearResults();
-        this.showProgress();
+        this.showProgress("Processing Log File...");
 
-        this.filterComponent.hide();
+        this.filterComponent.setVisible(false);
         this.tabNavElement.classList.add('d-none');
         this.tabContentElement.classList.add('d-none');
 
         this.worker.postMessage({ type: 'process', file });
     }
 
-    private displayResults(maps: MapInstance[], events: LogEvent[]) {
+    private displayResults(agg: LogAggregation) {
         this.clearResults();
         this.overviewTabPane.innerHTML = '';
         this.mapsTabPane.innerHTML = '';
+        this.journeyTabPane.innerHTML = '';
+        this.messagesTabPane.innerHTML = '';
 
         const then = performance.now();
 
+        this.filterComponent.updateData(agg);
+        
         this.overviewTabPane.innerHTML = '';
-        this.overviewComponent.update(maps, events);
+        this.overviewComponent.update(agg);
         this.overviewTabPane.appendChild(this.overviewComponent.getElement());
 
         this.mapsTabPane.innerHTML = '';
-        this.mapStatsComponent.update(maps, events);
+        this.mapStatsComponent.update(agg);
         this.mapsTabPane.appendChild(this.mapStatsComponent.getElement());
+
+        this.journeyComponent.update(agg);
+        this.journeyTabPane.appendChild(this.journeyComponent.getElement());
+
+        this.messagesComponent.update(agg);
+        this.messagesTabPane.appendChild(this.messagesComponent.getElement());
 
         console.log("Data processing and rendering for displayResults took", (performance.now() - then) + " ms");
     }
@@ -262,14 +399,32 @@ class MapAnalyzer {
         this.searchLogTabPane.appendChild(resultsCard);
     }
 
-    private showProgress() {
-        this.progressBar.classList.remove('d-none');
-        this.mascot.setSearchAnimation(true);
+    private showProgress(title: string = "Processing...") {
+        const modalTitleElement = document.getElementById('progressModalLabel');
+        if (modalTitleElement) {
+            modalTitleElement.textContent = title;
+        }
+
+        const progressBarElement = this.progressBar.querySelector('.progress-bar') as HTMLElement;
+        if (progressBarElement) {
+            progressBarElement.style.width = `0%`;
+            progressBarElement.textContent = `0%`;
+            progressBarElement.setAttribute('aria-valuenow', '0');
+        }
+
+        this.mascot?.hide();
+        this.modalMascot?.show();
+        this.modalMascot?.setSearchAnimation(true);
+
+        this.progressModalInstance.show();
     }
 
     private hideProgress() {
-        this.progressBar.classList.add('d-none');
-        this.mascot.setSearchAnimation(false);
+        this.progressModalInstance.hide();
+        this.modalMascot?.hide();
+        this.modalMascot?.setSearchAnimation(false);
+        this.mascot?.show();
+        this.mascot?.setSearchAnimation(false);
     }
 
     private showError(message: string) {
@@ -289,7 +444,7 @@ class MapAnalyzer {
         }
 
         this.fileSelectorComponent.show();
-        this.filterComponent.hide();
+        this.filterComponent.setVisible(false);
         this.tabNavElement.classList.add('d-none');
         this.tabContentElement.classList.add('d-none');
 
@@ -297,7 +452,10 @@ class MapAnalyzer {
         if (overviewTabButton) {
             bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
         }
-        this.mascot.setSearchAnimation(false);
+        
+        this.modalMascot?.hide();
+        this.modalMascot?.setSearchAnimation(false);
+        this.mascot?.show();
     }
 
     private clearResults() {
@@ -307,7 +465,83 @@ class MapAnalyzer {
         if (this.mapsTabPane) {
             this.mapsTabPane.innerHTML = '';
         }
+        if (this.journeyTabPane) {
+            this.journeyTabPane.innerHTML = '';
+        }
+        if (this.messagesTabPane) {
+            this.messagesTabPane.innerHTML = '';
+        }
+    }
+
+    private exportJsonData() {
+        if (!this.currentMaps || this.currentMaps.length === 0) {
+            this.showError('No data available to download.');
+            return;
+        }
+        const jsonData = JSON.stringify({ maps: this.currentMaps, events: this.currentEvents }, null, 2);
+        const blob = new Blob([jsonData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'poe_map_log_data.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    private handleImportJson(file: File) {
+        if (!file) {
+            this.showError('Please select a JSON file to import.');
+            return;
+        }
+
+        this.showProgress();
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const content = e.target?.result as string;
+                if (!content) {
+                    throw new Error("File content is empty.");
+                }
+                const data = JSON.parse(content);
+
+                if (data && Array.isArray(data.maps) && Array.isArray(data.events)) {
+                    this.currentMaps = data.maps as MapInstance[];
+                    this.currentEvents = data.events as LogEvent[];
+                    const aggregation = aggregate(this.currentMaps, this.currentEvents, new Filter());
+                    this.displayResults(aggregation);
+                    this.hideProgress();
+
+                    const overviewTabButton = document.getElementById('overview-tab');
+                    if (overviewTabButton) {
+                        bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
+                    }
+                    this.selectedFile = null;
+                } else {
+                    throw new Error('Invalid JSON format. Expected "maps" and "events" arrays.');
+                }
+            } catch (error: any) {
+                console.error("Error importing JSON:", error);
+                this.showError(`Error importing JSON: ${error.message}`);
+                this.hideProgress();
+                this.fileSelectorComponent.show();
+            }
+        };
+        reader.onerror = (error) => {
+            console.error("Error reading file:", error);
+            this.showError('Error reading the selected file.');
+            this.hideProgress();
+            this.fileSelectorComponent.show();
+        };
+
+        reader.readAsText(file);
     }
 }
-
-new MapAnalyzer(); 
+declare global {
+    interface Window {
+        mapAnalyzer: MapAnalyzer;
+    }
+}
+window.mapAnalyzer = new MapAnalyzer(); 

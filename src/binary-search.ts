@@ -12,6 +12,8 @@ export function binarySearch<T>(
     initialLeft: number = 0,
     initialRight: number = array.length - 1
 ): number {
+    if (array.length === 0) return -1;
+    
     if (initialLeft > initialRight) {
         throw new Error(`initialLeft must be less than or equal to initialRight: ${initialLeft} > ${initialRight}`);
     }
@@ -21,8 +23,6 @@ export function binarySearch<T>(
     if (initialRight < 0) {
         throw new Error(`initialRight must be greater than or equal to 0: ${initialRight}`);
     }
-    if (array.length === 0) return -1;
-    
     let low = initialLeft;
     let high = initialRight;
     let res = -1;

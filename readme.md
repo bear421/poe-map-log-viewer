@@ -1,6 +1,7 @@
 # PoE Map Log Viewer
 
-Simple map metrics from Path of Exile's Client.txt log file. All processing is done client side for privacy / performance purposes.
+Simple map metrics from Path of Exile's Client.txt log file. 
+All processing is done client side for privacy / performance purposes.
 
 
 ## Usage
@@ -17,10 +18,13 @@ npm run dev
 
 ## technical tidbits
 
+- in general, the information supplied by the log file is quite sparse and some stats are inferred on a best effort basis
 - load time is attributed to the entered map
 - when entering the hideout (i.e. leaving the map), the load time is attributed to the current map
 - when transitioning between hideouts and towns, the load time is unattributed
 - inaccurate results if user changed system date/time; log file must be chronologically ordered
+- legacy PoE 1 map logs "You have entered Strand" (~2020 and before) currently not supported
+- leagcy PoE 1 and briefly PoE 2 "@player1 xyz" message fromat (sender / receiver ambiguous) currently not supported
 
 ## Disclaimer
 

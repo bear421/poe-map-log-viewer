@@ -1,3 +1,10 @@
+import { RingBuffer } from "./ringbuffer";
+import { parseTs, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
+import { EventDispatcher, LogEvent } from "./event-dispatcher";
+import { binarySearch, BinarySearchMode } from "./binary-search";
+import { getZoneInfo } from "./data/zone_table";
+import { BOSS_TABLE } from "./data/boss_table";
+
 class AreaInfo {
     ts: number;
     uptimeMillis: number;
@@ -276,9 +283,9 @@ class MapInstance {
         const areaType = MapInstance.areaType(map);
         switch (areaType) {
             case AreaType.Campaign:
-                return "Campaign " + map.name;
+                return getZoneInfo(map.name)?.label ?? "Campaign " + map.name;
             case AreaType.Town:
-                return "Town " + map.name;
+                return getZoneInfo(map.name)?.label ?? "Town " + map.name;
         }
         const name = map.name.replace(/^Map/, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
@@ -323,17 +330,20 @@ class Filter {
     toMillis?: number;
     fromAreaLevel?: number;
     toAreaLevel?: number;
+    character?: string;
 
     constructor(
         fromMillis?: number,
         toMillis?: number,
         fromAreaLevel?: number,
-        toAreaLevel?: number
+        toAreaLevel?: number,
+        character?: string
     ) {
         this.fromMillis = fromMillis;
         this.toMillis = toMillis;
         this.fromAreaLevel = fromAreaLevel;
         this.toAreaLevel = toAreaLevel;
+        this.character = character;
     }
 
     static isEmpty(filter?: Filter): boolean {
@@ -400,7 +410,7 @@ class Filter {
 }
 
 // example 2024/12/06 21:38:54 35930140 403248f7 [INFO Client 1444] [SHADER] Delay: ON
-const POST_LOAD_REGEX = new RegExp(`\\[SHADER\\] Delay:`, "i");
+const POST_LOAD_REGEX = /^\[SHADER\] Delay/;
 
 enum EventCG {
     MsgFrom, 
@@ -412,24 +422,42 @@ enum EventCG {
     Slain,           
     Joined,          
     Left,            
-    LevelUp         
+    LevelUp,
+    PassiveGained,
+    BonusGained,
+    MsgBoss,
+    MsgLocal
 }
 
 /**
+ * common prefix between all examples, note that the prefix "ends" with a space: 
+ *                  2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] 
  * example logs:
- * MsgFrom:         2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
- * MsgTo:           2024/12/09 17:20:32 161926000 3ef2336d [INFO Client 12528] @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
- * MsgParty:        2024/12/08 16:07:33 125147609 3ef2336d [INFO Client 12528] %Player1: meow
- * Generating:      2024/12/06 21:38:41 35916765 2caa1679 [DEBUG Client 1444] Generating level 1 area "G1_1" with seed 2665241567
- * TradeAccepted:   2024/12/06 23:53:01 43976781 3ef2336d [INFO Client 19904] : Trade accepted.
- * ItemsIdentified: 2024/12/07 01:41:51 50507140 3ef2336d [INFO Client 18244] : 5 Items identified
- * Slain:           2024/12/06 23:47:07 43622984 3ef2336d [INFO Client 19904] : Player1 has been slain.
- * Joined:          2024/12/06 23:05:09 41105484 3ef2336d [INFO Client 22004] : Player1 has joined the area.
- * Left:            2024/12/06 23:12:20 41536000 3ef2336d [INFO Client 22004] : Player1 has left the area.
- * LevelUp:         2024/12/06 22:44:59 39895562 3ef2336d [INFO Client 2636] : Player1 (Sorceress) is now level 2
- * LevelUp:         2025/02/10 09:47:04 937716484 3ef2336a [INFO Client 13352] : Player1 (Stormweaver) is now level 100
+ * MsgFrom         @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
+ * MsgTo           @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
+ * MsgParty        Generating level 1 area "G1_1" with seed 2665241567
+ * TradeAccepted   : Trade accepted.
+ * ItemsIdentified : 5 Items identified
+ * Slain           : Player1 has been slain.
+ * Joined          : Player1 has joined the area.
+ * Left            : Player1 has left the area.
+ * LevelUp         : Player1 (Sorceress) is now level 2
+ * LevelUp         : Player1 (Stormweaver) is now level 100
+ * PassiveGained   : You have received 2 Weapon Set Passive Skill Points.
+ * PassiveGained   : You have received 2 Passive Skill Points.
+ * PassiveGained   : You have received a Passive Skill Point.
+ * BonusGained     : You have received +10% to [Resistances|Cold Resistance].
+ * BonusGained     : You have received +30 to [Spirit|Spirit].
+ * BonusGained     : You have received +20 to maximum Life.
+ * BonusGained     : You have received +10% to [Resistances|Lightning Resistance].
+ * BonusGained     : You have received +10% to [Resistances|Fire Resistance].
+ * BonusGained     : You have received 8% increased maximum Life.
+ * BossKill        Xesht, We That Are One: Ugh...! We That Failed...
+ * BossKill        The Arbiter of Ash: The Mothersoul... Must prevail...
+ * BossKill        Strange Voice: So be it. Keep your precious sanity, my agent of chaos. You shall serve me, whether you like it or not. I'm not going anywhere...
+ * BossKill        Sirus, Awakener of Worlds: At least I felt something...
+ * MsgLocal        Player1: hello
  */
-
 
 // if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
 // very important to fail fast on those patterns, e.g. avoid starting off with wildcard matches
@@ -443,40 +471,33 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.Slain}>[^ ]+) has been slain`,
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
     `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
-    `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`
+    `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
+    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) (?:Weapon Set )?Passive Skill Points`,
+    `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
+    `(?!Error|#)(?<g${EventCG.MsgLocal}>[^\\] ]+):(.*)` 
 ];
 
-// Runtime check to ensure EVENT_PATTERNS are correctly aligned with EventCG numeric values
-// TODO maybe implement this a bit better, technically unnecessary, could simply reorder offset table
-for (let i = 0; i < EVENT_PATTERNS.length; i++) {
-    const pattern = EVENT_PATTERNS[i];
-    const expectedNamedGroup = `(?<g${i}>`;
-    if (!pattern.includes(expectedNamedGroup)) {
-        throw new Error(`pattern ${pattern} is missing named capture group ${expectedNamedGroup}`);
-    }
-}
-
-const COMPOSITE_EV_REGEX = new RegExp(`] (?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
+const COMPOSITE_EV_REGEX = new RegExp(`^(?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
 const COMPOSITE_PATTERN_OFFSETS: number[] = [];
 {
     let currentOffset = 2; // own group + enclosing group
     for (const pattern of EVENT_PATTERNS) {
-        COMPOSITE_PATTERN_OFFSETS.push(currentOffset);
+        const m = /\(\?<g(\d+)>/.exec(pattern);
+        if (!m) {
+            throw new Error(`pattern /${pattern}/ of composite event regex is missing named capture group like (g<NUMBER>)`);
+        }
+        const eventCG = parseInt(m[1], 10) as EventCG;
+        COMPOSITE_PATTERN_OFFSETS[eventCG] = currentOffset;
         const captureGroupCount = new RegExp("^|" + pattern).exec("")!.length!;
         currentOffset += captureGroupCount;
     }
 }
 
-const MAP_NAME_CAMPAIGN = /^([cg]\d?_g?([a-z0-9]+)_?([a-z0-9]*)_?([a-z0-9]*))$/;
+const MAP_NAME_CAMPAIGN = /^(?:g\d+_|c_g|g_)/;
 const MAP_NAME_TOWN = /^(g([a-z0-9]+)_town)$/;
 const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 const logger = console;
-
-import { RingBuffer } from "./ringbuffer";
-import { parseTs, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
-import { EventDispatcher, LogEvent } from "./event-dispatcher";
-import { binarySearch, BinarySearchMode } from "./binary-search";
 
 class InstanceTracker {
     
@@ -493,13 +514,17 @@ class InstanceTracker {
         this.nextWaystone = null;
     }
 
-    async processLogFile(file: File, filter?: Filter): Promise<boolean> {
+    async processLogFile(file: File, filter?: Filter, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<boolean> {
         if (Filter.isEmpty(filter)) {
             filter = undefined;
         } else {
             // create defensive copy since instance-tracker may modify filter
             filter = new Filter(filter!.fromMillis, filter!.toMillis, filter!.fromAreaLevel, filter!.toAreaLevel);
         }
+        const progress = {
+            totalBytes: file.size,
+            bytesRead: 0
+        };
         const reader = file.stream().getReader();
         try {
             const decoder = new TextDecoder();
@@ -536,6 +561,8 @@ class InstanceTracker {
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
                 }
+                progress.bytesRead += chunk.length;
+                onProgress?.(progress);
             }
         } finally {
             reader.releaseLock();
@@ -543,8 +570,12 @@ class InstanceTracker {
         }
     }
 
-    async searchLogFile(pattern: RegExp, limit: number, file: File, filter?: Filter): Promise<string[]> {
+    async searchLogFile(pattern: RegExp, limit: number, file: File, filter?: Filter, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<string[]> {
         const lines: string[] = [];
+        const progress = {
+            totalBytes: file.size,
+            bytesRead: 0
+        };
         const reader = file.stream().getReader();
         try {
             const decoder = new TextDecoder();
@@ -605,6 +636,8 @@ class InstanceTracker {
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
                 }
+                progress.bytesRead += chunk.length;
+                onProgress?.(progress);
             }
         } finally {
             reader.releaseLock();
@@ -639,7 +672,14 @@ class InstanceTracker {
                 if (filter.toMillis && ts > filter.toMillis) return false;
             }
         }
-        const postLoadMatch = (this.currentMap && (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING)) && POST_LOAD_REGEX.exec(line);
+        // could perhaps be even greedier with the indexOf start, but this is safe
+        // getting the remainder is a slight boost in performance to starting the composite regex with "] "
+        const rIx = line.indexOf("]", 40);
+        if (rIx === -1) return true;
+
+        const remainder = line.substring(rIx + 2);
+        const postLoadMatch = (this.currentMap && (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING)) 
+            && POST_LOAD_REGEX.exec(remainder);
         if (postLoadMatch) {
             ts ??= parseTs(line);
             if (!ts) {
@@ -648,19 +688,19 @@ class InstanceTracker {
             }
             const uptimeMillis = parseUptimeMillis(line);
             const delta = this.currentMap!.applyLoadedAt(ts, uptimeMillis);
-            this.dispatchEvent("areaPostLoad", ts, { delta });
+            this.dispatchEvent("areaPostLoad", ts, { delta, uptimeMillis });
         } else {
-            const m = COMPOSITE_EV_REGEX.exec(line);
+            const m = COMPOSITE_EV_REGEX.exec(remainder);
             if (!m) return true;
 
             ts ??= parseTs(line);
-            if (!ts) {
-                logger.warn(`no timestamp found in event match: ${line}`);
-                return true;
-            }
             const g = m.groups!;
             const strGroup = Object.keys(g).find(k => g[k] !== undefined)!;
             const eventCG = parseInt(strGroup.substring(1), 10) as EventCG;
+            if (!ts) {
+                logger.warn(`no timestamp found in event match "${eventCG}": ${line}`);
+                return true;
+            }
             const offset = COMPOSITE_PATTERN_OFFSETS[eventCG];
             switch (eventCG) {
                 case EventCG.MsgFrom:
@@ -671,6 +711,17 @@ class InstanceTracker {
                     break;
                 case EventCG.MsgParty:
                     this.dispatchEvent("msgParty", ts, { character: m[offset], msg: m[offset + 1] });
+                    break;
+                case EventCG.MsgLocal:
+                    this.dispatchEvent("msgLocal", ts, { character: m[offset], msg: m[offset + 1] });
+                    break;
+                case EventCG.MsgBoss:
+                    const boss = BOSS_TABLE[m[offset]];
+                    if (boss) {
+                        if (boss.deathCries.has(m[offset + 1])) {
+                            this.dispatchEvent("bossKill", ts, { character: m[offset], msg: m[offset + 1], areaLevel: this.currentMap!.areaLevel });
+                        }
+                    }
                     break;
                 case EventCG.Generating:
                     const uptimeMillis = parseUptimeMillis(line);
@@ -696,6 +747,11 @@ class InstanceTracker {
                     break;
                 case EventCG.LevelUp:
                     this.dispatchEvent("levelUp", ts, { character: m[offset], ascendancy: m[offset + 1], level: m[offset + 2] });
+                    break;
+                case EventCG.PassiveGained:
+                    const strPassive = m[offset];
+                    const passiveCount = strPassive == 'a' ? 1 : parseInt(strPassive);
+                    this.dispatchEvent("passiveGained", ts, { count: passiveCount });
                     break;
                 case EventCG.TradeAccepted:
                     this.dispatchEvent("tradeAccepted", ts);

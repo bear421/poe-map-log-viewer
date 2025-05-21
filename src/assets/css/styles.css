@@ -14,12 +14,51 @@ body {
     flex-direction: column;
 }
 
-#app-main-container {
-    flex-grow: 1; /* Allows the container to grow and fill available vertical space */
-    display: flex; /* Added to make managing children like a potential footer easier */
-    flex-direction: column; /* Ensures children stack vertically */
+.gradient-space-left, .gradient-space-right {
+    flex-grow: 1;
 }
 
+.gradient-space-left {
+    background: linear-gradient(to left, #FFF 0%, rgba(0, 0, 177, 0.1) 66%);
+}
+
+.gradient-space-right {
+    background: linear-gradient(to right, #FFF 0%, rgba(0, 0, 177, 0.1) 66%);
+}
+
+.progress-bar {
+    transition: width 0.1s ease !important;
+}
+
+.text-outline-warning {
+    text-shadow: 
+        1px 1px var(--bs-warning), 
+        -1px -1px var(--bs-warning);
+}
+
+.text-outline-danger {
+    text-shadow: 
+        1px 1px 1px var(--bs-danger), 
+        -1px -1px 1px var(--bs-danger), 
+        -1px 1px 1px var(--bs-danger), 
+        1px -1px 1px var(--bs-danger);
+}
+
+.qqq .filters .map-presets .btn {
+    text-shadow: 
+        1px 1px 1px var(--bs-btn-active-color), 
+        -1px -1px 1px var(--bs-btn-active-color), 
+        -1px 1px 1px var(--bs-btn-active-color), 
+        1px -1px 1px var(--bs-btn-active-color);
+}
+
+.qqq .filters .map-presets .btn:hover, .qqq .filters .map-presets .btn.active {
+    text-shadow: 
+        1px 1px 1px var(--bs-btn-color), 
+        -1px -1px 1px var(--bs-btn-color), 
+        -1px 1px 1px var(--bs-btn-color), 
+        1px -1px 1px var(--bs-btn-color);
+}
 .timeline {
     position: relative;
     padding: 20px 0;
@@ -87,6 +126,10 @@ body {
     font-size: 2rem;
 }
 
+.path-helper {
+    max-width: 60rem;
+}
+
 .mascot-image {
     width: 8rem;
     height: 8rem;
@@ -104,9 +147,47 @@ body {
     100% { transform: rotate(0deg); }
 }
 
-.mascot-wiggle-on-hover {
+.mascot-image:hover {
     animation-name: mascotWiggleAnimation;
     animation-duration: 1s;
     animation-timing-function: ease-in-out;
     transform-origin: bottom center;
+}
+
+.mascot-on-modal {
+    position: absolute;
+    top: -7.2rem;
+    left: 0;
+    z-index: 1060;
+    display: none;
+}
+
+.border-fade-secondary {
+    border-image-slice: 1; 
+    border-image-source: linear-gradient(
+      to right,                   
+      var(--bs-light, #fff),
+      var(--bs-secondary, #6c757d) 25%, 
+      var(--bs-secondary, #6c757d) 75%, 
+      var(--bs-light, #fff)
+    );
+}
+
+.app-header-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: -0.6rem;
+    position: relative;
+}
+
+@keyframes bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.anim-bump {
+    animation-name: bump;
+    animation-duration: 0.3s; /* Adjust duration as needed */
+    animation-timing-function: ease-out; /* Adjust timing function as needed */
 }

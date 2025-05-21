@@ -31,6 +31,23 @@ interface SearchMessage {
     };
 }
 
+interface ProgressMessage {
+    type: 'progress';
+    data: {
+        totalBytes: number;
+        bytesRead: number;
+    };
+}
+
+const onProgress = (progress: { totalBytes: number, bytesRead: number }) => {
+    self.postMessage({
+        type: 'progress',
+        data: progress
+    } as ProgressMessage);
+}
+
+const RMT_SCUM_REGEX = new RegExp(atob('RGlzY29yZDogXGQrcnNnYW1lclxkKiQ='));
+
 self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const { type, file } = e.data;
     const then = performance.now();
@@ -49,12 +66,16 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
                     case "mapEntered":
                     case "hideoutExited":
                         break;
+                    case "msgFrom":
+                        if (RMT_SCUM_REGEX.test(event.detail.msg)) {
+                            return;
+                        }
                     default:
                         events.push(event);
                         break;
                 }
             });
-            await tracker.processLogFile(file, filter);
+            await tracker.processLogFile(file, filter, onProgress);
             const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
             self.postMessage({
                 type: 'complete',
@@ -68,7 +89,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 
             if (!limit) throw new Error('Limit is required');
 
-            const lines = await tracker.searchLogFile(pattern, limit, file, filter);
+            const lines = await tracker.searchLogFile(pattern, limit, file, filter, onProgress);
             self.postMessage({
                 type: 'search',
                 data: { lines }

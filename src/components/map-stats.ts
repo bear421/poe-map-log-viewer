@@ -1,6 +1,7 @@
 import { MapInstance, MapSpan } from '../instance-tracker';
 import { LogEvent } from '../event-dispatcher';
 import { binarySearch, BinarySearchMode } from '../binary-search';
+import { LogAggregation } from '../aggregation';
 
 declare var bootstrap: any; 
 
@@ -18,9 +19,9 @@ export class MapStatsComponent {
         return this.element;
     }
 
-    public update(maps: MapInstance[], events: LogEvent[]) {
-        this.currentMaps = maps;
-        this.currentEvents = events;
+    public update(agg: LogAggregation) {
+        this.currentMaps = agg.maps;
+        this.currentEvents = agg.events;
         this.render();
     }
 

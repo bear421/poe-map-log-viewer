@@ -51,7 +51,7 @@ export class FileSelectorComponent {
         this.pathHelperCardElement.appendChild(cardHeader);
         
         const contentDiv = document.createElement('div');
-        contentDiv.className = 'card-body';
+        contentDiv.className = 'card-body path-helper';
         contentDiv.innerHTML = `
             <div class="mb-2">
                 <strong>Standalone client:</strong>
