@@ -1,22 +1,20 @@
 import { LogAggregation } from '../aggregation';
+import { BaseComponent } from './base-component';
 
 const DEBOUNCE_DELAY = 245;
 
-export class MessagesComponent {
-    private element: HTMLElement;
+export class MessagesComponent extends BaseComponent<LogAggregation> {
     private searchInput: HTMLInputElement;
     private accordionContainer: HTMLDivElement;
     private noResultsElement: HTMLParagraphElement;
 
-    private aggregationData: LogAggregation | null = null;
     private characterOrder: string[] = [];
     private characterElements: Map<string, HTMLElement> = new Map();
     private debounceTimer: number | null = null;
 
-    constructor() {
-        this.element = document.createElement('div');
+    constructor(container: HTMLElement) {
+        super(document.createElement('div'), container);
         this.element.className = 'messages-container';
-
         this.searchInput = document.createElement('input');
         this.searchInput.type = 'text';
         this.searchInput.placeholder = 'Search messages or characters (regex supported)...';
@@ -43,12 +41,7 @@ export class MessagesComponent {
         this.element.appendChild(this.noResultsElement);
     }
 
-    public getElement(): HTMLElement {
-        return this.element;
-    }
-
-    public update(aggregation: LogAggregation): void {
-        this.aggregationData = aggregation;
+    protected render(): void {
         this.buildFullAccordion();
         this.applyFilter();
     }
@@ -71,14 +64,14 @@ export class MessagesComponent {
         // 4. Ensure `applyFilter` correctly interacts with virtualization: it should filter the full list of characters
         //    and then instruct the virtual rendering system which items to display within its window.
 
-        if (!this.aggregationData || !this.aggregationData.messages || this.aggregationData.messages.size === 0) {
+        if (!this.data || !this.data.messages || this.data.messages.size === 0) {
             this.noResultsElement.textContent = 'No direct messages found.';
             this.noResultsElement.style.display = 'block';
-            return;1
+            return;
         }
         this.noResultsElement.style.display = 'none';
 
-        const charactersWithMessages = Array.from(this.aggregationData.messages.entries())
+        const charactersWithMessages = Array.from(this.data.messages.entries())
             .map(([character, events]) => ({
                 character,
                 events,
@@ -146,7 +139,7 @@ export class MessagesComponent {
     }
 
     private applyFilter(): void {
-        if (!this.aggregationData || !this.aggregationData.messages) {
+        if (!this.data || !this.data.messages) {
             return;
         }
 
@@ -172,7 +165,7 @@ export class MessagesComponent {
         let visibleCount = 0;
         this.characterOrder.forEach(character => {
             const element = this.characterElements.get(character);
-            const events = this.aggregationData!.messages.get(character) || [];
+            const events = this.data!.messages.get(character) || [];
 
             if (element) {
                 let matches = false;
@@ -195,7 +188,7 @@ export class MessagesComponent {
             }
         });
 
-        if (visibleCount === 0 && (this.aggregationData.messages.size > 0 || rawSearchTerm)) {
+        if (visibleCount === 0 && (this.data!.messages.size > 0 || rawSearchTerm)) {
             this.noResultsElement.textContent = rawSearchTerm ? 'No matching messages found.' : 'No direct messages found.';
             this.noResultsElement.style.display = 'block';
         } else {

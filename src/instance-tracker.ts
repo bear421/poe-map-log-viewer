@@ -1,9 +1,31 @@
 import { RingBuffer } from "./ringbuffer";
 import { parseTs, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
-import { EventDispatcher, LogEvent } from "./event-dispatcher";
-import { binarySearch, BinarySearchMode } from "./binary-search";
+import { EventDispatcher } from "./event-dispatcher";
+import { binarySearchRange } from "./binary-search";
 import { getZoneInfo } from "./data/zone_table";
 import { BOSS_TABLE } from "./data/boss_table";
+import {
+    LogEvent,
+    AreaPostLoadEvent,
+    MsgFromEvent,
+    MsgToEvent,
+    MsgPartyEvent,
+    MsgLocalEvent,
+    BossKillEvent,
+    DeathEvent,
+    JoinedAreaEvent,
+    LeftAreaEvent,
+    LevelUpEvent,
+    PassiveGainedEvent,
+    TradeAcceptedEvent,
+    ItemsIdentifiedEvent,
+    HideoutEnteredEvent,
+    HideoutExitedEvent,
+    MapReenteredEvent,
+    MapEnteredEvent,
+    MapCompletedEvent,
+    XPSnapshotEvent
+} from "./log-events";
 
 class AreaInfo {
     ts: number;
@@ -325,22 +347,24 @@ class MapInstance {
 
 }
 
+export interface TSRange {
+    readonly lo: number;
+    readonly hi: number;
+}
+
 class Filter {
-    fromMillis?: number;
-    toMillis?: number;
+    tsBounds?: TSRange[];
     fromAreaLevel?: number;
     toAreaLevel?: number;
     character?: string;
 
     constructor(
-        fromMillis?: number,
-        toMillis?: number,
+        tsBounds?: TSRange[],
         fromAreaLevel?: number,
         toAreaLevel?: number,
         character?: string
     ) {
-        this.fromMillis = fromMillis;
-        this.toMillis = toMillis;
+        this.tsBounds = tsBounds;
         this.fromAreaLevel = fromAreaLevel;
         this.toAreaLevel = toAreaLevel;
         this.character = character;
@@ -349,7 +373,17 @@ class Filter {
     static isEmpty(filter?: Filter): boolean {
         if (!filter) return true;
 
-        return !filter.fromMillis && !filter.toMillis && !filter.fromAreaLevel && !filter.toAreaLevel;
+        let hasFiniteBounds;
+        if (filter.tsBounds) {
+            if (filter.tsBounds.length === 1) {
+                hasFiniteBounds = filter.tsBounds[0].lo !== -Infinity || filter.tsBounds[0].hi !== Infinity;
+            } else {
+                hasFiniteBounds = filter.tsBounds.length > 1;
+            }
+        } else {
+            hasFiniteBounds = false;
+        }
+        return !hasFiniteBounds && !filter.fromAreaLevel && !filter.toAreaLevel && !filter.character;
     }
 
     static testAreaLevel(map: MapInstance, filter?: Filter): boolean {
@@ -365,46 +399,81 @@ class Filter {
     static filterMaps(maps: MapInstance[], filter: Filter): MapInstance[] {
         if (Filter.isEmpty(filter)) return maps; 
 
-        let ix = 0;
-        if (filter.fromMillis) {
-            ix = binarySearch(maps, filter.fromMillis, (map) => map.span.start, BinarySearchMode.FIRST);
-            if (ix === -1) return [];
-        }
-        let endIx = maps.length;
-        if (filter.toMillis) {
-            endIx = binarySearch(maps, filter.toMillis, (map) => map.span.start, BinarySearchMode.LAST, ix);
-            if (endIx === -1) return [];
-        } else if (!filter.fromAreaLevel && !filter.toAreaLevel) {
-            return maps.slice(ix);
+        const tsBounds = filter.tsBounds;
+        if (!filter.fromAreaLevel && !filter.toAreaLevel && tsBounds) {
+            let ix = 0, hiIx = maps.length - 1;
+            const res = [];
+            for (const {lo, hi} of tsBounds) {
+                const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
+                if (boundsLoIx === -1) continue;
+
+                const slice = Filter.sliceOrShare(maps, boundsLoIx, boundsHiIx + 1);
+                if (tsBounds.length === 1) return slice;
+
+                res.push(...slice);
+                ix = boundsHiIx + 1;
+            }
+            return res;
         }
         const res = [];
-        for (let i = ix; i < endIx; i++) {
-            const map = maps[i];
-            if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
-                continue;
+        if (tsBounds) {
+            let ix = 0, hiIx = maps.length - 1;
+            for (const {lo, hi} of tsBounds) {
+                const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
+                if (boundsLoIx === -1) continue;
+
+                for (let i = boundsLoIx; i < boundsHiIx; i++) {
+                    const map = maps[i];
+                    if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
+                        continue;
+                    }
+                    if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) {
+                        continue;
+                    }
+                    res.push(map);
+                }
+                ix = boundsHiIx + 1;
             }
-            if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) {
-                continue;
+        } else {
+            for (let i = 0; i < maps.length; i++) {
+                const map = maps[i];
+                if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
+                    continue;
+                }
+                if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) {
+                    continue;
+                }
+                res.push(map);
             }
-            res.push(map);
         }
         return res;
     }
 
     static filterEvents(events: LogEvent[], filter: Filter): LogEvent[] {
-        if (Filter.isEmpty(filter)) return events; 
+        const tsBounds = filter.tsBounds;
+        if (!tsBounds) return events;
 
-        let ix = 0;
-        if (filter.fromMillis) {
-            ix = binarySearch(events, filter.fromMillis, (event) => event.ts, BinarySearchMode.FIRST);
-            if (ix === -1) return [];
+        let ix = 0, hiIx = events.length - 1;
+        const res = [];
+        for (const {lo, hi} of tsBounds) {
+            const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(events, lo, hi, (e) => e.ts, ix, hiIx);
+
+            if (boundsLoIx === -1) continue;
+
+            const slice = Filter.sliceOrShare(events, boundsLoIx, boundsHiIx + 1);
+            if (tsBounds.length === 1) return slice;
+            
+            res.push(...slice);
+            ix = boundsHiIx + 1;
         }
-        let endIx = events.length;
-        if (filter.toMillis) {
-            endIx = binarySearch(events, filter.toMillis, (event) => event.ts, BinarySearchMode.LAST, ix);
-            if (endIx === -1) return [];
+        return res;
+    }
+
+    private static sliceOrShare<T>(array: T[], ix: number, endIx: number): T[] {
+        if (ix === 0 && endIx === array.length - 1) {
+            return array;
         }
-        return events.slice(ix, endIx);
+        return array.slice(ix, endIx);
     }
 
 }
@@ -514,13 +583,7 @@ class InstanceTracker {
         this.nextWaystone = null;
     }
 
-    async processLogFile(file: File, filter?: Filter, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<boolean> {
-        if (Filter.isEmpty(filter)) {
-            filter = undefined;
-        } else {
-            // create defensive copy since instance-tracker may modify filter
-            filter = new Filter(filter!.fromMillis, filter!.toMillis, filter!.fromAreaLevel, filter!.toAreaLevel);
-        }
+    async processLogFile(file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<boolean> {
         const progress = {
             totalBytes: file.size,
             bytesRead: 0
@@ -533,9 +596,9 @@ class InstanceTracker {
                 const { done, value } = await reader.read();
                 if (done) {
                     if (tail) {
-                        this.processLogLine(tail, filter);
+                        this.processLogLine(tail);
                     }
-                    this.processEOF(filter);
+                    this.processEOF();
                     return true;
                 }
                 const chunk = decoder.decode(value, { stream: true });
@@ -544,7 +607,7 @@ class InstanceTracker {
                 if (tail) {
                     ix = chunk.indexOf('\n');
                     if (ix !== -1) {
-                        if (!this.processLogLine(tail + chunk.slice(0, ix), filter)) return false;
+                        if (!this.processLogLine(tail + chunk.slice(0, ix))) return false;
 
                         tail = '';
                         start = ix + 1;
@@ -556,7 +619,7 @@ class InstanceTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
-                    if (!this.processLogLine(line, filter)) return false;
+                    if (!this.processLogLine(line)) return false;
                 }
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
@@ -570,7 +633,7 @@ class InstanceTracker {
         }
     }
 
-    async searchLogFile(pattern: RegExp, limit: number, file: File, filter?: Filter, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<string[]> {
+    async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<string[]> {
         const lines: string[] = [];
         const progress = {
             totalBytes: file.size,
@@ -580,7 +643,6 @@ class InstanceTracker {
         try {
             const decoder = new TextDecoder();
             let tail = '';
-            let seekAhead = filter && !!filter.fromMillis;
             for (;;) {
                 const { done, value } = await reader.read();
                 if (done) {
@@ -617,15 +679,6 @@ class InstanceTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
-                    if (seekAhead) {
-                        const ts = parseTs(line);
-                        if (ts && ts >= filter!.fromMillis!) {
-                            // logfiles are chronologically ordered, so we don't need to test fromMillis anymore
-                            seekAhead = false;
-                        } else {
-                            continue;
-                        }
-                    }
                     if (pattern.test(line)) {
                         lines.push(line);
                         if (limit > 0 && lines.length >= limit) {
@@ -651,9 +704,9 @@ class InstanceTracker {
      * @param filter - The filter to apply to the log line.
      * @returns false, if the filter would reject subsequent lines (toMillis filtering).
      */
-    processLogLine(line: string, filter?: Filter): boolean {
+    processLogLine(line: string): boolean {
         try {
-            return this.processLogLineUnchecked(line, filter);
+            return this.processLogLineUnchecked(line);
         } catch (e) {
             logger.error(`error processing log line, discarding current map: ${line}`, e);
             this.currentMap = null;
@@ -661,17 +714,8 @@ class InstanceTracker {
         }
     }
 
-    private processLogLineUnchecked(line: string, filter?: Filter): boolean {
+    private processLogLineUnchecked(line: string): boolean {
         let ts;
-        if (filter && (filter.fromMillis || filter.toMillis)) {
-            ts = parseTs(line);
-            if (ts) {
-                if (filter.fromMillis && ts < filter.fromMillis) {
-                    filter.fromMillis = undefined;
-                }
-                if (filter.toMillis && ts > filter.toMillis) return false;
-            }
-        }
         // could perhaps be even greedier with the indexOf start, but this is safe
         // getting the remainder is a slight boost in performance to starting the composite regex with "] "
         const rIx = line.indexOf("]", 40);
@@ -688,7 +732,7 @@ class InstanceTracker {
             }
             const uptimeMillis = parseUptimeMillis(line);
             const delta = this.currentMap!.applyLoadedAt(ts, uptimeMillis);
-            this.dispatchEvent("areaPostLoad", ts, { delta, uptimeMillis });
+            this.dispatchEvent(AreaPostLoadEvent.of(ts, delta, uptimeMillis));
         } else {
             const m = COMPOSITE_EV_REGEX.exec(remainder);
             if (!m) return true;
@@ -704,60 +748,68 @@ class InstanceTracker {
             const offset = COMPOSITE_PATTERN_OFFSETS[eventCG];
             switch (eventCG) {
                 case EventCG.MsgFrom:
-                    this.dispatchEvent("msgFrom", ts, { character: m[offset], msg: m[offset + 1] });
+                    this.dispatchEvent(MsgFromEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.MsgTo:
-                    this.dispatchEvent("msgTo", ts, { character: m[offset], msg: m[offset + 1] });
+                    this.dispatchEvent(MsgToEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.MsgParty:
-                    this.dispatchEvent("msgParty", ts, { character: m[offset], msg: m[offset + 1] });
+                    this.dispatchEvent(MsgPartyEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.MsgLocal:
-                    this.dispatchEvent("msgLocal", ts, { character: m[offset], msg: m[offset + 1] });
+                    this.dispatchEvent(MsgLocalEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.MsgBoss:
                     const boss = BOSS_TABLE[m[offset]];
                     if (boss) {
                         if (boss.deathCries.has(m[offset + 1])) {
-                            this.dispatchEvent("bossKill", ts, { character: m[offset], msg: m[offset + 1], areaLevel: this.currentMap!.areaLevel });
+                            if (this.currentMap) {
+                                this.dispatchEvent(BossKillEvent.of(ts, m[offset], m[offset + 1], this.currentMap.areaLevel));
+                            } else {
+                                logger.warn(`Boss kill log for ${m[offset]} but currentMap is null. Line: ${line}`);
+                            }
                         }
                     }
                     break;
                 case EventCG.Generating:
-                    const uptimeMillis = parseUptimeMillis(line);
+                    const uptimeMillisGen = parseUptimeMillis(line);
                     const areaLevel = parseInt(m[offset]);
                     const mapName = m[offset + 1];
                     const mapSeed = parseInt(m[offset + 2]);
                     this.enterArea(new AreaInfo(
                         ts,
-                        uptimeMillis,
+                        uptimeMillisGen, 
                         areaLevel,
                         mapName,
                         mapSeed
-                    ), filter);
+                    ));
                     break;
                 case EventCG.Slain:
-                    this.dispatchEvent("death", ts, { character: m[offset] });
+                    if (this.currentMap) {
+                        this.dispatchEvent(DeathEvent.of(ts, m[offset], this.currentMap.areaLevel));
+                    } else {
+                        logger.warn(`Slain log for ${m[offset]} but currentMap is null. Line: ${line}`);
+                    }
                     break;
                 case EventCG.Joined:
-                    this.dispatchEvent("joinedArea", ts, { character: m[offset] });
+                    this.dispatchEvent(JoinedAreaEvent.of(ts, m[offset]));
                     break;
                 case EventCG.Left:
-                    this.dispatchEvent("leftArea", ts, { character: m[offset] });
+                    this.dispatchEvent(LeftAreaEvent.of(ts, m[offset]));
                     break;
                 case EventCG.LevelUp:
-                    this.dispatchEvent("levelUp", ts, { character: m[offset], ascendancy: m[offset + 1], level: m[offset + 2] });
+                    this.dispatchEvent(LevelUpEvent.of(ts, m[offset], m[offset + 1], m[offset + 2]));
                     break;
                 case EventCG.PassiveGained:
                     const strPassive = m[offset];
                     const passiveCount = strPassive == 'a' ? 1 : parseInt(strPassive);
-                    this.dispatchEvent("passiveGained", ts, { count: passiveCount });
+                    this.dispatchEvent(PassiveGainedEvent.of(ts, passiveCount));
                     break;
                 case EventCG.TradeAccepted:
-                    this.dispatchEvent("tradeAccepted", ts);
+                    this.dispatchEvent(TradeAcceptedEvent.of(ts));
                     break;
                 case EventCG.ItemsIdentified:
-                    this.dispatchEvent("itemsIdentified", ts, { count: parseInt(m[offset]) });
+                    this.dispatchEvent(ItemsIdentifiedEvent.of(ts, parseInt(m[offset])));
                     break;
             }
             this.informInteraction(ts);
@@ -766,19 +818,19 @@ class InstanceTracker {
         return true;
     }
 
-    processEOF(filter?: Filter): void {
+    processEOF(): void {
         // TODO EOF map can undercount mapTime because hideoutStartTime precedes trailing POSTLOAD event
         const currentMap = this.currentMap;
         if (currentMap) {
             const end = Math.max(currentMap.span.hideoutStartTime ?? 0, currentMap.span.lastInteraction ?? 0);
             if (end) {
-                this.completeMap(currentMap, end, filter);
+                this.completeMap(currentMap, end);
                 this.currentMap = null;
             }
         }
     }
 
-    enterArea(areaInfo: AreaInfo, filter?: Filter): void {
+    enterArea(areaInfo: AreaInfo): void {
         let currentMap = this.currentMap;
         {
             const prevMap = currentMap || this.recentMaps.last();
@@ -814,7 +866,7 @@ class InstanceTracker {
                         endTime = areaInfo.ts;
                     }
                 }
-                this.completeMap(currentMap, endTime, filter);
+                this.completeMap(currentMap, endTime);
                 currentMap = this.currentMap = null;
             }
         }
@@ -824,7 +876,7 @@ class InstanceTracker {
                 currentMap.enterHideout(areaInfo.ts);
                 currentMap.span.preloadTs = areaInfo.ts;
                 currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
-                this.dispatchEvent("hideoutEntered", areaInfo.ts);
+                this.dispatchEvent(HideoutEnteredEvent.of(areaInfo.ts));
             }
             return;
         }
@@ -835,14 +887,14 @@ class InstanceTracker {
             currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
             if (currentMap.inHideout()) {
                 currentMap.exitHideout(areaInfo.ts);
-                this.dispatchEvent("hideoutExited", areaInfo.ts);
+                this.dispatchEvent(HideoutExitedEvent.of(areaInfo.ts));
             }
             if (areaInfo.seed === currentMap.seed) {
-                this.dispatchEvent("mapReentered", areaInfo.ts);
+                this.dispatchEvent(MapReenteredEvent.of(areaInfo.ts));
                 return;
             }
             // player entered a map with a different seed, this can be inaccurate if player entered a map of another party member
-            this.completeMap(currentMap, areaInfo.ts, filter);
+            this.completeMap(currentMap, areaInfo.ts);
         }
 
         const initialXp = this.recentXpSnapshots.last()?.xp ?? null;
@@ -860,11 +912,10 @@ class InstanceTracker {
         this.currentMap.span.preloadTs = areaInfo.ts;
         this.currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
         this.nextWaystone = null;
-        this.dispatchEvent("mapEntered", areaInfo.ts);
+        this.dispatchEvent(MapEnteredEvent.of(areaInfo.ts));
     }
 
-    private dispatchEvent(name: string, ts: number, detail: any = {}) {
-        const event = {name, detail, ts};
+    private dispatchEvent(event: LogEvent) {
         this.eventDispatcher.emit(event);
     }
 
@@ -874,7 +925,7 @@ class InstanceTracker {
         }
     }
 
-    private completeMap(map: MapInstance, endTime: number, filter?: Filter): void {
+    private completeMap(map: MapInstance, endTime: number): void {
         if (!map) throw new Error("no current map to complete");
 
         map.span.end = endTime;
@@ -886,9 +937,7 @@ class InstanceTracker {
             map.xph = mapTimeMs > 0 ? (map.xpGained / mapTimeMs) * 3600 * 1000 : 0;
         }
         this.recentMaps.push(map);
-        if (Filter.testAreaLevel(map, filter)) {
-            this.dispatchEvent("mapCompleted", map.span.start, { map });
-        }
+        this.dispatchEvent(MapCompletedEvent.of(map.span.start, map));
     }
 
     // real time functions, no utility for analysis of logs
@@ -979,7 +1028,7 @@ class InstanceTracker {
         );
 
         this.recentXpSnapshots.push(snapshot);
-        this.dispatchEvent("xpSnapshot", ts, { snapshot });
+        this.dispatchEvent(XPSnapshotEvent.of(ts, snapshot));
 
         if (currentMap) {
             if (currentMap.xpStart !== null) {

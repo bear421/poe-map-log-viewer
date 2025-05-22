@@ -9,27 +9,16 @@ import {
     ChartItem,
     ChartConfiguration
 } from 'chart.js';
+import { BaseComponent } from './base-component';
 
-// Chart.js elements are typically registered globally once.
-// If Chart.register was already called in app.ts, it might not be strictly necessary here,
-// but it's safe to include it to make the component self-contained regarding its dependencies.
 Chart.register(ArcElement, Tooltip, Legend, PieController);
 
-export class OverviewComponent {
-    private element: HTMLDivElement;
+export class OverviewComponent extends BaseComponent<LogAggregation> {
     private chartInstance: Chart | null = null;
 
-    constructor() {
-        this.element = document.createElement('div');
+    constructor(container: HTMLElement) {
+        super(document.createElement('div'), container);
         this.element.className = 'overview-component-container';
-    }
-
-    public getElement(): HTMLDivElement {
-        return this.element;
-    }
-
-    public update(aggregation: LogAggregation): void {
-        this.render(aggregation);
     }
 
     private getMedian(arr: number[]): number {
@@ -39,14 +28,14 @@ export class OverviewComponent {
         return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
     };
 
-    private render(agg: LogAggregation): void {
+    protected render(): void {
         this.element.innerHTML = '';
+        const agg = this.data!;
 
         if (this.chartInstance) {
             this.chartInstance.destroy();
             this.chartInstance = null;
         }
-
         const times = agg.maps.map(map => {
             try {
                 const mapTime = MapSpan.mapTime(map.span);

@@ -1,5 +1,5 @@
 import { InstanceTracker, MapInstance, Filter } from './instance-tracker';
-import { LogEvent } from './event-dispatcher';
+import { LogEvent } from './log-events';
 
 interface WorkerMessage {
     type: string;
@@ -39,7 +39,9 @@ interface ProgressMessage {
     };
 }
 
+let totalBytes = 0;
 const onProgress = (progress: { totalBytes: number, bytesRead: number }) => {
+    totalBytes = progress.totalBytes;
     self.postMessage({
         type: 'progress',
         data: progress
@@ -52,7 +54,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
     const { type, file } = e.data;
     const then = performance.now();
     const tracker: InstanceTracker = new InstanceTracker();
-    const filter = e.data.filter;
     try {
         if (type === 'process') {
             const maps: MapInstance[] = [];
@@ -75,21 +76,22 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
                         break;
                 }
             });
-            await tracker.processLogFile(file, filter, onProgress);
+            await tracker.processLogFile(file, onProgress);
             const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
             self.postMessage({
                 type: 'complete',
                 data: { maps, events }
             } as CompleteMessage);
-            console.info(`Processed ${maps.length} maps in ${tookSeconds} seconds`);
-            console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s`);
+            const totalMiB = totalBytes / 1024 / 1024;
+            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
+            console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s (${(totalMiB / parseFloat(tookSeconds)).toFixed(1)} MiB/s)`);
         } else if (type === 'search') {
             const { pattern, limit } = e.data;
             if (!pattern) throw new Error('Pattern is required');
 
             if (!limit) throw new Error('Limit is required');
 
-            const lines = await tracker.searchLogFile(pattern, limit, file, filter, onProgress);
+            const lines = await tracker.searchLogFile(pattern, limit, file, onProgress);
             self.postMessage({
                 type: 'search',
                 data: { lines }

@@ -1,6 +1,6 @@
 declare var bootstrap: any;
 import { Filter, MapInstance } from './instance-tracker';
-import { LogEvent } from './event-dispatcher';
+import { LogEvent } from './log-events';
 import { Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
 import { SearchComponent } from './components/search';
@@ -12,6 +12,7 @@ import { MessagesComponent } from './components/messages';
 import { LogAggregation, aggregate } from './aggregation';
 
 import './assets/css/styles.css';
+import { BaseComponent } from './components/base-component';
 
 class MapAnalyzer {
 
@@ -22,6 +23,7 @@ class MapAnalyzer {
     private searchLogTabPane!: HTMLDivElement;
     private currentMaps: MapInstance[] = [];
     private currentEvents: LogEvent[] = [];
+    private currentAggregation: LogAggregation | undefined = undefined;
     private mascot!: Mascot;
     private filterComponent!: FilterComponent;
     private searchComponent!: SearchComponent;
@@ -97,7 +99,8 @@ class MapAnalyzer {
                 this.showError('No map data available to filter');
                 return;
             }
-            const aggregation = aggregate(this.currentMaps, this.currentEvents, filter);
+            const aggregation = aggregate(this.currentMaps, this.currentEvents, filter, this.currentAggregation);
+            this.currentAggregation = aggregation;
             this.displayResults(aggregation);
         }, container);
 
@@ -230,20 +233,17 @@ class MapAnalyzer {
         this.searchLogTabPane.setAttribute('tabindex', '0');
         this.searchLogTabPane.appendChild(this.searchComponent.getElement());
 
-        this.mapStatsComponent = new MapStatsComponent();
-        this.overviewComponent = new OverviewComponent();
-        this.journeyComponent = new JourneyComponent();
-        this.journeyTabPane.appendChild(this.journeyComponent.getElement());
-
-        this.messagesComponent = new MessagesComponent();
-        this.messagesTabPane.appendChild(this.messagesComponent.getElement());
-
         this.tabContentElement.appendChild(this.overviewTabPane);
         this.tabContentElement.appendChild(this.mapsTabPane);
         this.tabContentElement.appendChild(this.journeyTabPane);
         this.tabContentElement.appendChild(this.messagesTabPane);
         this.tabContentElement.appendChild(this.searchLogTabPane);
         container.appendChild(this.tabContentElement);
+        
+        this.overviewComponent = new OverviewComponent(this.overviewTabPane);
+        this.mapStatsComponent = new MapStatsComponent(this.mapsTabPane);
+        this.journeyComponent = new JourneyComponent(this.journeyTabPane);
+        this.messagesComponent = new MessagesComponent(this.messagesTabPane);
 
         const importJsonInput = document.createElement('input');
         importJsonInput.type = 'file';
@@ -261,6 +261,7 @@ class MapAnalyzer {
                     this.currentMaps = data.maps;
                     this.currentEvents = data.events;
                     const agg = aggregate(this.currentMaps, this.currentEvents, new Filter());
+                    this.currentAggregation = agg;
                     this.displayResults(agg);
                     this.hideProgress();
 
@@ -330,6 +331,20 @@ class MapAnalyzer {
                 }
             });
         }
+
+        const informComponentOnTabChange = (tabButton: HTMLElement, component: BaseComponent<any>) => {
+            tabButton.addEventListener('shown.bs.tab', () => {
+                component.setVisible(true);
+            });
+            tabButton.addEventListener('hide.bs.tab', () => {
+                component.setVisible(false);
+            });
+        };
+
+        informComponentOnTabChange(document.getElementById('overview-tab') as HTMLElement, this.overviewComponent);
+        informComponentOnTabChange(document.getElementById('maps-tab') as HTMLElement, this.mapStatsComponent);
+        informComponentOnTabChange(document.getElementById('journey-tab') as HTMLElement, this.journeyComponent);
+        informComponentOnTabChange(document.getElementById('messages-tab') as HTMLElement, this.messagesComponent);
     }
 
     private handleUpload(file: File) {
@@ -337,7 +352,6 @@ class MapAnalyzer {
             this.showError('Please select a client.txt file');
             return;
         }
-        this.clearResults();
         this.showProgress("Processing Log File...");
 
         this.filterComponent.setVisible(false);
@@ -348,31 +362,20 @@ class MapAnalyzer {
     }
 
     private displayResults(agg: LogAggregation) {
-        this.clearResults();
-        this.overviewTabPane.innerHTML = '';
-        this.mapsTabPane.innerHTML = '';
-        this.journeyTabPane.innerHTML = '';
-        this.messagesTabPane.innerHTML = '';
-
         const then = performance.now();
 
+        this.overviewComponent.setVisible(true);
+        // FIXME call setVisible on active tab
+        this.overviewComponent.updateData(agg);
         this.filterComponent.updateData(agg);
-        
-        this.overviewTabPane.innerHTML = '';
-        this.overviewComponent.update(agg);
-        this.overviewTabPane.appendChild(this.overviewComponent.getElement());
+        this.mapStatsComponent.updateData(agg);
+        this.journeyComponent.updateData(agg);
+        this.messagesComponent.updateData(agg);
 
-        this.mapsTabPane.innerHTML = '';
-        this.mapStatsComponent.update(agg);
-        this.mapsTabPane.appendChild(this.mapStatsComponent.getElement());
-
-        this.journeyComponent.update(agg);
-        this.journeyTabPane.appendChild(this.journeyComponent.getElement());
-
-        this.messagesComponent.update(agg);
-        this.messagesTabPane.appendChild(this.messagesComponent.getElement());
-
-        console.log("Data processing and rendering for displayResults took", (performance.now() - then) + " ms");
+        const took = performance.now() - then;
+        if (took > 20) {
+            console.warn("Data processing and rendering for displayResults took " + took + " ms");
+        }
     }
 
     private displaySearchLogResults(lines: string[]) {
@@ -456,21 +459,6 @@ class MapAnalyzer {
         this.modalMascot?.hide();
         this.modalMascot?.setSearchAnimation(false);
         this.mascot?.show();
-    }
-
-    private clearResults() {
-        if (this.overviewTabPane) {
-            this.overviewTabPane.innerHTML = '';
-        }
-        if (this.mapsTabPane) {
-            this.mapsTabPane.innerHTML = '';
-        }
-        if (this.journeyTabPane) {
-            this.journeyTabPane.innerHTML = '';
-        }
-        if (this.messagesTabPane) {
-            this.messagesTabPane.innerHTML = '';
-        }
     }
 
     private exportJsonData() {

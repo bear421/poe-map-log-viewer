@@ -1,8 +1,4 @@
-export interface LogEvent {
-    name: string;
-    ts: number;
-    detail: any;
-}
+import { LogEvent } from './log-events';
 
 export class EventDispatcher {
 

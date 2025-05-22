@@ -1,33 +1,21 @@
 import { MapInstance, MapSpan } from '../instance-tracker';
-import { LogEvent } from '../event-dispatcher';
+import { LogEvent } from '../log-events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregation } from '../aggregation';
+import { BaseComponent } from './base-component';
 
 declare var bootstrap: any; 
 
-export class MapStatsComponent {
-    private element: HTMLDivElement;
-    private currentMaps: MapInstance[] = [];
-    private currentEvents: LogEvent[] = [];
+export class MapStatsComponent extends BaseComponent<LogAggregation> {
 
-    constructor() {
-        this.element = document.createElement('div');
+    constructor(container: HTMLElement) {
+        super(document.createElement('div'), container);
         this.createModals();
     }
 
-    public getElement(): HTMLDivElement {
-        return this.element;
-    }
-
-    public update(agg: LogAggregation) {
-        this.currentMaps = agg.maps;
-        this.currentEvents = agg.events;
-        this.render();
-    }
-
-    private render() {
+    protected render(): void {
         this.element.innerHTML = '';
-
+        const agg = this.data!;
         const mapStats = new Map<string, {
             label: string,
             count: number,
@@ -36,7 +24,7 @@ export class MapStatsComponent {
             levels: Set<number>
         }>();
 
-        this.currentMaps.forEach(map => {
+        agg.maps.forEach(map => {
             const mapTime = MapSpan.mapTime(map.span) / (1000 * 60); // minutes
             const stats = mapStats.get(map.name) || {
                 label: MapInstance.label(map),
@@ -95,7 +83,7 @@ export class MapStatsComponent {
                 button.addEventListener('click', (e) => {
                     const target = e.target as HTMLElement;
                     const mapName = target.getAttribute('data-map-name') || '';
-                    const instancesToShow = this.currentMaps.filter(map => map.name === mapName);
+                    const instancesToShow = agg.maps.filter(map => map.name === mapName);
                     this.showMapInstancesModal(mapName, instancesToShow);
                 });
             });
@@ -223,6 +211,7 @@ export class MapStatsComponent {
     }
 
     private showMapEventsModal(map: MapInstance): void {
+        const agg = this.data!;
         const mapDetailsModalElement = document.getElementById('mapDetailsModal');
         if (mapDetailsModalElement) {
             const mapDetailsBsModal = bootstrap.Modal.getInstance(mapDetailsModalElement);
@@ -251,16 +240,16 @@ export class MapStatsComponent {
         `;
         
         let relevantEvents: LogEvent[] = [];
-        if (this.currentEvents && map.span.end && map.span.start) {
-            const lo = binarySearch(this.currentEvents, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
-            const hi = binarySearch(this.currentEvents, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
+        if (agg.events && map.span.end && map.span.start) {
+            const lo = binarySearch(agg.events, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
+            const hi = binarySearch(agg.events, map.span.end, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
 
             if (lo !== -1 && hi !== -1 && lo <= hi) {
                 if (hi - lo + 1 > 1000) {
                     console.warn(`Slicing events for map ${map.name} due to large number: ${hi - lo + 1}`);
-                    relevantEvents = this.currentEvents.slice(lo, lo + 1000); 
+                    relevantEvents = agg.events.slice(lo, lo + 1000); 
                 } else {
-                    relevantEvents = this.currentEvents.slice(lo, hi + 1);
+                    relevantEvents = agg.events.slice(lo, hi + 1);
                 }
             }
         }
@@ -281,11 +270,6 @@ export class MapStatsComponent {
                     badgeClass = 'bg-success';
                     icon = 'bi-arrow-up-circle-fill';
                     details = `Character: ${event.detail.character}, Level: ${event.detail.level}`;
-                    break;
-                case "enteredArea":
-                     badgeClass = 'bg-info';
-                     icon = 'bi-geo-alt-fill';
-                     details = `Area: ${event.detail.area}, Character: ${event.detail.character}`;
                     break;
                 case "msgFrom":
                     details = `@From ${event.detail.character}: ${event.detail.msg}`;

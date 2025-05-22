@@ -1,9 +1,39 @@
+const PATH_CONFIG = {
+    poe1: {
+        label: 'Path of Exile 1',
+        standalone: {
+            path: '%PROGRAMFILES(X86)%\\Grinding Gear Games\\Path of Exile\\logs\\Client.txt',
+            label: 'Standalone client:'
+        },
+        steam: {
+            path: '%PROGRAMFILES(X86)%\\Steam\\steamapps\\common\\Path of Exile\\logs\\Client.txt',
+            label: 'Steam client:'
+        }
+    },
+    poe2: {
+        label: 'Path of Exile 2',
+        standalone: {
+            path: '%PROGRAMFILES(X86)%\\Grinding Gear Games\\Path of Exile 2\\logs\\Client.txt',
+            label: 'Standalone client:'
+        },
+        steam: {
+            path: '%PROGRAMFILES(X86)%\\Steam\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt',
+            label: 'Steam client:'
+        }
+    }
+};
+
 export class FileSelectorComponent {
     private element: HTMLDivElement;
     private fileInputElement!: HTMLInputElement;
     private inputGroupElement!: HTMLDivElement;
     private pathHelperCardElement!: HTMLDivElement;
+    private pathHelperContentDiv!: HTMLDivElement; // To dynamically update content
+    private poe1SwitchElement!: HTMLInputElement;
+    private poe2SwitchElement!: HTMLInputElement;
+
     private onFileSelected: (file: File) => void;
+    private selectedGame: 'poe1' | 'poe2' = 'poe2'; // Default to PoE2
 
     constructor(onFileSelectedCallback: (file: File) => void) {
         this.onFileSelected = onFileSelectedCallback;
@@ -47,30 +77,61 @@ export class FileSelectorComponent {
         
         const cardHeader = document.createElement('div');
         cardHeader.className = 'card-header';
-        cardHeader.innerHTML = `<h4 class="mb-0">ℹ️ Looking for your Client.txt file?</h5>`;
+        // Header with title and game version switcher
+        cardHeader.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center">
+                <h4 class="mb-0"><i class="bi bi-info-circle-fill text-primary me-2"></i>Looking for your Client.txt file?</h4>
+                <div class="btn-group btn-group-sm" role="group" aria-label="Select Game Version">
+                    <input type="radio" class="btn-check" name="gameVersionToggle" id="poe1Switch" autocomplete="off" value="poe1">
+                    <label class="btn btn-outline-secondary" for="poe1Switch">PoE 1</label>
+                    <input type="radio" class="btn-check" name="gameVersionToggle" id="poe2Switch" autocomplete="off" value="poe2">
+                    <label class="btn btn-outline-secondary" for="poe2Switch">PoE 2</label>
+                </div>
+            </div>
+        `;
         this.pathHelperCardElement.appendChild(cardHeader);
         
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'card-body path-helper';
-        contentDiv.innerHTML = `
+        // Store references to switch elements
+        this.poe1SwitchElement = cardHeader.querySelector('#poe1Switch') as HTMLInputElement;
+        this.poe2SwitchElement = cardHeader.querySelector('#poe2Switch') as HTMLInputElement;
+        
+        // Set initial checked state based on this.selectedGame
+        if (this.selectedGame === 'poe1') {
+            this.poe1SwitchElement.checked = true;
+        } else {
+            this.poe2SwitchElement.checked = true;
+        }
+
+        this.pathHelperContentDiv = document.createElement('div');
+        this.pathHelperContentDiv.className = 'card-body path-helper';
+        this.pathHelperCardElement.appendChild(this.pathHelperContentDiv);
+        
+        this.element.appendChild(this.pathHelperCardElement);
+
+        // Initial rendering of path helper content
+        this.renderPathHelperContents();
+    }
+
+    private renderPathHelperContents(): void {
+        const gameConfig = PATH_CONFIG[this.selectedGame];
+        this.pathHelperContentDiv.innerHTML = `
             <div class="mb-2">
-                <strong>Standalone client:</strong>
+                <strong>${gameConfig.standalone.label}</strong>
                 <div class="input-group">
-                    <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Grinding Gear Games\\Path of Exile 2\\logs\\Client.txt" readonly>
+                    <input type="text" class="form-control" value="${gameConfig.standalone.path}" readonly>
                     <button class="btn btn-primary copy-path-btn" type="button">Copy</button>
                 </div>
             </div>
             <div>
-                <strong>Steam client:</strong>
+                <strong>${gameConfig.steam.label}</strong>
                 <div class="input-group">
-                    <input type="text" class="form-control" value="%PROGRAMFILES(X86)%\\Steam\\steamapps\\common\\Path of Exile 2\\logs\\Client.txt" readonly>
+                    <input type="text" class="form-control" value="${gameConfig.steam.path}" readonly>
                     <button class="btn btn-primary copy-path-btn" type="button">Copy</button>
                 </div>
             </div>
             <small class="text-muted mt-2 d-block">Note: If you installed Steam in a custom location, you'll need to adjust the path accordingly.</small>
         `;
-        this.pathHelperCardElement.appendChild(contentDiv);
-        this.element.appendChild(this.pathHelperCardElement);
+        this.setupCopyButtonListeners(this.pathHelperContentDiv);
     }
 
     private setupEventListeners(): void {
@@ -81,8 +142,25 @@ export class FileSelectorComponent {
             }
         });
 
-        this.element.querySelectorAll('.copy-path-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
+        const gameVersionToggleHandler = (event: Event) => {
+            const target = event.target as HTMLInputElement;
+            if (target.value === 'poe1' || target.value === 'poe2') {
+                this.selectedGame = target.value;
+                this.renderPathHelperContents();
+            }
+        };
+
+        this.poe1SwitchElement.addEventListener('change', gameVersionToggleHandler);
+        this.poe2SwitchElement.addEventListener('change', gameVersionToggleHandler);
+    }
+    
+    private setupCopyButtonListeners(container: HTMLElement): void {
+        container.querySelectorAll('.copy-path-btn').forEach(button => {
+            // Remove existing listener to prevent duplicates if any
+            const newButton = button.cloneNode(true) as HTMLButtonElement;
+            button.parentNode?.replaceChild(newButton, button);
+
+            newButton.addEventListener('click', (e) => {
                 this.copyToClipboard(e.target as HTMLButtonElement);
             });
         });
@@ -92,16 +170,50 @@ export class FileSelectorComponent {
         const input = button.previousElementSibling as HTMLInputElement;
         if (input && typeof input.select === 'function') {
             input.select();
-            try {
-                document.execCommand('copy');
-                const originalText = button.textContent;
-                button.textContent = 'Copied!';
-                setTimeout(() => {
-                    button.textContent = originalText;
-                }, 2000);
-            } catch (err) {
-                console.error('Failed to copy text: ', err);
+            // Modern clipboard API if available, fallback to execCommand
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(() => {
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.classList.add('btn-success');
+                    button.classList.remove('btn-primary');
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.classList.add('btn-primary');
+                        button.classList.remove('btn-success');
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy text using navigator.clipboard: ', err);
+                    // Fallback to execCommand if permission denied or other error
+                    this.execCommandCopy(button, input, originalText => {
+                        button.textContent = originalText;
+                         button.classList.add('btn-primary');
+                        button.classList.remove('btn-success');
+                    });
+                });
+            } else {
+                 const originalText = button.textContent;
+                 this.execCommandCopy(button, input, () => {
+                     button.textContent = originalText;
+                     button.classList.add('btn-primary');
+                     button.classList.remove('btn-success');
+                 });
             }
+        }
+    }
+
+    private execCommandCopy(button: HTMLButtonElement, input: HTMLInputElement, onFinally: (originalText: string | null) => void): void {
+        const originalText = button.textContent;
+        try {
+            input.select(); // Re-select for execCommand context
+            document.execCommand('copy');
+            button.textContent = 'Copied!';
+            button.classList.add('btn-success');
+            button.classList.remove('btn-primary');
+            setTimeout(() => onFinally(originalText), 2000);
+        } catch (err) {
+            console.error('Failed to copy text using execCommand: ', err);
+            onFinally(originalText); // Reset button text even on error
         }
     }
 } 

@@ -1,7 +1,7 @@
 import { Filter } from '../instance-tracker';
 import { BaseComponent } from './base-component';
 import { LogAggregation } from '../aggregation';
-import { LogEvent } from '../event-dispatcher';
+import { LevelUpEvent } from '../log-events';
 
 export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElement> {
     private onFilterChange: (filter: Filter) => void;
@@ -14,9 +14,8 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
     private prevCharactersSignature: string = "";
 
     constructor(onFilterChangeCallback: (filter: Filter) => void, container: HTMLDivElement) {
-        const element = document.createElement('div');
-        element.className = 'card mb-3 d-none';
-        super(element, container);
+        super(document.createElement('div'), container);
+        this.element.className = 'card mb-3 d-none';
         this.onFilterChange = onFilterChangeCallback;
     }
 
@@ -28,16 +27,24 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
                 </div>
                 <div class="card-body">
                     <div class="filters row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-2">
                             <label for="characterFilter" class="form-label">Character</label>
                             <select id="characterFilter" class="form-select border-dark"></select>
                         </div>
+                        <div class="col-md-1">
+                            <label for="minCharacterLevelFilter" class="form-label">Min Level</label>
+                            <input type="number" class="form-control border-dark" id="minCharacterLevelFilter" min="1" max="100">
+                        </div>
+                        <div class="col-md-1">
+                            <label for="maxCharacterLevelFilter" class="form-label">Max Level</label>
+                            <input type="number" class="form-control border-dark" id="maxCharacterLevelFilter" min="1" max="100">
+                        </div>
                         <div class="col-md-2">
-                            <label for="minLevelFilter" class="form-label">Min area level</label>
+                            <label for="minLevelFilter" class="form-label">Min area Level</label>
                             <input type="number" class="form-control border-dark" id="minLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-2">
-                            <label for="maxLevelFilter" class="form-label">Max area level</label>
+                            <label for="maxLevelFilter" class="form-label">Max area Level</label>
                             <input type="number" class="form-control border-dark" id="maxLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-2">
@@ -83,9 +90,9 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
         }
 
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
-        const characters: LogEvent[] = (this.data && this.data.characters) ? Array.from(this.data.characters.values()) : [];
+        const characters: LevelUpEvent[] = (this.data) ? Array.from(this.data.characterAggregation.characters.values()) : [];
         const characterOptionsHTML = characters.map(char => 
-            `<option value="${char.name}">${char.detail.character} (${char.detail.level} ${char.detail.ascendancy})</option>`
+            `<option value="${char.detail.character}">${char.detail.character} (${char.detail.level} ${char.detail.ascendancy})</option>`
         ).join('');
         if (characterOptionsHTML !== this.prevCharactersSignature) {
             const oldValue = characterSelect.value;
@@ -103,6 +110,10 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
     }
 
     private setupEventListeners(): void {
+        this.element.querySelector('#characterFilter')?.addEventListener('input', () => {
+            this.applyFilters();
+        });
+
         this.element.querySelector('#applyFiltersBtn')?.addEventListener('click', () => {
             this.applyFilters();
         });
@@ -185,14 +196,16 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
             filter.toAreaLevel = parseInt(maxLevelInput);
         }
         
+        let lo = -Infinity, hi = Infinity;
         if (fromDateInput) {
-            filter.fromMillis = new Date(fromDateInput).getTime();
+            lo = new Date(fromDateInput).getTime();
         }
         if (toDateInput) {
             const toDate = new Date(toDateInput);
             toDate.setHours(23, 59, 59, 999); // Set to end of day
-            filter.toMillis = toDate.getTime();
+            hi = toDate.getTime();
         }
+        filter.tsBounds = [{ lo, hi }];
         if (characterInput) {
             filter.character = characterInput;
         }

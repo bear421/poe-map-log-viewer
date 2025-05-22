@@ -6,6 +6,7 @@ export abstract class BaseComponent<
     protected readonly element: TElement;
     protected readonly containerElement: TContainerElement;
     protected data: TData | null = null;
+    protected isInitialized: boolean = false;
     protected isDataChanged: boolean = false;
     protected isVisible: boolean = false;
 
@@ -19,7 +20,16 @@ export abstract class BaseComponent<
         this.data = newData;
         this.isDataChanged = true;
         if (this.isVisible) {
+            if (!this.isInitialized) {
+                this.init();
+                this.isInitialized = true;
+            }
+            const then = performance.now();
             this.render();
+            const took = performance.now() - then;
+            if (took > 20) {
+                console.warn(this.constructor.name + ".render took " + (took) + " ms");
+            }
             this.isDataChanged = false;
         }
     }
@@ -39,6 +49,8 @@ export abstract class BaseComponent<
         }
         return visibilityChanged;
     }
+
+    protected init() {}
 
     protected abstract render(): void;
 } 
