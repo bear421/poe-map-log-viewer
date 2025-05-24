@@ -16,10 +16,17 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         mascotSurprised
     ];
     private readonly animationFrames = [1, 2, 3];
+    private speechBubble: HTMLDivElement;
+    private measureBubble: HTMLDivElement;
 
     constructor(parentElement: HTMLElement, initialFrameIndex: number = 2) {
         super(createElementFromHTML('<img class="mascot-image">') as HTMLImageElement, parentElement);
         this.setFrame(initialFrameIndex);
+        
+        this.speechBubble = createElementFromHTML('<div class="speech-bubble d-none">') as HTMLDivElement;
+        this.measureBubble = createElementFromHTML('<div class="speech-bubble d-none" style="position: absolute; visibility: hidden;">') as HTMLDivElement;
+        this.element.parentElement?.insertBefore(this.speechBubble, this.element);
+        this.element.parentElement?.insertBefore(this.measureBubble, this.element);
     }
 
     private setFrame(frameIndex: number): void {
@@ -69,6 +76,46 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         } else {
             this.stopAnimation();
         }
+    }
+
+    public speak(message: string, classes: string[] = ['bg-success', 'bg-opacity-50'], duration: number = 7000): { cancel: () => void } {
+        this.speechBubble.classList.remove('d-none');
+        this.speechBubble.classList.add(...classes);
+        this.element.classList.add('anim-bump');
+        
+        this.measureBubble.textContent = message;
+        this.measureBubble.classList.remove('d-none');
+        const width = this.measureBubble.offsetWidth;
+        const height = this.measureBubble.offsetHeight;
+        this.measureBubble.classList.add('d-none');
+        
+        this.speechBubble.style.width = `${width}px`;
+        this.speechBubble.style.height = `${height}px`;
+        
+        const words = message.split(/(\s+)/);
+        let currentText = '';
+        let wordIndex = 0;
+        
+        const interval = setInterval(() => {
+            if (wordIndex < words.length) {
+                currentText += words[wordIndex];
+                this.speechBubble.textContent = currentText;
+                wordIndex++;
+            } else {
+                this.element.classList.remove('anim-bump');
+                clearInterval(interval);
+            }
+        }, 400 / words.length);
+        const cleanUp = () => {
+            clearInterval(interval);
+            this.speechBubble.classList.add('d-none');
+            this.speechBubble.classList.remove(...classes);
+            this.speechBubble.style.width = '';
+            this.speechBubble.style.height = '';
+            this.element.classList.remove('anim-bump');
+        };
+        setTimeout(cleanUp, duration);
+        return { cancel: cleanUp };
     }
 
     protected render(): void {}

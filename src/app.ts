@@ -292,20 +292,24 @@ export class App {
             });
         }
 
-        const informComponentOnTabChange = (tabButton: HTMLElement, component: BaseComponent<any>) => {
+        const informComponentOnTabChange = (tabId: string, component: BaseComponent<any>) => {
+            const tabButton = document.getElementById(tabId) as HTMLElement;
             tabButton.addEventListener('shown.bs.tab', () => {
                 component.setVisible(true);
                 this.currentComponent = component;
+                if (tabId === 'journey-tab' && !this.filterComponent.getFilter()?.character) {
+                    this.mascot.speak('Please select a character to use the Journey tab', ['bg-warning', 'bg-opacity-50']);
+                }
             });
             tabButton.addEventListener('hide.bs.tab', () => {
                 component.setVisible(false);
             });
         };
 
-        informComponentOnTabChange(document.getElementById('overview-tab') as HTMLElement, this.overviewComponent);
-        informComponentOnTabChange(document.getElementById('maps-tab') as HTMLElement, this.mapStatsComponent);
-        informComponentOnTabChange(document.getElementById('journey-tab') as HTMLElement, this.journeyComponent);
-        informComponentOnTabChange(document.getElementById('messages-tab') as HTMLElement, this.messagesComponent);
+        informComponentOnTabChange('overview-tab', this.overviewComponent);
+        informComponentOnTabChange('maps-tab', this.mapStatsComponent);
+        informComponentOnTabChange('journey-tab', this.journeyComponent);
+        informComponentOnTabChange('messages-tab', this.messagesComponent);
     }
 
     private handleData(maps: MapInstance[], events: LogEvent[]) {

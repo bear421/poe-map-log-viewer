@@ -97,6 +97,43 @@ body {
     z-index: 1;
 }
 
+.speech-bubble {
+    position: absolute;
+    left: -220px;
+    top: 20px;
+    background: white;
+    border: 2px solid var(--bs-dark);
+    border-radius: 10px;
+    padding: 10px 15px;
+    max-width: 200px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.speech-bubble:after {
+    content: '';
+    position: absolute;
+    right: -10px;
+    top: 20px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid var(--bs-dark);
+}
+
+.speech-bubble:before {
+    content: '';
+    position: absolute;
+    right: -8px;
+    top: 20px;
+    width: 0;
+    height: 0;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    border-left: 10px solid transparent;
+}
+
 @keyframes mascotWiggleAnimation {
     0% { transform: rotate(0deg); }
     20% { transform: rotate(-5deg); }

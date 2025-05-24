@@ -200,6 +200,7 @@ export class JourneyComponent extends BaseComponent {
                 if (nextMap) {
                     const gap = nextMap.span.start - map.span.end!;
                     if (gap > 0) {
+                        // FIXME gapped maps that succeed subsequent maps (in higher acts) should not be part of the journey
                         const gapRow = tbody.insertRow();
                         gapRow.classList.add('table-dark');
                         gapRow.insertCell().textContent = `Gap`;
