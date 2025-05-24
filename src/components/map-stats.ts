@@ -1,4 +1,4 @@
-import { MapInstance, MapSpan } from '../instance-tracker';
+import { MapInstance, MapSpan } from '../log-tracker';
 import { LogEvent } from '../log-events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregation } from '../aggregation';

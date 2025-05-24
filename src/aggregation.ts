@@ -1,4 +1,4 @@
-import { Filter, MapInstance, MapSpan, TSRange } from "./instance-tracker";
+import { Filter, MapInstance, MapSpan, TSRange, Segmentation } from "./log-tracker";
 import { LogEvent, CharacterEvent, LevelUpEvent, MsgEvent } from "./log-events";
 import { binarySearch, BinarySearchMode } from "./binary-search";
 
@@ -11,6 +11,7 @@ export interface LogAggregation {
     totalBuysAttempted: number;
     totalSalesAttempted: number;
     totalDeaths: number;
+    totalWitnessedDeaths: number;
     totalMapTime: number;
     totalLoadTime: number;
     totalHideoutTime: number;
@@ -34,9 +35,42 @@ export interface CharacterInfo {
 const maxSaleOffsetMillis = 1000 * 60 * 10;
 
 export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
-    const outerBounds = filter.tsBounds?.[0] ?? {lo: -Infinity, hi: Infinity};
-    if (filter.character && prevAgg && prevAgg.characterAggregation.characterTsIndex.length > 1) {
-        const bounds: TSRange[] = [];
+    const then = performance.now();
+    filter = reassembleFilter(filter, prevAgg);
+    maps = Filter.filterMaps(maps, filter);
+    events = Filter.filterEvents(events, filter);
+    const agg = aggregate0(maps, events, filter);
+    if (prevAgg) {
+        agg.characterAggregation = prevAgg.characterAggregation;
+    }
+    const took = performance.now() - then;
+    if (took > 20) {
+        console.warn("aggregate took ", took, "ms");
+    }
+    return agg;
+}
+
+function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
+    if (!prevAgg) return filter;
+
+    const segmentations: Segmentation[] = [];
+    if (filter.fromCharacterLevel || filter.toCharacterLevel) {
+        const shrunkCharacterLevelIndex = prevAgg.characterAggregation.characterLevelIndex.filter(e => {
+            if (filter.character && e.detail.character !== filter.character) return false;
+
+            if (filter.fromCharacterLevel && e.detail.level < filter.fromCharacterLevel) return false;
+
+            if (filter.toCharacterLevel && e.detail.level > filter.toCharacterLevel) return false;
+
+            return true;
+        });
+        // FIXME include lower close boundary and upper close boundary (??) (e.g. character is still level 100 or character is lte level 2 (during strand))
+        // technically this is currently equal to:
+        // const x: Segmentation = [{lo: shrunkCharacterLevelIndex[0].ts, hi: shrunkCharacterLevelIndex[shrunkCharacterLevelIndex.length - 1].ts}];
+        segmentations.push(Segmentation.toBoundingInterval(Segmentation.ofEvents(shrunkCharacterLevelIndex)));
+    }
+    if (filter.character && prevAgg.characterAggregation.characterTsIndex.length > 1) {
+        const characterSegmentation: Segmentation = [];
         const characterTsIndex = prevAgg.characterAggregation.characterTsIndex;
         outer: for (let i = 0; i < characterTsIndex.length; i++) {
             const event = characterTsIndex[i];
@@ -45,7 +79,7 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
             const lo = i === 0 ? -Infinity : event.ts;
             do {
                 if (i + 1 >= characterTsIndex.length) {
-                    bounds.push({lo, hi: Infinity});
+                    characterSegmentation.push({lo, hi: Infinity});
                     break outer;
                 }
                 i++;
@@ -53,47 +87,19 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
                 if (nextEvent.detail.character === filter.character) {
                     continue;
                 }
-                bounds.push({lo, hi: nextEvent.ts});
+                characterSegmentation.push({lo, hi: nextEvent.ts});
                 break;
             } while (i < characterTsIndex.length);
         }
-        if (bounds.length > 0) {
-            const shrunkBounds = [];
-            for (const {lo, hi} of bounds) {
-                const shrunkLo = Math.max(lo, outerBounds.lo);
-                const shrunkHi = Math.min(hi, outerBounds.hi);
-                if (shrunkLo <= shrunkHi) {
-                    shrunkBounds.push({lo: shrunkLo, hi: shrunkHi});
-                }
-            }
-            if (shrunkBounds.length === 0) {
-                return {
-                    maps: [],
-                    events: [],
-                    messages: new Map(),
-                    totalItemsBought: 0,
-                    totalItemsSold: 0,
-                    totalBuysAttempted: 0,
-                    totalSalesAttempted: 0,
-                    totalDeaths: 0,
-                    totalMapTime: 0,
-                    totalLoadTime: 0,
-                    totalHideoutTime: 0,
-                    totalBossKills: 0,
-                    totalSessions: 0,
-                    characterAggregation: prevAgg.characterAggregation
-                };
-            }
-            filter = new Filter(shrunkBounds, filter.fromAreaLevel, filter.toAreaLevel, filter.character);
+        characterSegmentation.length && segmentations.push(characterSegmentation);
+    }
+    if (segmentations.length) {
+        if (filter.tsBounds) {
+            segmentations.push(filter.tsBounds);
         }
+        return filter.withBounds(Segmentation.intersectAll(segmentations));
     }
-    maps = Filter.filterMaps(maps, filter);
-    events = Filter.filterEvents(events, filter);
-    const agg = aggregate0(maps, events, filter);
-    if (prevAgg) {
-        agg.characterAggregation = prevAgg.characterAggregation;
-    }
-    return agg;
+    return filter;
 }
 
 const TRADE_PATTERN = /^(Hi, I would like to buy your|你好，我想購買|안녕하세요, |こんにちは、 |Здравствуйте, хочу купить у вас |Hi, ich möchte |Bonjour, je souhaiterais t'acheter )/;
@@ -122,21 +128,25 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                 */
                 const prevCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
                 const threshold = prevCharacterEvent.ts;
-                const originCandidates: LogEvent[] = [];
+                let originCandidate: LogEvent | null = null;
                 for (let y = i - 1; y >= 0; y--) {
                     const event = events[y];
                     if (event.ts <= threshold) break;
 
                     switch (event.name) {
-                        // TODO check other events AND prioritize certain types (e.g. hideoutEntered over mapCompleted)
+                        // TODO check other events
                         case "hideoutEntered":
-                        case "mapCompleted":
-                            originCandidates.push(event);
+                            originCandidate = event;
+                            break;
+                        case "mapEntered":
+                            if (originCandidate) break;
+
+                            originCandidate = event;
                     }
                 }
-                if (originCandidates.length) {  
+                if (originCandidate) {  
                     characterTsIndex.push({ 
-                        name: "setCharacter", detail: { character }, ts: originCandidates[originCandidates.length - 1].ts 
+                        name: "setCharacter", detail: { character }, ts: originCandidate.ts 
                     });
                 }
             }
@@ -252,6 +262,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
 
                 if (filter.toAreaLevel && event.detail.areaLevel > filter.toAreaLevel) break;
 
+                // FIXME split between deaths / witnessed deaths depending on foreign characters
                 totalDeaths++;
                 break;
             case "joinedArea":
@@ -318,6 +329,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
         totalBuysAttempted,
         totalSalesAttempted,
         totalDeaths,
+        totalWitnessedDeaths: 0, // TODO
         totalMapTime,
         totalLoadTime,
         totalHideoutTime,

@@ -4,6 +4,16 @@ export enum BinarySearchMode {
     LAST = 'last'
 }
 
+export function binarySearchFind<T>(array: T[], predicate: (element: T) => Boolean): T | undefined {
+    // TODO implement binary search
+    return array.find(predicate);
+}
+
+export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => Boolean): T | undefined {
+    // TODO implement binary search
+    return array.findLast(predicate);
+}
+
 export function binarySearch<T>(
     array: T[],
     target: number,

@@ -1,4 +1,4 @@
-import { MapSpan } from '../instance-tracker';
+import { MapSpan } from '../log-tracker';
 import { LogAggregation } from '../aggregation';
 import {
     Chart,

@@ -10,6 +10,7 @@ import {
     MsgFromEvent,
     MsgToEvent,
     MsgPartyEvent,
+    MsgGuildEvent,
     MsgLocalEvent,
     BossKillEvent,
     DeathEvent,
@@ -48,8 +49,8 @@ class AreaInfo {
         this.seed = seed;
     }
 
-    get isMap(): boolean {
-        return this.seed > 1;
+    get isHideoutOrTown(): boolean {
+        return this.seed === 1;
     }
 
 }
@@ -352,22 +353,99 @@ export interface TSRange {
     readonly hi: number;
 }
 
+export type Segmentation = TSRange[];
+export namespace Segmentation {
+
+    export function ofEvents(events: LogEvent[]): Segmentation {
+        const res: TSRange[] = [];
+        for (let i = 0; i < events.length - 1; i++) {
+            res.push({lo: events[i].ts, hi: events[i + 1].ts});
+        }
+        return res;
+    }
+
+    export function merge(segmentation: Segmentation): Segmentation {
+        if (segmentation.length <= 1) return segmentation;
+
+        const res: Segmentation = [];
+        for (let i = 0; i < segmentation.length; i++) {
+            const range = segmentation[i];
+            if (i + 1 >= segmentation.length) {
+                res.push(range);
+                break;
+            }
+            const nextRange = segmentation[i + 1];
+            if (range.hi > nextRange.lo) {
+                res.push({lo: range.lo, hi: nextRange.hi});
+                i++;
+            } else {
+                res.push(range);
+            }
+        }
+        return res;
+    }
+
+    export function toBoundingInterval(segmentation: Segmentation): Segmentation {
+        if (segmentation.length <= 1) return segmentation;
+
+        return [{lo: segmentation[0].lo, hi: segmentation[segmentation.length - 1].hi}];
+    }
+
+    export function intersectAll(segmentations: Segmentation[]): Segmentation {
+        if (segmentations.length === 0) return [];
+
+        return segmentations.reduce((a, b) => intersect(a, b), segmentations[0]);
+    }
+    
+    export function intersect(a: Segmentation, b: Segmentation): Segmentation {
+        const res: Segmentation = [];
+        let iA = 0, iB = 0;
+        for (;;) {
+            const rangeA = a[iA], rangeB = b[iB];
+            const lo = Math.max(rangeA.lo, rangeB.lo);
+            const hi = Math.min(rangeA.hi, rangeB.hi);
+            if (rangeA.hi > rangeB.hi) {
+                lo < hi && res.push({lo, hi});
+                if (++iB >= b.length) break;
+            } else if (rangeB.hi < rangeA.hi) {
+                lo < hi && res.push({lo, hi});
+                if (++iA >= a.length) break;
+            } else {
+                lo < hi && res.push({lo, hi});
+                if (++iA >= a.length || ++iB >= b.length) break;
+            }
+        }
+        return res;
+    }
+
+}
+
 class Filter {
-    tsBounds?: TSRange[];
+    tsBounds?: Segmentation;
     fromAreaLevel?: number;
     toAreaLevel?: number;
+    fromCharacterLevel?: number;
+    toCharacterLevel?: number;
     character?: string;
 
     constructor(
-        tsBounds?: TSRange[],
+        tsBounds?: Segmentation,
         fromAreaLevel?: number,
         toAreaLevel?: number,
+        fromCharacterLevel?: number,
+        toCharacterLevel?: number,
         character?: string
     ) {
         this.tsBounds = tsBounds;
         this.fromAreaLevel = fromAreaLevel;
         this.toAreaLevel = toAreaLevel;
+        this.fromCharacterLevel = fromCharacterLevel;
+        this.toCharacterLevel = toCharacterLevel;
         this.character = character;
+    }
+
+    withBounds(tsBounds: Segmentation): Filter {
+        return new Filter(tsBounds, this.fromAreaLevel, this.toAreaLevel, this.fromCharacterLevel, this.toCharacterLevel, this.character);
     }
 
     static isEmpty(filter?: Filter): boolean {
@@ -541,9 +619,9 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
     `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
     `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
-    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) (?:Weapon Set )?Passive Skill Points`,
+    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?Passive Skill Points`, // weapon set passives are redundant with normal ones
     `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
-    `(?!Error|#)(?<g${EventCG.MsgLocal}>[^\\] ]+):(.*)` 
+    `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)` 
 ];
 
 const COMPOSITE_EV_REGEX = new RegExp(`^(?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
@@ -568,7 +646,12 @@ const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
 const logger = console;
 
-class InstanceTracker {
+export interface Progress {
+    totalBytes: number;
+    bytesRead: number;
+}
+
+export class LogTracker {
     
     public eventDispatcher = new EventDispatcher();
     private recentMaps: RingBuffer<MapInstance>;
@@ -583,7 +666,7 @@ class InstanceTracker {
         this.nextWaystone = null;
     }
 
-    async processLogFile(file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<boolean> {
+    async ingestLogFile(file: File, onProgress?: (progress: Progress) => void): Promise<boolean> {
         const progress = {
             totalBytes: file.size,
             bytesRead: 0
@@ -633,7 +716,7 @@ class InstanceTracker {
         }
     }
 
-    async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void): Promise<string[]> {
+    async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void, tsFilter?: TSRange): Promise<string[]> {
         const lines: string[] = [];
         const progress = {
             totalBytes: file.size,
@@ -643,17 +726,33 @@ class InstanceTracker {
         try {
             const decoder = new TextDecoder();
             let tail = '';
+            let hadTsMatch = false;
             for (;;) {
                 const { done, value } = await reader.read();
-                if (done) {
-                    if (tail) {
-                        if (pattern.test(tail)) {
-                            lines.push(tail);
-                            if (limit > 0 && lines.length >= limit) {
-                                return lines;
-                            }
+                const handleLine = (line: string) => {
+                    if (tsFilter) {
+                        const ts = parseTs(line);
+                        if (ts) {
+                            if (ts < tsFilter.lo) return true;
+
+                            if (ts > tsFilter.hi) return false; // done, don't care about non-timestampd logs after this
+
+                            hadTsMatch = true;
+                        } else if (!hadTsMatch) {
+                            // only include non-timestamped logs if they're within the ts range
+                            return true;
                         }
                     }
+                    if (pattern.test(line)) {
+                        lines.push(line);
+                        if (limit > 0 && lines.length >= limit) {
+                            return false;
+                        }
+                    }
+                    return true;
+                };
+                if (done) {
+                    tail && handleLine(tail);
                     return lines;
                 }
                 const chunk = decoder.decode(value, { stream: true });
@@ -665,12 +764,7 @@ class InstanceTracker {
                         const line = tail + chunk.slice(0, ix);
                         tail = '';
                         start = ix + 1;
-                        if (pattern.test(line)) {
-                            lines.push(line);
-                            if (limit > 0 && lines.length >= limit) {
-                                return lines;
-                            }
-                        }
+                        if (!handleLine(line)) return lines;
                     } else {
                         tail += chunk;
                         continue;
@@ -679,12 +773,7 @@ class InstanceTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
-                    if (pattern.test(line)) {
-                        lines.push(line);
-                        if (limit > 0 && lines.length >= limit) {
-                            return lines;
-                        }
-                    }
+                    if (!handleLine(line)) return lines;
                 }
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
@@ -757,17 +846,20 @@ class InstanceTracker {
                     this.dispatchEvent(MsgPartyEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.MsgLocal:
-                    this.dispatchEvent(MsgLocalEvent.of(ts, m[offset], m[offset + 1]));
+                    const localName = m[offset];
+                    if (localName.startsWith("&")) {
+                        this.dispatchEvent(MsgGuildEvent.of(ts, localName.substring(1), m[offset + 1]));
+                    } else {
+                        this.dispatchEvent(MsgLocalEvent.of(ts, localName, m[offset + 1]));
+                    }
                     break;
                 case EventCG.MsgBoss:
                     const boss = BOSS_TABLE[m[offset]];
                     if (boss) {
                         if (boss.deathCries.has(m[offset + 1])) {
-                            if (this.currentMap) {
-                                this.dispatchEvent(BossKillEvent.of(ts, m[offset], m[offset + 1], this.currentMap.areaLevel));
-                            } else {
-                                logger.warn(`Boss kill log for ${m[offset]} but currentMap is null. Line: ${line}`);
-                            }
+                            this.dispatchEvent(BossKillEvent.of(ts, boss.alias ?? m[offset], m[offset + 1], this.currentMap!.areaLevel));
+                        } else if (line.includes("how could")) {
+                            console.log("Doryani", line);
                         }
                     }
                     break;
@@ -798,7 +890,7 @@ class InstanceTracker {
                     this.dispatchEvent(LeftAreaEvent.of(ts, m[offset]));
                     break;
                 case EventCG.LevelUp:
-                    this.dispatchEvent(LevelUpEvent.of(ts, m[offset], m[offset + 1], m[offset + 2]));
+                    this.dispatchEvent(LevelUpEvent.of(ts, m[offset], m[offset + 1], parseInt(m[offset + 2])));
                     break;
                 case EventCG.PassiveGained:
                     const strPassive = m[offset];
@@ -871,12 +963,12 @@ class InstanceTracker {
             }
         }
 
-        if (!areaInfo.isMap) {
+        if (areaInfo.isHideoutOrTown) {
             if (currentMap) {
                 currentMap.enterHideout(areaInfo.ts);
                 currentMap.span.preloadTs = areaInfo.ts;
                 currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
-                this.dispatchEvent(HideoutEnteredEvent.of(areaInfo.ts));
+                this.dispatchEvent(HideoutEnteredEvent.of(areaInfo.ts, areaInfo.name));
             }
             return;
         }
@@ -1052,6 +1144,5 @@ export {
     MapSpan,
     MapInstance,
     AreaInfo,
-    InstanceTracker,
     Filter
 };

@@ -1,14 +1,28 @@
-import { MapInstance, MapSpan } from '../instance-tracker';
+import { MapInstance, MapSpan, Filter } from '../log-tracker';
 import { getZoneInfo } from '../data/zone_table';
 import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
-import { binarySearch, BinarySearchMode } from '../binary-search';
-
+import { binarySearch, BinarySearchMode, binarySearchRange } from '../binary-search';
+import { eventMeta, getEventMeta, LevelUpEvent, EventName } from '../log-events';
+import { MapDetailComponent } from './map-detail';
+import { App } from '../app';
 interface ActDefinition {
     name: string;
     pattern: RegExp;
     maps: MapInstance[];
 }
+
+const journeyEventNames = new Set<EventName>([
+    "death",
+    "levelUp",
+    "bossKill",
+    "passiveGained",
+    "mapReentered",
+    "joinedArea",
+    "leftArea",
+    "tradeAccepted",
+    "msgParty"
+]);
 
 export class JourneyComponent extends BaseComponent<LogAggregation> {
 
@@ -23,10 +37,12 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
     ];
 
     private currentActIndex: number = 0;
+    private mapDetailModal: MapDetailComponent;
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
         this.element.className = 'journey-component-container mt-3';
+        this.mapDetailModal = new MapDetailComponent();
     }
 
     private categorizeMaps(): void {
@@ -35,35 +51,20 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         const campaignActs = this.actDefinitions.slice(0, -1);
         const endgameAct = this.actDefinitions[this.actDefinitions.length - 1];
 
-        for (const map of this.data!.maps) {
-            let categorizedToCampaign = false;
+        outer: for (const map of this.data!.maps) {
             for (const act of campaignActs) {
                 if (act.pattern.test(map.name)) {
                     act.maps.push(map);
-                    categorizedToCampaign = true;
-                    break;
+                    continue outer;
                 }
             }
-            if (!categorizedToCampaign) {
-                const nameLower = map.name.toLowerCase();
-                // Check for endgame conditions based on map.name and map.seed
-                // This logic is inspired by parts of MapInstance.areaType
-                if (map.seed > 1) { // A defining characteristic of non-hideout/town areas
-                    if (nameLower.startsWith("map") || // Standard maps
-                        nameLower.startsWith("sanctum") || // Sanctum runs
-                        nameLower.startsWith("expeditionlogbook") || // Logbooks
-                        [ // Known tower map names from instance-tracker
-                            "maplosttowers", "mapmesa", "mapalpineridge", "mapbluff", "mapswamptower"
-                        ].includes(nameLower)
-                    ) {
-                        endgameAct.maps.push(map);
-                    }
-                }
-            }
+            endgameAct.maps.push(map);
         }
     }
 
     protected render(): void {
+        this.mapDetailModal.updateData(this.data!);
+        this.mapDetailModal.setApp(this.app!);
         this.element.innerHTML = `
             <ul class="nav nav-pills mb-3" id="journeyActPills" role="tablist"></ul>
             <div class="tab-content" id="journeyActContent"></div>
@@ -115,20 +116,22 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         }
 
         const table = document.createElement('table');
-        table.className = 'table table-striped table-hover table-sm caption-top';
+        table.className = 'table table-sm table-striped caption-top journey-campaign-table';
         table.innerHTML = `
-            <caption>Displaying maps for ${actData.name}. Sorted chronologically by entry time.</caption>
             <thead>
                 <tr>
-                    <th>Area</th>
-                    <th>Area Level</th>
-                    <th>Character Level</th>
-                    <th>Time Spent</th>
-                    <th>Entered At</th>
-                    <th class="text-center">Actions</th>
+                    <th class="col-3">Area</th>
+                    <th class="col">Events</th>
+                    <th class="col-1">Time Spent</th>
+                    <th class="col-2">Entered At</th>
+                    <th class="col-1">Area Level</th>
+                    <th class="col-1">Char Level</th>
+                    <!--
+                    <th class="col">Actions</th>
+                    -->
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody class="align-middle"></tbody>
         `;
 
         const tbody = table.querySelector('tbody');
@@ -140,14 +143,52 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
             const row = tbody.insertRow();
             const mapTimeMs = MapSpan.mapTime(map.span);
             const mapTimeFormatted = this.formatDuration(mapTimeMs);
-            const levelUpEvent = characterLevelIndex[binarySearch(characterLevelIndex, map.span.start, (e) => e.ts, BinarySearchMode.FIRST)] ?? "?";
+            const prevLevelUpIx = binarySearch(characterLevelIndex, map.span.start, (e) => e.ts, BinarySearchMode.LAST);
+            let prevLevelUpEvent = characterLevelIndex[prevLevelUpIx];
+            let nextLevelUpEvent = characterLevelIndex[prevLevelUpIx + 1];
+            let levelUpEvent;
+            if (!prevLevelUpEvent) {
+                // first character ever
+                levelUpEvent = LevelUpEvent.of(map.span.start, "?", "?", 1);
+            } else {
+                const prevLevel = prevLevelUpEvent.detail.level;
+                const nextLevel = nextLevelUpEvent?.detail?.level;
+                if (nextLevel && prevLevel + 1 !== nextLevel) {
+                    // either or both levelUpEvents do not belong to the character that is in this map
+                    let heuristicLevel;
+                    if (map.areaLevel === 1) {
+                        // new character, necessarily implied
+                        heuristicLevel = 1;
+                    } else {
+                        if (nextLevel && typeof nextLevel === 'number') {
+                            heuristicLevel = Math.abs(map.areaLevel - nextLevel) < Math.abs(map.areaLevel - prevLevel) ? nextLevel -1 : prevLevel;
+                        } else {
+                            heuristicLevel = prevLevel; 
+                        }
+                    }
+                    levelUpEvent = LevelUpEvent.of(map.span.start, "?", "?", heuristicLevel);
+                } else {
+                    levelUpEvent = prevLevelUpEvent;
+                }
+            }
 
-            row.insertCell().textContent = MapInstance.label(map);
-            row.insertCell().textContent = map.areaLevel.toString();
-            row.insertCell().textContent = levelUpEvent.detail.level.toString();
+            const mapNameCell = row.insertCell();
+            const mapNameLink = document.createElement('a');
+            mapNameLink.href = '#';
+            mapNameLink.textContent = MapInstance.label(map);
+            mapNameLink.title = 'Click to see map timeline';
+            mapNameLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.mapDetailModal.show(map, this.data!);
+            });
+            mapNameCell.appendChild(mapNameLink);
+            row.insertCell().innerHTML = this.renderEvents(map);
             row.insertCell().textContent = mapTimeFormatted;
             row.insertCell().textContent = new Date(map.span.start).toLocaleString();
+            row.insertCell().textContent = map.areaLevel.toString();
+            row.insertCell().textContent = levelUpEvent.detail.level.toString();
 
+            /*
             const actionsCell = row.insertCell();
             const zoneInfo = getZoneInfo(map.name);
             if (zoneInfo) {
@@ -164,9 +205,33 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
                 anchor.appendChild(icon);
                 actionsCell.appendChild(anchor);
             }
+            */
         });
 
         contentContainer.appendChild(table);
+    }
+
+    private renderEvents(map: MapInstance): string {
+        const {loIx, hiIx} = binarySearchRange(this.data!.events, map.span.start, map.span.end, (e) => e.ts);
+        let eventsHTML = "";
+        for (let i = loIx; i < hiIx; i++) {
+            const event = this.data!.events[i];
+            if (!journeyEventNames.has(event.name)) continue;
+
+            const meta = getEventMeta(event);
+            let iconColorClass = meta.color;
+            switch (meta) {
+                case eventMeta.death:
+                case eventMeta.levelUp:
+                    if (event.detail && 'character' in event.detail && 
+                        !this.data!.characterAggregation.characters.has((event.detail as any).character)) {
+                        iconColorClass = "text-secondary";
+                    }
+                    break;
+            }
+            eventsHTML += `<i class='bi ${meta.icon} ${iconColorClass}'></i> `;
+        }
+        return eventsHTML;
     }
 
     private formatDuration(ms: number): string {

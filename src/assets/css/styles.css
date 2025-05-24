@@ -19,11 +19,11 @@ body {
 }
 
 .gradient-space-left {
-    background: linear-gradient(to left, #FFF 0%, rgba(0, 0, 177, 0.1) 66%);
+    background: linear-gradient(to left, #FFF 0%, rgba(77, 77, 77, 0.1) 66%);
 }
 
 .gradient-space-right {
-    background: linear-gradient(to right, #FFF 0%, rgba(0, 0, 177, 0.1) 66%);
+    background: linear-gradient(to right, #FFF 0%, rgba(77, 77, 77, 0.1) 66%);
 }
 
 .progress-bar {
@@ -190,4 +190,23 @@ body {
     animation-name: bump;
     animation-duration: 0.3s; /* Adjust duration as needed */
     animation-timing-function: ease-out; /* Adjust timing function as needed */
+}
+
+.journey-campaign-table td:nth-of-type(n+3):nth-of-type(-n+6) { /* time spent, entered at, area level, char level */
+    text-align: right;
+}
+
+.journey-campaign-table td {
+    vertical-align: top;
+}
+
+.journey-campaign-table td:nth-of-type(2) { /* events */
+    vertical-align: middle;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-size: 1.25rem;
+}
+.journey-campaign-table a {
+    text-decoration: none;
+    color: var(--bs-primary);
 }

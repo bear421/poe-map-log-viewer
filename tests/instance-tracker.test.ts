@@ -1,10 +1,10 @@
-import { InstanceTracker } from "../src/instance-tracker";
+import { LogTracker } from "../src/log-tracker";
 
-describe('InstanceTracker', () => {
-    let tracker: InstanceTracker;
+describe('LogTracker', () => {
+    let tracker: LogTracker;
 
     beforeEach(() => {
-        tracker = new InstanceTracker();
+        tracker = new LogTracker();
     });
 
     test('should detect post load events', () => {

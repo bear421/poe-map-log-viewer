@@ -1,61 +1,100 @@
-import { InstanceTracker, MapInstance, Filter } from './instance-tracker';
+import { LogTracker, MapInstance, Filter, Segmentation, Progress } from './log-tracker';
 import { LogEvent } from './log-events';
+import { binarySearchFindLast } from "./binary-search";
 
-interface WorkerMessage {
+interface RequestMessage {
+    requestId: string;
     type: string;
+}
+
+export interface IngestRequest extends RequestMessage {
+    type: 'ingest';
     file: File;
-    pattern?: RegExp;
-    limit?: number;
+}
+
+export interface SearchRequest extends RequestMessage {
+    type: 'search';
+    file: File;
+    pattern: RegExp;
+    limit: number;
     filter?: Filter;
 }
 
-interface CompleteMessage {
-    type: 'complete';
-    data: {
+interface ReponseMessage {
+    requestId: string;
+    type: string;
+    payload?: any;
+}
+
+export interface ProgressResponse extends ReponseMessage {
+    type: 'progress';
+    payload: Progress;
+}
+
+export interface IngestResponse extends ReponseMessage {
+    type: 'ingest';
+    payload: {
         maps: MapInstance[];
         events: LogEvent[];
     };
 }
 
-interface ErrorMessage {
-    type: 'error';
-    data: {
-        error: string;
-    };
-}
-
-interface SearchMessage {
+export interface SearchResponse extends ReponseMessage {
     type: 'search';
-    data: {
+    payload: {
         lines: string[];
     };
 }
 
-interface ProgressMessage {
-    type: 'progress';
-    data: {
-        totalBytes: number;
-        bytesRead: number;
+export interface ErrorResponse extends ReponseMessage {
+    type: 'error';
+    payload: {
+        error: any; 
     };
 }
 
-let totalBytes = 0;
-const onProgress = (progress: { totalBytes: number, bytesRead: number }) => {
-    totalBytes = progress.totalBytes;
-    self.postMessage({
-        type: 'progress',
-        data: progress
-    } as ProgressMessage);
-}
+export type AnyResponse = IngestResponse | SearchResponse | ProgressResponse | ErrorResponse;
 
+type BytesTsIndex = {ts: number, bytes: number}[];
+const TS_BYTES_CACHE = new Map<string, BytesTsIndex>();
 const RMT_SCUM_REGEX = new RegExp(atob('RGlzY29yZDogXGQrcnNnYW1lclxkKiQ='));
 
-self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
-    const { type, file } = e.data;
+function getFileCacheKey(file: File): string {
+    return `${file.name}-${file.size}-${file.lastModified}`;
+}
+
+self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
+    const { type, requestId, file } = e.data;
     const then = performance.now();
-    const tracker: InstanceTracker = new InstanceTracker();
+    const tracker: LogTracker = new LogTracker();
+
     try {
-        if (type === 'process') {
+        if (type === 'ingest') {
+            let totalBytesValue = 0; // Renamed to avoid conflict with ProgressData property
+            let bytesReadThreshold: number | null = null;
+            let futureEventIndex: number | null = null;
+            const bytesTsIndex: BytesTsIndex = [];
+            
+            const onProgressCallback = (progress: { totalBytes: number, bytesRead: number }) => {
+                self.postMessage({
+                    requestId,
+                    type: 'progress',
+                    payload: progress
+                } as ProgressResponse);
+                if (!bytesReadThreshold) {
+                    totalBytesValue = progress.totalBytes;
+                    bytesReadThreshold = totalBytesValue * 0.03;
+                } else if (progress.bytesRead > bytesReadThreshold) {
+                    if (futureEventIndex !== null && futureEventIndex < events.length) {
+                        bytesTsIndex.push({ts: events[futureEventIndex].ts, bytes: progress.bytesRead});
+                        bytesReadThreshold += totalBytesValue * 0.03;
+                        futureEventIndex = events.length;
+                    } else {
+                        futureEventIndex = events.length;
+                    }
+                }
+            }
+
             const maps: MapInstance[] = [];
             const events: LogEvent[] = [];
             tracker.eventDispatcher.onAll((event: LogEvent) => {
@@ -63,8 +102,6 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
                     case 'mapCompleted':
                         maps.push(event.detail.map);
                         break;
-                    // discard for now
-                    case "mapEntered":
                     case "hideoutExited":
                         break;
                     case "msgFrom":
@@ -76,31 +113,59 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
                         break;
                 }
             });
-            await tracker.processLogFile(file, onProgress);
+
+            await tracker.ingestLogFile(file, onProgressCallback);
+            TS_BYTES_CACHE.set(getFileCacheKey(file), bytesTsIndex);
             const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
+            
             self.postMessage({
-                type: 'complete',
-                data: { maps, events }
-            } as CompleteMessage);
-            const totalMiB = totalBytes / 1024 / 1024;
-            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
+                requestId,
+                type: 'ingest',
+                payload: { maps, events }
+            } as IngestResponse);
+
+            const totalMiB = totalBytesValue / 1024 / 1024;
+            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds (Req ID: ${requestId})`);
             console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s (${(totalMiB / parseFloat(tookSeconds)).toFixed(1)} MiB/s)`);
+        
         } else if (type === 'search') {
-            const { pattern, limit } = e.data;
-            if (!pattern) throw new Error('Pattern is required');
+            const { pattern, limit, filter } = e.data;
 
-            if (!limit) throw new Error('Limit is required');
+            const onSearchProgress = (progress: { totalBytes: number, bytesRead: number }) => {
+                self.postMessage({
+                    requestId,
+                    type: 'progress',
+                    payload: progress
+                } as ProgressResponse);
+            }
 
-            const lines = await tracker.searchLogFile(pattern, limit, file, onProgress);
+            let offsetFile = file;
+            let tsFilter = Segmentation.toBoundingInterval(filter?.tsBounds ?? [])[0];
+            if (tsFilter) {
+                const fileKey = getFileCacheKey(file);
+                const bytesTsIndex = TS_BYTES_CACHE.get(fileKey);
+                if (bytesTsIndex && bytesTsIndex.length > 0) {
+                    let bytesOffsetLo = binarySearchFindLast(bytesTsIndex, x => x.ts < tsFilter.lo)?.bytes || 0;
+                    let bytesOffsetHi = binarySearchFindLast(bytesTsIndex, x => x.ts <= tsFilter.hi)?.bytes ?? bytesOffsetLo;
+                    if (bytesOffsetLo < bytesOffsetHi) {
+                        offsetFile = new File([file.slice(bytesOffsetLo, bytesOffsetHi)], file.name, { type: file.type });
+                    }
+                }
+            }
+            const lines = await tracker.searchLogFile(pattern, limit, offsetFile, onSearchProgress, tsFilter);
             self.postMessage({
+                requestId,
                 type: 'search',
-                data: { lines }
-            } as SearchMessage);
+                payload: { lines }
+            } as SearchResponse);
+            console.log(`search took ${((performance.now() - then) / 1000).toFixed(2)} seconds (Req ID: ${requestId})`, filter);
         }
-    } catch (error) {
+    } catch (error: any) {
+        console.error(`Worker error for requestId ${requestId}:`, error);
         self.postMessage({
+            requestId,
             type: 'error',
-            data: { error: error }
-        } as ErrorMessage);
+            payload: { error }
+        } as ErrorResponse);
     }
 }; 

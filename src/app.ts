@@ -1,5 +1,5 @@
 declare var bootstrap: any;
-import { Filter, MapInstance } from './instance-tracker';
+import { Filter, MapInstance, Progress } from './log-tracker';
 import { LogEvent } from './log-events';
 import { Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
@@ -10,13 +10,13 @@ import { FileSelectorComponent } from './components/file-selector';
 import { JourneyComponent } from './components/journey';
 import { MessagesComponent } from './components/messages';
 import { LogAggregation, aggregate } from './aggregation';
+import { logWorkerService } from './log-worker-service';
 
 import './assets/css/styles.css';
 import { BaseComponent } from './components/base-component';
 
-class MapAnalyzer {
+export class App {
 
-    private worker: Worker;
     private progressBar!: HTMLDivElement;
     private overviewTabPane!: HTMLDivElement;
     private mapsTabPane!: HTMLDivElement;
@@ -36,6 +36,8 @@ class MapAnalyzer {
     private journeyTabPane!: HTMLDivElement;
     private messagesComponent!: MessagesComponent;
     private messagesTabPane!: HTMLDivElement;
+    private components: BaseComponent<any>[] = [];
+    private currentComponent: BaseComponent<any> | null = null;
 
     // Properties to manage UI element visibility
     private tabNavElement!: HTMLUListElement;
@@ -43,7 +45,6 @@ class MapAnalyzer {
     private progressModalInstance!: any;
 
     constructor() {
-        this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
         this.setupElements();
         this.setupEventListeners();
     }
@@ -111,17 +112,7 @@ class MapAnalyzer {
         container.appendChild(this.fileSelectorComponent.getElement());
 
         this.searchComponent = new SearchComponent((searchTerm: string) => {
-            if (!this.selectedFile) {
-                this.showError('Please select a Client.txt file to search');
-                return;
-            }
-            this.showProgress("Searching Log File...");
-            this.worker.postMessage({
-                type: 'search',
-                file: this.selectedFile,
-                pattern: new RegExp(searchTerm, 'i'),
-                limit: 500
-            });
+            this.searchLog(searchTerm);
         });
 
         this.progressBar = document.createElement('div');
@@ -244,6 +235,8 @@ class MapAnalyzer {
         this.mapStatsComponent = new MapStatsComponent(this.mapsTabPane);
         this.journeyComponent = new JourneyComponent(this.journeyTabPane);
         this.messagesComponent = new MessagesComponent(this.messagesTabPane);
+        this.components = [this.overviewComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent];  
+        this.components.forEach(component => component.setApp(this));
 
         const importJsonInput = document.createElement('input');
         importJsonInput.type = 'file';
@@ -253,63 +246,36 @@ class MapAnalyzer {
         container.appendChild(importJsonInput);
     }
 
-    private setupEventListeners() {
-        this.worker.onmessage = (e: MessageEvent) => {
-            const { type, data } = e.data;
-            switch (type) {
-                case 'complete':
-                    this.currentMaps = data.maps;
-                    this.currentEvents = data.events;
-                    const agg = aggregate(this.currentMaps, this.currentEvents, new Filter());
-                    this.currentAggregation = agg;
-                    this.displayResults(agg);
-                    this.hideProgress();
-
-                    this.fileSelectorComponent.hide();
-
-                    this.filterComponent.setVisible(true);
-                    this.tabNavElement.classList.remove('d-none');
-                    this.tabContentElement.classList.remove('d-none');
-
-                    const overviewTabButton = document.getElementById('overview-tab');
-                    if (overviewTabButton) {
-                        bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
-                    }
-                    break;
-                case 'search':
-                    this.displaySearchLogResults(data.lines);
-                    this.hideProgress();
-                    this.tabNavElement.classList.remove('d-none');
-                    this.tabContentElement.classList.remove('d-none');
-
-                    const searchLogTabButton = document.getElementById('search-log-tab');
-                    if (searchLogTabButton) {
-                        const tabInstance = bootstrap.Tab.getOrCreateInstance(searchLogTabButton);
-                        tabInstance.show();
-                    }
-                    break;
-                case 'progress':
-                    const { bytesRead, totalBytes } = data;
-                    if (totalBytes > 0) {
-                        const percent = Math.round((bytesRead / totalBytes) * 100);
-                        const progressBarElement = this.progressBar.querySelector('.progress-bar') as HTMLElement;
-                        if (progressBarElement) {
-                            progressBarElement.style.width = `${percent}%`;
-                            progressBarElement.textContent = `${percent}%`;
-                            progressBarElement.setAttribute('aria-valuenow', percent.toString());
-                        }
-                    }
-                    break;
-                case 'error':
-                    this.currentMaps = [];
-                    this.currentEvents = [];
-                    console.error(data.error);
-                    this.showError(data.error);
-                    this.hideProgress();
-                    break;
+    async searchLog(searchTerm: string, filter?: Filter) {
+        if (!this.selectedFile) {
+            this.showError('Please select a Client.txt file to search');
+            return;
+        }
+        if (!filter) {
+            filter = this.filterComponent.getFilter();
+        }
+        this.showProgress("Searching Log File...");
+        try {
+            const results = await logWorkerService.searchLog(new RegExp(searchTerm, 'i'), 1000, this.selectedFile, filter, (progress) => {
+                this.updateProgressBar(progress.bytesRead, progress.totalBytes);
+            });
+            this.displaySearchLogResults(results.lines);
+            this.tabNavElement.classList.remove('d-none');
+            this.tabContentElement.classList.remove('d-none');
+            const searchLogTabButton = document.getElementById('search-log-tab');
+            if (searchLogTabButton) {
+                const tabInstance = bootstrap.Tab.getOrCreateInstance(searchLogTabButton);
+                tabInstance.show();
             }
-        };
+        } catch (error: any) {
+            console.error('Search error:', error);
+            this.showError(error.message || 'Failed to search log file.');
+        } finally {
+            this.hideProgress();
+        }
+    }
 
+    private setupEventListeners() {
         const downloadJsonButton = document.getElementById('download-json-tab');
         if (downloadJsonButton) {
             downloadJsonButton.addEventListener('click', () => this.exportJsonData());
@@ -327,7 +293,7 @@ class MapAnalyzer {
                 const target = event.target as HTMLInputElement;
                 if (target.files && target.files.length > 0) {
                     this.handleImportJson(target.files[0]);
-                    target.value = ''; // Reset file input
+                    target.value = '';
                 }
             });
         }
@@ -335,6 +301,7 @@ class MapAnalyzer {
         const informComponentOnTabChange = (tabButton: HTMLElement, component: BaseComponent<any>) => {
             tabButton.addEventListener('shown.bs.tab', () => {
                 component.setVisible(true);
+                this.currentComponent = component;
             });
             tabButton.addEventListener('hide.bs.tab', () => {
                 component.setVisible(false);
@@ -347,7 +314,15 @@ class MapAnalyzer {
         informComponentOnTabChange(document.getElementById('messages-tab') as HTMLElement, this.messagesComponent);
     }
 
-    private handleUpload(file: File) {
+    private handleData(maps: MapInstance[], events: LogEvent[]) {
+        this.currentMaps = maps;
+        this.currentEvents = events;
+        const agg = aggregate(this.currentMaps, this.currentEvents, new Filter());
+        this.currentAggregation = agg;
+        this.displayResults(agg);
+    }
+
+    private async handleUpload(file: File) {
         if (!file) {
             this.showError('Please select a client.txt file');
             return;
@@ -357,21 +332,37 @@ class MapAnalyzer {
         this.filterComponent.setVisible(false);
         this.tabNavElement.classList.add('d-none');
         this.tabContentElement.classList.add('d-none');
-
-        this.worker.postMessage({ type: 'process', file });
+        try {
+            const result = await logWorkerService.ingestLog(file, (progress: Progress) => {
+                this.updateProgressBar(progress.bytesRead, progress.totalBytes);
+            });
+            this.fileSelectorComponent.hide();
+            this.filterComponent.setVisible(true);
+            this.tabNavElement.classList.remove('d-none');
+            this.tabContentElement.classList.remove('d-none');
+            const overviewTabButton = document.getElementById('overview-tab');
+            if (overviewTabButton) {
+                bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
+            }
+            this.currentComponent = this.overviewComponent;
+            this.handleData(result.maps, result.events);
+        } catch (error: any) {
+            this.currentMaps = [];
+            this.currentEvents = [];
+            console.error('Processing error:', error);
+            this.showError(error.message || 'Failed to process log file.');
+            this.fileSelectorComponent.show();
+        } finally {
+            this.hideProgress();
+        }
     }
 
     private displayResults(agg: LogAggregation) {
         const then = performance.now();
-
-        this.overviewComponent.setVisible(true);
-        // FIXME call setVisible on active tab
-        this.overviewComponent.updateData(agg);
-        this.filterComponent.updateData(agg);
-        this.mapStatsComponent.updateData(agg);
-        this.journeyComponent.updateData(agg);
-        this.messagesComponent.updateData(agg);
-
+        for (const component of this.components) {
+            component.updateData(agg);
+        }
+        this.currentComponent?.setVisible(true);
         const took = performance.now() - then;
         if (took > 20) {
             console.warn("Data processing and rendering for displayResults took " + took + " ms");
@@ -462,11 +453,11 @@ class MapAnalyzer {
     }
 
     private exportJsonData() {
-        if (!this.currentMaps || this.currentMaps.length === 0) {
+        if (!this.currentAggregation) {
             this.showError('No data available to download.');
             return;
         }
-        const jsonData = JSON.stringify({ maps: this.currentMaps, events: this.currentEvents }, null, 2);
+        const jsonData = JSON.stringify(this.currentAggregation, null, 2);
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -493,19 +484,15 @@ class MapAnalyzer {
                 if (!content) {
                     throw new Error("File content is empty.");
                 }
-                const data = JSON.parse(content);
+                const data: LogAggregation = JSON.parse(content);
 
-                if (data && Array.isArray(data.maps) && Array.isArray(data.events)) {
-                    this.currentMaps = data.maps as MapInstance[];
-                    this.currentEvents = data.events as LogEvent[];
-                    const aggregation = aggregate(this.currentMaps, this.currentEvents, new Filter());
-                    this.displayResults(aggregation);
+                if (data) {
                     this.hideProgress();
-
                     const overviewTabButton = document.getElementById('overview-tab');
                     if (overviewTabButton) {
                         bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
                     }
+                    this.handleData(data.maps, data.events);
                     this.selectedFile = null;
                 } else {
                     throw new Error('Invalid JSON format. Expected "maps" and "events" arrays.');
@@ -526,10 +513,21 @@ class MapAnalyzer {
 
         reader.readAsText(file);
     }
-}
-declare global {
-    interface Window {
-        mapAnalyzer: MapAnalyzer;
+
+    private updateProgressBar(bytesRead: number, totalBytes: number) {
+        if (totalBytes > 0) {
+            const percent = Math.round((bytesRead / totalBytes) * 100);
+            const progressBarElement = this.progressBar.querySelector('.progress-bar') as HTMLElement;
+            if (progressBarElement) {
+                progressBarElement.style.width = `${percent}%`;
+                progressBarElement.textContent = `${percent}%`;
+                progressBarElement.setAttribute('aria-valuenow', percent.toString());
+            }
+        }
+    }
+
+    getSelectedFile(): File | null {
+        return this.selectedFile;
     }
 }
-window.mapAnalyzer = new MapAnalyzer(); 
+new App(); 

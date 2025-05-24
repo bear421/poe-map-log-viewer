@@ -1,3 +1,5 @@
+import { App } from "../app";
+
 export abstract class BaseComponent<
     TData,
     TElement extends HTMLElement = HTMLElement,
@@ -9,6 +11,7 @@ export abstract class BaseComponent<
     protected isInitialized: boolean = false;
     protected isDataChanged: boolean = false;
     protected isVisible: boolean = false;
+    protected app?: App; // hacky "global" state sharing for now
 
     constructor(element: TElement, container: TContainerElement) {
         this.element = element;
@@ -38,6 +41,10 @@ export abstract class BaseComponent<
         if (this.notifyVisibility(visible)) {
             visible ? this.element.classList.remove('d-none') : this.element.classList.add('d-none');
         }
+    }
+    
+    public setApp(app: App): void {
+        this.app = app;
     }
 
     public notifyVisibility(isVisible: boolean): boolean {

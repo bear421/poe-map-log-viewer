@@ -18,7 +18,7 @@ export class SearchComponent {
     private render(): void {
         this.element.innerHTML = `
             <input type="text" class="form-control" placeholder="Enter pattern...">
-            <button class="btn btn-secondary" type="button">Search</button>
+            <button class="btn btn-primary" type="button">Search</button>
         `;
         this.searchInput = this.element.querySelector('input[type="text"]') as HTMLInputElement;
     }

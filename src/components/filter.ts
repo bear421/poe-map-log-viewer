@@ -1,4 +1,4 @@
-import { Filter } from '../instance-tracker';
+import { Filter } from '../log-tracker';
 import { BaseComponent } from './base-component';
 import { LogAggregation } from '../aggregation';
 import { LevelUpEvent } from '../log-events';
@@ -12,6 +12,7 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
 
     private isInitialRenderDone: boolean = false;
     private prevCharactersSignature: string = "";
+    private filter: Filter | undefined;
 
     constructor(onFilterChangeCallback: (filter: Filter) => void, container: HTMLDivElement) {
         super(document.createElement('div'), container);
@@ -32,19 +33,19 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
                             <select id="characterFilter" class="form-select border-dark"></select>
                         </div>
                         <div class="col-md-1">
-                            <label for="minCharacterLevelFilter" class="form-label">Min Level</label>
+                            <label for="minCharacterLevelFilter" class="form-label">Min Lvl</label>
                             <input type="number" class="form-control border-dark" id="minCharacterLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-1">
-                            <label for="maxCharacterLevelFilter" class="form-label">Max Level</label>
+                            <label for="maxCharacterLevelFilter" class="form-label">Max Lvl</label>
                             <input type="number" class="form-control border-dark" id="maxCharacterLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-2">
-                            <label for="minLevelFilter" class="form-label">Min area Level</label>
+                            <label for="minLevelFilter" class="form-label">Min Area Lvl</label>
                             <input type="number" class="form-control border-dark" id="minLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-2">
-                            <label for="maxLevelFilter" class="form-label">Max area Level</label>
+                            <label for="maxLevelFilter" class="form-label">Max Area Lvl</label>
                             <input type="number" class="form-control border-dark" id="maxLevelFilter" min="1" max="100">
                         </div>
                         <div class="col-md-2">
@@ -91,9 +92,16 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
 
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
         const characters: LevelUpEvent[] = (this.data) ? Array.from(this.data.characterAggregation.characters.values()) : [];
+        characters.sort((a, b) => {
+            if (b.detail.level !== a.detail.level) {
+                return b.detail.level - a.detail.level;
+            }
+            return a.detail.character.localeCompare(b.detail.character);
+        });
         const characterOptionsHTML = characters.map(char => 
             `<option value="${char.detail.character}">${char.detail.character} (${char.detail.level} ${char.detail.ascendancy})</option>`
         ).join('');
+
         if (characterOptionsHTML !== this.prevCharactersSignature) {
             const oldValue = characterSelect.value;
             characterSelect.innerHTML = `<option value="">All Characters</option>${characterOptionsHTML}`;
@@ -114,10 +122,6 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
             this.applyFilters();
         });
 
-        this.element.querySelector('#applyFiltersBtn')?.addEventListener('click', () => {
-            this.applyFilters();
-        });
-        
         this.element.querySelector('#resetFiltersBtn')?.addEventListener('click', () => {
             this.resetFilters();
         });
@@ -162,6 +166,12 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
             this.deactivatePresetGroup('map');
             this.applyFilters();
         });
+        (this.element.querySelector('#minCharacterLevelFilter') as HTMLInputElement)?.addEventListener('input', () => {
+            this.applyFilters();
+        });
+        (this.element.querySelector('#maxCharacterLevelFilter') as HTMLInputElement)?.addEventListener('input', () => {
+            this.applyFilters();
+        });
         (this.element.querySelector('#fromDateFilter') as HTMLInputElement)?.addEventListener('input', () => {
             this.deactivatePresetGroup('date');
             this.applyFilters();
@@ -181,19 +191,27 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
     }
 
     private applyFilters(): void {
-        const minLevelInput = (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value;
-        const maxLevelInput = (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value;
+        const minAreaLevelInput = (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value;
+        const maxAreaLevelInput = (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value;
+        const minCharLevelInput = (this.element.querySelector('#minCharacterLevelFilter') as HTMLInputElement).value;
+        const maxCharLevelInput = (this.element.querySelector('#maxCharacterLevelFilter') as HTMLInputElement).value;
         const fromDateInput = (this.element.querySelector('#fromDateFilter') as HTMLInputElement).value;
         const toDateInput = (this.element.querySelector('#toDateFilter') as HTMLInputElement).value;
         const characterInput = (this.element.querySelector('#characterFilter') as HTMLSelectElement).value;
         
         const filter = new Filter();
         
-        if (minLevelInput) {
-            filter.fromAreaLevel = parseInt(minLevelInput);
+        if (minCharLevelInput) {
+            filter.fromCharacterLevel = parseInt(minCharLevelInput);
         }
-        if (maxLevelInput) {
-            filter.toAreaLevel = parseInt(maxLevelInput);
+        if (maxCharLevelInput) {
+            filter.toCharacterLevel = parseInt(maxCharLevelInput);
+        }
+        if (minAreaLevelInput) {
+            filter.fromAreaLevel = parseInt(minAreaLevelInput);
+        }
+        if (maxAreaLevelInput) {
+            filter.toAreaLevel = parseInt(maxAreaLevelInput);
         }
         
         let lo = -Infinity, hi = Infinity;
@@ -205,11 +223,18 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
             toDate.setHours(23, 59, 59, 999); // Set to end of day
             hi = toDate.getTime();
         }
-        filter.tsBounds = [{ lo, hi }];
+        if (lo !== -Infinity || hi !== Infinity) {
+            filter.tsBounds = [{ lo, hi }];
+        }
         if (characterInput) {
             filter.character = characterInput;
         }
+        this.filter = filter;
         this.onFilterChange(filter);
+    }
+
+    getFilter(): Filter | undefined {
+        return this.filter;
     }
 
     private applyPreset(presetType: 'lastHour' | 'last24Hours' | 'last7Days' | 'last30Days' | 'campaignMaps' | 'whiteMaps' | 'yellowMaps' | 'redMaps', clickedButton: HTMLButtonElement): void {
@@ -223,7 +248,6 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
                 }
             });
 
-            // Apply the preset values
             const now = new Date();
             let fromDate = new Date(now); 
             switch (presetType) {
@@ -261,7 +285,7 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
                     break;
                 case 'redMaps':
                     (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '75';
-                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = ''; 
+                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '';
                     break;
             }
         } else {
@@ -286,14 +310,18 @@ export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElemen
     private resetFilters(): void {
         (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '';
         (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '';
+        (this.element.querySelector('#minCharacterLevelFilter') as HTMLInputElement).value = '';
+        (this.element.querySelector('#maxCharacterLevelFilter') as HTMLInputElement).value = '';
         (this.element.querySelector('#fromDateFilter') as HTMLInputElement).value = '';
         (this.element.querySelector('#toDateFilter') as HTMLInputElement).value = '';
+        (this.element.querySelector('#characterFilter') as HTMLSelectElement).value = '';
         
         this.allPresetButtonIds.forEach(buttonId => {
             const btn = this.element.querySelector<HTMLButtonElement>(`#${buttonId}`);
             btn?.classList.remove('active');
         });
 
-        this.onFilterChange(new Filter());
+        this.filter = new Filter();
+        this.onFilterChange(this.filter);
     }
 } 
