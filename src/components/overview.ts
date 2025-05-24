@@ -1,5 +1,4 @@
 import { MapSpan } from '../log-tracker';
-import { LogAggregation } from '../aggregation';
 import {
     Chart,
     ArcElement,
@@ -13,7 +12,7 @@ import { BaseComponent } from './base-component';
 
 Chart.register(ArcElement, Tooltip, Legend, PieController);
 
-export class OverviewComponent extends BaseComponent<LogAggregation> {
+export class OverviewComponent extends BaseComponent {
     private chartInstance: Chart | null = null;
 
     constructor(container: HTMLElement) {
@@ -87,17 +86,14 @@ export class OverviewComponent extends BaseComponent<LogAggregation> {
                             <dt class="col-9"><i class="bi bi-magic me-2"></i>Items identified (bulk)</dt>
                             <dd class="col-3 text-end">${agg.events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0)}</dd>
 
-                            <dt class="col-9"><i class="bi bi-cart-fill text-success me-2"></i>Item purchases</dt>
-                            <dd class="col-3 text-end">${agg.totalItemsBought}</dd>
+                            <dt class="col-9"><i class="bi bi-currency-exchange text-warning me-2"></i>Trades (NPCs and Players)</dt>
+                            <dd class="col-3 text-end">${agg.totalTrades}</dd>
 
-                            <dt class="col-9"><i class="bi bi-cart-fill text-danger me-2"></i>Item purchases failed</dt>
-                            <dd class="col-3 text-end">${agg.totalBuysAttempted - agg.totalItemsBought}</dd>
+                            <dt class="col-9"><i class="bi bi-cart-fill me-2"></i>Item purchases attempted</dt>
+                            <dd class="col-3 text-end">${agg.totalBuysAttempted}</dd>
 
-                            <dt class="col-9"><i class="bi bi-tags-fill text-success me-2"></i>Item sales</dt>
-                            <dd class="col-3 text-end">${agg.totalItemsSold}</dd>
-
-                            <dt class="col-9"><i class="bi bi-tags-fill text-danger me-2"></i>Item sales failed</dt>
-                            <dd class="col-3 text-end">${agg.totalSalesAttempted - agg.totalItemsSold}</dd>
+                            <dt class="col-9"><i class="bi bi-tags-fill me-2"></i>Item sales attempted</dt>
+                            <dd class="col-3 text-end">${agg.totalSalesAttempted}</dd>
                         </dl>
                     </div>
                 </div>

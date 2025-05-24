@@ -1,6 +1,6 @@
-import { LogTracker, MapInstance, Filter, Segmentation, Progress } from './log-tracker';
+import { LogTracker, MapInstance, Filter, Segmentation, Progress, LogLine } from './log-tracker';
 import { LogEvent } from './log-events';
-import { binarySearchFindLast } from "./binary-search";
+import { binarySearchFind, binarySearchFindLast } from "./binary-search";
 
 interface RequestMessage {
     requestId: string;
@@ -42,7 +42,7 @@ export interface IngestResponse extends ReponseMessage {
 export interface SearchResponse extends ReponseMessage {
     type: 'search';
     payload: {
-        lines: string[];
+        lines: LogLine[];
     };
 }
 
@@ -70,9 +70,9 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
 
     try {
         if (type === 'ingest') {
-            let totalBytesValue = 0; // Renamed to avoid conflict with ProgressData property
+            let totalBytesValue = 0;
             let bytesReadThreshold: number | null = null;
-            let futureEventIndex: number | null = null;
+            let nextIndexEntry: { eventIndex: number, bytesRead: number } | null = null;
             const bytesTsIndex: BytesTsIndex = [];
             
             const onProgressCallback = (progress: { totalBytes: number, bytesRead: number }) => {
@@ -85,12 +85,12 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                     totalBytesValue = progress.totalBytes;
                     bytesReadThreshold = totalBytesValue * 0.03;
                 } else if (progress.bytesRead > bytesReadThreshold) {
-                    if (futureEventIndex !== null && futureEventIndex < events.length) {
-                        bytesTsIndex.push({ts: events[futureEventIndex].ts, bytes: progress.bytesRead});
+                    if (nextIndexEntry && nextIndexEntry.eventIndex < events.length) {
+                        bytesTsIndex.push({ts: events[nextIndexEntry.eventIndex].ts, bytes: nextIndexEntry.bytesRead});
                         bytesReadThreshold += totalBytesValue * 0.03;
-                        futureEventIndex = events.length;
+                        nextIndexEntry = null;
                     } else {
-                        futureEventIndex = events.length;
+                        nextIndexEntry = { eventIndex: events.length, bytesRead: progress.bytesRead };
                     }
                 }
             }
@@ -145,10 +145,14 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 const fileKey = getFileCacheKey(file);
                 const bytesTsIndex = TS_BYTES_CACHE.get(fileKey);
                 if (bytesTsIndex && bytesTsIndex.length > 0) {
-                    let bytesOffsetLo = binarySearchFindLast(bytesTsIndex, x => x.ts < tsFilter.lo)?.bytes || 0;
-                    let bytesOffsetHi = binarySearchFindLast(bytesTsIndex, x => x.ts <= tsFilter.hi)?.bytes ?? bytesOffsetLo;
-                    if (bytesOffsetLo < bytesOffsetHi) {
-                        offsetFile = new File([file.slice(bytesOffsetLo, bytesOffsetHi)], file.name, { type: file.type });
+                    const indexEntryLo = binarySearchFindLast(bytesTsIndex, x => x.ts < tsFilter.lo);
+                    const indexEntryHi = binarySearchFind(bytesTsIndex, x => x.ts > tsFilter.hi);
+                    if (indexEntryLo || indexEntryHi) {
+                        console.log(`using ts index lo: ${indexEntryLo && new Date(indexEntryLo.ts)}}`, indexEntryLo?.bytes, bytesTsIndex);
+                    }
+                    let bytesOffsetLo = indexEntryLo?.bytes ?? 0;
+                    if (bytesOffsetLo) {
+                        offsetFile = new File([file.slice(bytesOffsetLo)], file.name, { type: file.type });
                     }
                 }
             }
@@ -158,7 +162,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 type: 'search',
                 payload: { lines }
             } as SearchResponse);
-            console.log(`search took ${((performance.now() - then) / 1000).toFixed(2)} seconds (Req ID: ${requestId})`, filter);
+            console.log(`search took ${((performance.now() - then) / 1000).toFixed(2)} seconds`, new Date(tsFilter?.lo), new Date(tsFilter?.hi), filter);
         }
     } catch (error: any) {
         console.error(`Worker error for requestId ${requestId}:`, error);

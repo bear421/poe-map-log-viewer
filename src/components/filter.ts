@@ -1,9 +1,8 @@
 import { Filter } from '../log-tracker';
 import { BaseComponent } from './base-component';
-import { LogAggregation } from '../aggregation';
 import { LevelUpEvent } from '../log-events';
 
-export class FilterComponent extends BaseComponent<LogAggregation, HTMLDivElement> {
+export class FilterComponent extends BaseComponent {
     private onFilterChange: (filter: Filter) => void;
 
     private readonly datePresetButtonIds = ['presetLastHourBtn', 'presetLast24HoursBtn', 'presetLast7DaysBtn', 'presetLast30DaysBtn'];

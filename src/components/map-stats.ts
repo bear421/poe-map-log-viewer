@@ -1,12 +1,11 @@
 import { MapInstance, MapSpan } from '../log-tracker';
 import { LogEvent } from '../log-events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
-import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 
 declare var bootstrap: any; 
 
-export class MapStatsComponent extends BaseComponent<LogAggregation> {
+export class MapStatsComponent extends BaseComponent {
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);

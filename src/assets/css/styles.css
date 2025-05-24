@@ -113,12 +113,11 @@ body {
     transform-origin: bottom center;
 }
 
-.mascot-on-modal {
+.progress-modal .mascot-image {
     position: absolute;
     top: -7.2rem;
     left: 0;
     z-index: 1060;
-    display: none;
 }
 
 .border-fade-secondary {
@@ -150,6 +149,28 @@ body {
     animation-duration: 0.3s; /* Adjust duration as needed */
     animation-timing-function: ease-out; /* Adjust timing function as needed */
 }
+
+.journey-campaign-table {
+    table-layout: fixed;
+}
+
+.journey-campaign-table .th-area {
+    width: 22%;
+}
+.journey-campaign-table .th-events {
+    width: 39%;
+}
+
+.journey-campaign-table .th-entered-at {
+    width: 15%;
+}
+
+.journey-campaign-table .th-time-spent,
+.journey-campaign-table .th-area-level,
+.journey-campaign-table .th-char-level {
+    width: 8%;
+}
+
 
 .journey-campaign-table td:nth-of-type(n+3):nth-of-type(-n+6) { /* time spent, entered at, area level, char level */
     text-align: right;
@@ -195,10 +216,14 @@ body {
 
 .timeline-event-icon {
     position: absolute;
-    left: -13px;
+    left: -13px; 
     top: 0;
 }
 
 .timeline-event-icon i {
     background-color: white;
+}
+
+.raw-log .ts {
+    color: var(--bs-secondary);
 }

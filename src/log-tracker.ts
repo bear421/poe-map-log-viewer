@@ -1,5 +1,5 @@
 import { RingBuffer } from "./ringbuffer";
-import { parseTs, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
+import { parseTs, parseTsStrict, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
 import { binarySearchRange } from "./binary-search";
 import { getZoneInfo } from "./data/zone_table";
@@ -131,11 +131,26 @@ class MapSpan {
         return MapSpan.mapTime(this, end);
     }
 
+    /**
+     * @returns time spent in the map, including idle time. i.e. duration between generation of this and the next map
+     */
     static mapTimePlusIdle(span: MapSpan, end?: number): number {
-        return MapSpan.mapTime(span, end) + MapSpan.idleTime(span);
+        return MapSpan.baseTime(span, end);
     }
 
+    /**
+     * @returns time spent in the map, excluding idle time
+     */
     static mapTime(span: MapSpan, end?: number): number {
+        const baseTime = MapSpan.baseTime(span, end);
+        const compactTime = baseTime - MapSpan.idleTime(span);
+        if (compactTime < 0) {
+            throw new Error(`invariant: map time minus idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
+        }
+        return compactTime;
+    }
+
+    private static baseTime(span: MapSpan, end?: number): number {
         if (!end) {
             end = span.end;
         }
@@ -152,17 +167,16 @@ class MapSpan {
         if (baseTime < 0) {
             throw new Error(`invariant: map time is negative: ${baseTime}`);
         }
-        const compactTime = baseTime - MapSpan.idleTime(span);
-        if (compactTime < 0) {
-            throw new Error(`invariant: map time minus idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
-        }
-        return compactTime;
+        return baseTime;
     }
 
     idleTime(): number {
         return MapSpan.idleTime(this);
     }
 
+    /**
+     * @returns time spent in hideout + loading + pausing
+     */
     static idleTime(span: MapSpan): number {
         return span.hideoutTime + span.loadTime + span.pauseTime;
     }
@@ -310,9 +324,9 @@ class MapInstance {
         const areaType = MapInstance.areaType(map);
         switch (areaType) {
             case AreaType.Campaign:
-                return getZoneInfo(map.name)?.label ?? "Campaign " + map.name;
+                return getZoneInfo(map.name, map.areaLevel)?.label ?? "Campaign " + map.name;
             case AreaType.Town:
-                return getZoneInfo(map.name)?.label ?? "Town " + map.name;
+                return getZoneInfo(map.name, map.areaLevel)?.label ?? "Town " + map.name;
         }
         const name = map.name.replace(/^Map/, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
@@ -655,6 +669,13 @@ export interface Progress {
     bytesRead: number;
 }
 
+export interface LogLine {
+    ts?: number;
+    context?: string;
+    remainder?: string;
+    rawLine: string;
+}
+
 export class LogTracker {
     
     public eventDispatcher = new EventDispatcher();
@@ -711,7 +732,7 @@ export class LogTracker {
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
                 }
-                progress.bytesRead += chunk.length;
+                progress.bytesRead += value.byteLength;
                 onProgress?.(progress);
             }
         } finally {
@@ -720,8 +741,8 @@ export class LogTracker {
         }
     }
 
-    async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void, tsFilter?: TSRange): Promise<string[]> {
-        const lines: string[] = [];
+    async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void, tsFilter?: TSRange): Promise<LogLine[]> {
+        const lines: LogLine[] = [];
         const progress = {
             totalBytes: file.size,
             bytesRead: 0
@@ -734,12 +755,16 @@ export class LogTracker {
             for (;;) {
                 const { done, value } = await reader.read();
                 const handleLine = (line: string) => {
+                    // cannot use fast parseTs here, because lines may be malformed or non-timestamped logs
+                    const ts = parseTsStrict(line);
                     if (tsFilter) {
-                        const ts = parseTs(line);
                         if (ts) {
                             if (ts < tsFilter.lo) return true;
 
-                            if (ts > tsFilter.hi) return false; // done, don't care about non-timestampd logs after this
+                            if (ts > tsFilter.hi) {
+                                console.log(`ts > tsFilter.hi: ${ts} > ${tsFilter.hi} early exit, because: ${line}`, new Date(ts), progress.bytesRead);
+                                return false; // done, don't care about non-timestampd logs after this
+                            }
 
                             hadTsMatch = true;
                         } else if (!hadTsMatch) {
@@ -748,7 +773,14 @@ export class LogTracker {
                         }
                     }
                     if (pattern.test(line)) {
-                        lines.push(line);
+                        const rIx = ts && line.indexOf("]", 40);
+                        if (ts && rIx) {
+                            const remainder = line.substring(rIx + 2);
+                            const context = line.substring(19, rIx);
+                            lines.push({ ts, context,  remainder, rawLine: line });
+                        } else {
+                            lines.push({ rawLine: line });
+                        }
                         if (limit > 0 && lines.length >= limit) {
                             return false;
                         }
@@ -782,7 +814,7 @@ export class LogTracker {
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
                 }
-                progress.bytesRead += chunk.length;
+                progress.bytesRead += value.byteLength;
                 onProgress?.(progress);
             }
         } finally {
@@ -862,8 +894,6 @@ export class LogTracker {
                     if (boss) {
                         if (boss.deathCries.has(m[offset + 1])) {
                             this.dispatchEvent(BossKillEvent.of(ts, boss.alias ?? m[offset], m[offset + 1], this.currentMap!.areaLevel));
-                        } else if (line.includes("how could")) {
-                            console.log("Doryani", line);
                         }
                     }
                     break;
@@ -872,6 +902,9 @@ export class LogTracker {
                     const areaLevel = parseInt(m[offset]);
                     const mapName = m[offset + 1];
                     const mapSeed = parseInt(m[offset + 2]);
+                    // FIXME all map timing events should try to use millisecond precision
+                    // otherwise, map times can drift by up to a second for every measured ts
+                    // can result in overall drift of 1-3 minutes for entire campaign
                     this.enterArea(new AreaInfo(
                         ts,
                         uptimeMillisGen, 
@@ -918,8 +951,12 @@ export class LogTracker {
         // TODO EOF map can undercount mapTime because hideoutStartTime precedes trailing POSTLOAD event
         const currentMap = this.currentMap;
         if (currentMap) {
-            const end = Math.max(currentMap.span.hideoutStartTime ?? 0, currentMap.span.lastInteraction ?? 0);
-            if (end) {
+            const end = Math.max(
+                currentMap.span.hideoutStartTime ?? 0, 
+                currentMap.span.lastInteraction ?? 0, 
+                currentMap.span.pausedAt ?? 0
+            );
+            if (end && end > currentMap.span.start) {
                 this.completeMap(currentMap, end);
                 this.currentMap = null;
             }

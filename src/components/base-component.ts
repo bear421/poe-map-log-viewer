@@ -1,8 +1,9 @@
 import { App } from "../app";
+import { LogAggregation } from "../aggregation";
 
 export abstract class BaseComponent<
-    TData,
     TElement extends HTMLElement = HTMLElement,
+    TData = LogAggregation,
     TContainerElement extends HTMLElement = HTMLElement
 > {
     protected readonly element: TElement;
@@ -37,10 +38,11 @@ export abstract class BaseComponent<
         }
     }
 
-    public setVisible(visible: boolean): void {
+    public setVisible(visible: boolean): this {
         if (this.notifyVisibility(visible)) {
             visible ? this.element.classList.remove('d-none') : this.element.classList.add('d-none');
         }
+        return this;
     }
     
     public setApp(app: App): void {

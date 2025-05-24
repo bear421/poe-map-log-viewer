@@ -1,4 +1,4 @@
-import { parseTs, parseTsSlow, clearOffsetCache } from "../src/ts-parser";
+import { parseTs, parseTsSlow, parseTsStrict, clearOffsetCache } from "../src/ts-parser";
 
 describe('Timestamp Parser Performance', () => {
 
@@ -27,6 +27,20 @@ describe('Timestamp Parser Performance', () => {
         const totalTime = endTime - then;
         const timePerOperation = totalTime / iterations;
         console.log(`parseTs: ${totalTime.toFixed(2)}ms total, ${timePerOperation.toFixed(6)}ms per operation`);
+    });
+
+    test('parseTsStrict performance', () => {
+        const then = performance.now();
+        for (let i = 0; i < iterations; i++) {
+            for (const line of logLines) {
+                parseTsStrict(line);
+            }
+        }
+
+        const endTime = performance.now();
+        const totalTime = endTime - then;
+        const timePerOperation = totalTime / iterations;
+        console.log(`parseTsStrict: ${totalTime.toFixed(2)}ms total, ${timePerOperation.toFixed(6)}ms per operation`);
     });
 
     test('parseTsSlow performance', () => {

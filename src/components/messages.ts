@@ -1,9 +1,8 @@
-import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 
 const DEBOUNCE_DELAY = 245;
 
-export class MessagesComponent extends BaseComponent<LogAggregation> {
+export class MessagesComponent extends BaseComponent {
     private searchInput: HTMLInputElement;
     private accordionContainer: HTMLDivElement;
     private noResultsElement: HTMLParagraphElement;

@@ -1,5 +1,5 @@
 declare var bootstrap: any;
-import { Filter, MapInstance, Progress } from './log-tracker';
+import { Filter, LogLine, MapInstance, Progress } from './log-tracker';
 import { LogEvent } from './log-events';
 import { Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
@@ -25,13 +25,13 @@ export class App {
     private currentEvents: LogEvent[] = [];
     private currentAggregation: LogAggregation | undefined = undefined;
     private mascot!: Mascot;
+    private modalMascot!: Mascot;
     private filterComponent!: FilterComponent;
     private searchComponent!: SearchComponent;
     private mapStatsComponent!: MapStatsComponent;
     private overviewComponent!: OverviewComponent;
     private fileSelectorComponent!: FileSelectorComponent;
     private selectedFile: File | null = null;
-    private modalMascot!: Mascot;
     private journeyComponent!: JourneyComponent;
     private journeyTabPane!: HTMLDivElement;
     private messagesComponent!: MessagesComponent;
@@ -70,6 +70,7 @@ export class App {
         headerContainer.className = 'app-header-container';
 
         this.mascot = new Mascot(headerContainer);
+        this.mascot.setVisible(true);
 
         const titleElement = document.createElement('h1');
         titleElement.textContent = 'PoE Map Log Viewer';
@@ -125,7 +126,7 @@ export class App {
 
         const modalId = 'progressModal';
         const modalHtml = `
-            <div class="modal" id="${modalId}" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal progress-modal" id="${modalId}" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header" style="position: relative;">
@@ -141,14 +142,7 @@ export class App {
         modalTemplate.innerHTML = modalHtml.trim();
         const modalElement = modalTemplate.content.firstChild as HTMLElement;
         
-        this.modalMascot = new Mascot();
-        const modalMascotElement = this.modalMascot.getElement();
-        modalMascotElement.classList.add('mascot-on-modal');
-        
-        const modalHeader = modalElement.querySelector('.modal-header');
-        if (modalHeader) {
-            modalHeader.prepend(modalMascotElement);
-        }
+        this.modalMascot = new Mascot(modalElement.querySelector('.modal-header') as HTMLElement).setVisible(false);
         
         modalElement.querySelector('.modal-body')!.appendChild(this.progressBar);
         container.appendChild(modalElement);
@@ -369,7 +363,7 @@ export class App {
         }
     }
 
-    private displaySearchLogResults(lines: string[]) {
+    private displaySearchLogResults(lines: LogLine[]) {
         if (!this.searchLogTabPane) return;
 
         const searchElement = this.searchComponent.getElement();
@@ -394,10 +388,7 @@ export class App {
     }
 
     private showProgress(title: string = "Processing...") {
-        const modalTitleElement = document.getElementById('progressModalLabel');
-        if (modalTitleElement) {
-            modalTitleElement.textContent = title;
-        }
+        document.getElementById('progressModalLabel')!.textContent = title;
 
         const progressBarElement = this.progressBar.querySelector('.progress-bar') as HTMLElement;
         if (progressBarElement) {
@@ -406,19 +397,15 @@ export class App {
             progressBarElement.setAttribute('aria-valuenow', '0');
         }
 
-        this.mascot?.hide();
-        this.modalMascot?.show();
-        this.modalMascot?.setSearchAnimation(true);
-
+        this.mascot.setVisible(false);
+        this.modalMascot?.setAnimation(true);
         this.progressModalInstance.show();
     }
 
     private hideProgress() {
         this.progressModalInstance.hide();
-        this.modalMascot?.hide();
-        this.modalMascot?.setSearchAnimation(false);
-        this.mascot?.show();
-        this.mascot?.setSearchAnimation(false);
+        this.modalMascot?.setVisible(false);
+        this.mascot?.setVisible(true);
     }
 
     private showError(message: string) {
@@ -447,9 +434,8 @@ export class App {
             bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
         }
         
-        this.modalMascot?.hide();
-        this.modalMascot?.setSearchAnimation(false);
-        this.mascot?.show();
+        this.modalMascot?.setVisible(false);
+        this.mascot?.setVisible(true);
     }
 
     private exportJsonData() {

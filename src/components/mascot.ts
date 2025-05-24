@@ -3,43 +3,23 @@ import mascotHappy from '../assets/images/mascot_happy.webp';
 import mascotHmm from '../assets/images/mascot_hmm.webp';
 import mascotHmm2 from '../assets/images/mascot_hmm2.webp';
 import mascotSurprised from '../assets/images/mascot_surprised.webp';
+import { BaseComponent } from './base-component';
+import { createElementFromHTML } from '../util';
 
-export class Mascot {
-    private element: HTMLImageElement;
+export class Mascot extends BaseComponent<HTMLImageElement> {
     private animationInterval: number | null = null;
     private currentFrameIndex: number = 0;
-    private originalParentElement: HTMLElement | null = null;
-
     private readonly frameImagePaths = [
         mascotHappy,
         mascotHmm,
         mascotHmm2,
         mascotSurprised
     ];
-    private readonly searchAnimationFrames = [1, 2, 3];
+    private readonly animationFrames = [1, 2, 3];
 
-    constructor(parentElement?: HTMLElement, initialFrameIndex: number = 2) {
-        this.element = document.createElement('img');
-        this.element.classList.add('mascot-image');
-
+    constructor(parentElement: HTMLElement, initialFrameIndex: number = 2) {
+        super(createElementFromHTML('<img class="mascot-image">') as HTMLImageElement, parentElement);
         this.setFrame(initialFrameIndex);
-        
-        if (parentElement) {
-            this.originalParentElement = parentElement;
-            this.originalParentElement.appendChild(this.element);
-        }
-    }
-
-    public getElement(): HTMLImageElement {
-        return this.element;
-    }
-
-    public show(): void {
-        this.element.style.display = 'block';
-    }
-
-    public hide(): void {
-        this.element.style.display = 'none';
     }
 
     private setFrame(frameIndex: number): void {
@@ -49,16 +29,23 @@ export class Mascot {
         }
     }
 
-    private startSearchAnimation(): void {
+    setVisible(visible: boolean): this {
+        if (!visible) {
+            this.stopAnimation();
+        }
+        return super.setVisible(visible);
+    }
+
+    private startAnimation(): void {
         if (this.animationInterval) return;
 
         const selectNewRandomFrame = () => {
             let nextFrameToDisplay;
             const currentlyDisplayedFrame = this.currentFrameIndex;
             do {
-                const randomIndex = Math.floor(Math.random() * this.searchAnimationFrames.length);
-                nextFrameToDisplay = this.searchAnimationFrames[randomIndex];
-            } while (this.searchAnimationFrames.length > 1 && nextFrameToDisplay === currentlyDisplayedFrame);
+                const randomIndex = Math.floor(Math.random() * this.animationFrames.length);
+                nextFrameToDisplay = this.animationFrames[randomIndex];
+            } while (this.animationFrames.length > 1 && nextFrameToDisplay === currentlyDisplayedFrame);
             this.setFrame(nextFrameToDisplay);
         };
         selectNewRandomFrame();
@@ -67,7 +54,7 @@ export class Mascot {
         }, 450);
     }
 
-    private stopSearchAnimation(): void {
+    public stopAnimation(): void {
         if (this.animationInterval) {
             clearInterval(this.animationInterval);
             this.animationInterval = null;
@@ -75,12 +62,14 @@ export class Mascot {
         this.setFrame(0); 
     }
 
-    public setSearchAnimation(isAnimating: boolean): void {
+    public setAnimation(isAnimating: boolean): void {
+        isAnimating && this.setVisible(true);
         if (isAnimating) {
-            this.startSearchAnimation();
+            this.startAnimation();
         } else {
-            this.stopSearchAnimation();
+            this.stopAnimation();
         }
     }
 
+    protected render(): void {}
 }

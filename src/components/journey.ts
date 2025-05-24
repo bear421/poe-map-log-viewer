@@ -1,5 +1,4 @@
 import { MapInstance, MapSpan } from '../log-tracker';
-import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 import { binarySearch, BinarySearchMode, binarySearchRange } from '../binary-search';
 import { eventMeta, getEventMeta, LevelUpEvent, EventName, LogEvent } from '../log-events';
@@ -12,6 +11,7 @@ declare var Popper: any;
 interface ActDefinition {
     name: string;
     maps: MapInstance[];
+    duration: number;
 }
 
 const journeyEventNames = new Set<EventName>([
@@ -26,16 +26,16 @@ const journeyEventNames = new Set<EventName>([
     "msgParty"
 ]);
 
-export class JourneyComponent extends BaseComponent<LogAggregation> {
+export class JourneyComponent extends BaseComponent {
 
     private actDefinitions: ActDefinition[] = [
-        { name: 'Act 1', maps: [] },
-        { name: 'Act 2', maps: [] },
-        { name: 'Act 3', maps: [] },
-        { name: 'Act 4', maps: [] },
-        { name: 'Act 5', maps: [] },
-        { name: 'Act 6', maps: [] },
-        { name: 'Endgame', maps: [] }
+        { name: 'Act 1', maps: [], duration: 0 },
+        { name: 'Act 2', maps: [], duration: 0 },
+        { name: 'Act 3', maps: [], duration: 0 },
+        { name: 'Act 4', maps: [], duration: 0 },
+        { name: 'Act 5', maps: [], duration: 0 },
+        { name: 'Act 6', maps: [], duration: 0 },
+        { name: 'Endgame', maps: [], duration: 0 }
     ];
 
     private currentActIndex: number = 0;
@@ -50,16 +50,6 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         this.mapDetailModal = new MapDetailComponent();
     }
 
-    private categorizeMaps(): void {
-        this.actDefinitions.forEach(act => act.maps = []);
-        const endgameNumber = this.actDefinitions.length;
-        for (const map of this.data!.maps) {
-            const zoneInfo = getZoneInfo(map.name);
-            const actNumber = zoneInfo?.act ?? endgameNumber;
-            this.actDefinitions[actNumber - 1].maps.push(map);
-        }
-    }
-
     protected render(): void {
         this.mapDetailModal.updateData(this.data!);
         this.mapDetailModal.setApp(this.app!);
@@ -70,6 +60,26 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         this.categorizeMaps();
         this.renderPills();
         this.renderTableForCurrentAct();
+    }
+
+    private categorizeMaps(): void {
+        this.actDefinitions.forEach(a => {
+            a.maps = [];
+            a.duration = 0;
+        });
+        const endgameNumber = this.actDefinitions.length;
+        for (const map of this.data!.maps) {
+            const zoneInfo = getZoneInfo(map.name, map.areaLevel);
+            const actNumber = zoneInfo?.act ?? endgameNumber;
+            this.actDefinitions[actNumber - 1].maps.push(map);
+        }
+        for (const act of this.actDefinitions) {
+            if (act.maps.length === 1) {
+                act.duration = MapSpan.mapTimePlusIdle(act.maps[0].span);
+            } else if (act.maps.length > 1) {
+                act.duration = act.maps.reduce((acc, map) => acc + MapSpan.mapTimePlusIdle(map.span), 0);
+            }
+        }
     }
 
     private renderPills(): void {
@@ -88,7 +98,7 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
             pillButton.id = `journey-act-${index}-tab-btn`;
             pillButton.type = 'button';
             pillButton.setAttribute('role', 'tab');
-            pillButton.textContent = `${act.name} (${act.maps.length})`;
+            pillButton.textContent = `${act.name} (${this.formatDuration(act.duration)})`;
 
             pillButton.addEventListener('click', (event) => {
                 event.preventDefault();
@@ -114,26 +124,25 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         }
 
         const table = document.createElement('table');
-        table.className = 'table table-sm table-striped caption-top journey-campaign-table';
+        table.className = 'table table-sm table-striped table-fixed caption-top journey-campaign-table';
         table.innerHTML = `
             <thead>
                 <tr>
-                    <th class="col-3">Area</th>
-                    <th class="col">Events</th>
-                    <th class="col-1">Time Spent</th>
-                    <th class="col-2">Entered At</th>
-                    <th class="col-1">Area Level</th>
-                    <th class="col-1">Char Level</th>
+                    <th class="th-area">Area</th>
+                    <th class="th-events">Events</th>
+                    <th class="th-time-spent">Time Spent</th>
+                    <th class="th-entered-at">Entered At</th>
+                    <th class="th-area-level">Area Level</th>
+                    <th class="th-char-level">Char Level</th>
                 </tr>
             </thead>
             <tbody class="align-middle"></tbody>
         `;
 
-        const tbody = table.querySelector('tbody');
-        if (!tbody) return;
-
+        const tbody = table.querySelector('tbody') as HTMLTableSectionElement;
         const characterLevelIndex = this.data!.characterAggregation.characterLevelIndex;
-        actData.maps.forEach((map) => {
+        for (let i = 0; i < actData.maps.length; i++) {
+            const map = actData.maps[i];
             const row = tbody.insertRow();
             const mapTimeMs = MapSpan.mapTimePlusIdle(map.span);
             const mapTimeFormatted = this.formatDuration(mapTimeMs);
@@ -181,8 +190,28 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
             row.insertCell().textContent = new Date(map.span.start).toLocaleString();
             row.insertCell().textContent = map.areaLevel.toString();
             row.insertCell().textContent = levelUpEvent.detail.level.toString();
-        });
-
+            {
+                let nextMap;
+                if (i < actData.maps.length - 1) {
+                    nextMap = actData.maps[i + 1];
+                } else if (this.actDefinitions[this.currentActIndex + 1]?.maps[0]) {
+                    nextMap = this.actDefinitions[this.currentActIndex + 1]!.maps[0];
+                }
+                if (nextMap) {
+                    const gap = nextMap.span.start - map.span.end!;
+                    if (gap > 0) {
+                        const gapRow = tbody.insertRow();
+                        gapRow.classList.add('table-dark');
+                        gapRow.insertCell().textContent = `Gap`;
+                        gapRow.insertCell();
+                        gapRow.insertCell().textContent = this.formatDuration(gap);
+                        gapRow.insertCell().textContent = new Date(map.span.end!).toLocaleString();
+                        gapRow.insertCell();
+                        gapRow.insertCell();
+                    }
+                }
+            }
+        }
         contentContainer.appendChild(table);
     }
 
@@ -190,7 +219,7 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         const {loIx, hiIx} = binarySearchRange(this.data!.events, map.span.start, map.span.end, (e) => e.ts);
         const events: LogEvent[] = [];
         let eventsHTML = "";
-        for (let i = loIx; i < hiIx; i++) {
+        for (let i = loIx; i < hiIx + 1; i++) {
             const event = this.data!.events[i];
             if (!journeyEventNames.has(event.name)) continue;
             

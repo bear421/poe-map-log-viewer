@@ -6,9 +6,25 @@ export interface LogAggregation {
     maps: MapInstance[];
     events: LogEvent[];
     messages: Map<string, MsgEvent[]>;
-    totalItemsBought: number;
+    /**
+     * total number of trades, includes both trades with NPCs and players
+     */
+    totalTrades: number;
+    /**
+     * total number of items bought from players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
+     */
+    totalItemsBought: number;   
+    /**
+     * total number of items sold to players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
+     */
     totalItemsSold: number;
+    /**
+     * total number of buys attempted from players. based on whispers sent
+     */
     totalBuysAttempted: number;
+    /**
+     * total number of sales attempted to players. based on whispers received
+     */
     totalSalesAttempted: number;
     totalDeaths: number;
     totalWitnessedDeaths: number;
@@ -151,7 +167,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
             characterTsIndex.push(characterEvent);
         }
     }
-    let totalBuys = 0, totalSales = 0, totalBuysAttempted = 0, totalSalesAttempted = 0;
+    let totalBuys = 0, totalSales = 0, totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
     let totalDeaths = 0;
     const recentSales: CharacterEvent[] = [];
     const recentBuys: CharacterEvent[] = [];
@@ -191,6 +207,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                 }
                 break;
             case "tradeAccepted":
+                totalTrades++;
                 /*
                     proper trade attribution is impossible without additional user input such as from 3rd party trade tools. here's why:
                     - it is not explicitly logged who or what tradeAccepted refers to
@@ -322,6 +339,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
         maps,
         events,
         messages,
+        totalTrades,
         totalItemsBought: totalBuys,
         totalItemsSold: totalSales,
         totalBuysAttempted,

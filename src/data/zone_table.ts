@@ -139,6 +139,20 @@ const ZONE_TABLE: Record<string, ZoneInfo> = {
     "G_Endgame_Town": ZI("The Ziggurat Refuge", 10, 65, []),
 }
 
-export function getZoneInfo(zoneId: string): ZoneInfo | null {
-    return ZONE_TABLE[zoneId] ?? null;
+const SANCTUM_A2 = ZI("Trial of the Sekhemas (A2)", 2, 22, []);
+const SANCTUM_A4 = ZI("Trial of the Sekhemas (A3)", 3, 40, []);
+
+export function getZoneInfo(areaName: String, areaLevel?: number): ZoneInfo | undefined {
+    const zi = ZONE_TABLE[areaName];
+    if (zi) return zi;
+
+    if (areaLevel && areaName.startsWith("Sanctum_")) {
+        if (areaLevel <= 22) {
+            return SANCTUM_A2;
+        } else if (areaLevel <= 40) {
+            return SANCTUM_A4;
+        }
+    }
+    return undefined;
 }
+

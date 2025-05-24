@@ -1,18 +1,21 @@
-import { MapInstance } from '../log-tracker';
+import { LogLine, MapInstance } from '../log-tracker';
 import { LogEvent, eventMeta, getEventMeta } from '../log-events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 import { Filter } from '../log-tracker';
 import { logWorkerService } from '../log-worker-service';
+import { createElementFromHTML } from '../util';
 
 declare var bootstrap: any;
 
-export class MapDetailComponent extends BaseComponent<LogAggregation> {
+export class MapDetailComponent extends BaseComponent {
     private modalElement: HTMLElement | null = null;
     private modalInstance: any = null; 
     private modalTitleElement: HTMLElement | null = null;
     private modalBodyElement: HTMLElement | null = null;
+    private logSearchResults: LogLine[] | null = null;
+    private showTimeline: boolean = true;
 
     private currentMap: MapInstance | null = null;
     private currentAggregation: LogAggregation | null = null;
@@ -42,6 +45,10 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="mapInstanceDetailModalLabel">Map Details</h5>
+                        <div class="form-check form-switch ms-auto">
+                            <input class="form-check-input" type="checkbox" role="switch" id="timelineSwitch">
+                            <label class="form-check-label" for="timelineSwitch">View Raw Log</label>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body" id="mapInstanceDetailModalBody"></div>
@@ -55,20 +62,52 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         this.modalElement = modal;
         this.modalTitleElement = modal.querySelector('#mapInstanceDetailModalLabel');
         this.modalBodyElement = modal.querySelector('#mapInstanceDetailModalBody');
+        
+        const timelineSwitch = modal.querySelector('#timelineSwitch') as HTMLInputElement;
+        if (timelineSwitch) {
+            timelineSwitch.addEventListener('change', (event) => {
+                const isChecked = (event.target as HTMLInputElement).checked;
+                if (isChecked) {
+                    this.showTimeline = false;
+                    if (!this.logSearchResults && this.currentMap) {
+                        const tsBounds = [{
+                            lo: this.currentMap.span.start - this.currentMap.span.loadTime - 1000 * 5,
+                            hi: (this.currentMap.span.end || Date.now()) + 1000 * 60 * 10
+                        }];
+                        logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, new Filter(tsBounds)).then(results => {
+                            this.logSearchResults = results.lines;
+                            this.showTimeline = false;
+                            const currentSwitchState = this.modalElement?.querySelector('#timelineSwitch') as HTMLInputElement;
+                            if (currentSwitchState) currentSwitchState.checked = true;
+
+                            this.renderModalContent();
+                        });
+                    } else {
+                        this.renderModalContent();
+                    }
+                } else {
+                    this.showTimeline = true;
+                    this.renderModalContent();
+                }
+            });
+        }
     }
 
     public show(map: MapInstance, aggregation: LogAggregation): void {
         this.currentMap = map;
         this.currentAggregation = aggregation;
-
+        this.logSearchResults = null; 
+        this.showTimeline = true; 
+        const timelineSwitch = this.modalElement?.querySelector('#timelineSwitch') as HTMLInputElement;
+        if (timelineSwitch) {
+            timelineSwitch.checked = false;
+        }
         if (!this.modalElement) {
             this.createModalStructure(); 
         }
-        
         if (!this.modalInstance && this.modalElement) {
             this.modalInstance = bootstrap.Modal.getOrCreateInstance(this.modalElement);
         }
-        
         this.renderModalContent();
         this.modalInstance?.show();
     }
@@ -85,8 +124,20 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         const map = this.currentMap;
         const agg = this.currentAggregation;
 
-        this.modalTitleElement.textContent = `Timeline for ${MapInstance.label(map)} (Level ${map.areaLevel}, Entered: ${new Date(map.span.start).toLocaleString()})`;
+        this.modalTitleElement.textContent = `${MapInstance.label(map)} ${new Date(map.span.start).toLocaleString()} - ${map.span.end ? new Date(map.span.end).toLocaleString() : 'Unfinished'}`;
         this.modalBodyElement.innerHTML = ''; 
+
+        if (this.showTimeline) {
+            this.renderTimelineContent(map, agg);
+        } else {
+            this.renderLogSearchResults();
+        }
+        this.setupModalFooter(); 
+    }
+
+    private renderTimelineContent(map: MapInstance, agg: LogAggregation): void {
+        if (!this.modalBodyElement) return;
+        this.modalBodyElement.innerHTML = '';
 
         const timelineContainer = document.createElement('div');
         timelineContainer.className = 'timeline-container';
@@ -100,8 +151,8 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         ));
 
         let relevantEvents: LogEvent[] = [];
-        if (agg.events && map.span.start) { // map.span.end can be undefined for current map
-            const searchEnd = map.span.end || Date.now(); // Use current time if map is ongoing
+        if (agg.events && map.span.start) {
+            const searchEnd = map.span.end || Infinity;
             const lo = binarySearch(agg.events, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
             const hi = binarySearch(agg.events, searchEnd, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
 
@@ -138,33 +189,45 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         }
 
         this.modalBodyElement.appendChild(timelineContainer);
+    }
 
-        const modalFooter = this.modalElement!.querySelector('.modal-footer');
-        if (modalFooter) {
-            const existingButton = modalFooter.querySelector('.btn-explore-log-segment');
-            if (existingButton) {
-                existingButton.remove();
-            }
+    private renderLogSearchResults(): void {
+        if (!this.modalBodyElement) return;
+        this.modalBodyElement.innerHTML = '';
 
-            const exploreButton = document.createElement('button');
-            exploreButton.type = 'button';
-            exploreButton.className = 'btn btn-info me-2 btn-explore-log-segment';
-            exploreButton.textContent = 'Explore Log Segment';
-            exploreButton.addEventListener('click', () => {
-                if (this.currentMap) {
-                    const tsBounds = [{
-                        lo: this.currentMap.span.start,
-                        hi: this.currentMap.span.end || Date.now()
-                    }];
-                    logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, new Filter(tsBounds)).then(results => {
-                        console.log(results);
-                    });
+        if (this.logSearchResults && this.logSearchResults.length > 0) {
+            const map = this.currentMap!;
+            const listGroup = document.createElement('ul');
+            listGroup.className = 'list-group font-monospace raw-log';
+            for (let i = 0; i < this.logSearchResults.length; i++) {
+                const line = this.logSearchResults[i];
+                let className = 'list-group-item';
+                if (line.ts) {
+                    if ((map.span.end && line.ts > map.span.end) || line.ts < map.span.start) {
+                        className += ' bg-secondary bg-opacity-25';
+                    }
                 }
-            });
-            modalFooter.prepend(exploreButton);
+                const listItem = createElementFromHTML(`
+                    <li class="${className}">
+                        <span class="ts">${line.ts ? new Date(line.ts).toLocaleString() : ''}</span>
+                        <span class="line">${line.remainder ?? line.rawLine}</span>
+                    </li>
+                `);
+                listGroup.appendChild(listItem);
+            }
+            this.modalBodyElement.appendChild(listGroup);
+        } else {
+            const noResultsMessage = document.createElement('p');
+            noResultsMessage.textContent = 'No log results to display or search not performed yet.';
+            this.modalBodyElement.appendChild(noResultsMessage);
         }
     }
-    
+
+    private setupModalFooter() {
+        // No longer managing the "Explore Log Segment" button here.
+        // The "Close" button is handled by bootstrap attributes in the modal's HTML structure.
+    }
+
     private formatEventToTimelineElement(event: LogEvent, map: MapInstance): HTMLElement | null {
         const meta = getEventMeta(event);
         let icon = meta.icon;
