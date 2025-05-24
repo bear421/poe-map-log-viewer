@@ -1,3 +1,4 @@
+import { getZoneInfo } from "./data/zone_table";
 import { MapInstance, XPSnapshot } from "./log-tracker";
 
 export interface LogEventBase {
@@ -5,6 +6,8 @@ export interface LogEventBase {
     ts: number;
     detail?: any;
 }
+
+interface VirtualEvent {}
 
 export interface LogEventMeta<T extends LogEvent = LogEvent, Args extends any[] = any[]> {
     icon: string;
@@ -25,12 +28,97 @@ export namespace AreaPostLoadEvent {
     }
     export const icon = 'bi-stopwatch';
     export const color = 'text-dark';
+    export function label(event: AreaPostLoadEvent): string {
+        return `Area loaded in ${(event.detail.delta / 1000).toFixed(1)} seconds`;
+    }
 }
 
 export interface CharacterEvent extends LogEventBase {
     detail: {
         character: string;
     };
+}
+
+export interface DeathEvent extends CharacterEvent {
+    name: "death";
+    detail: {
+        character: string;
+        areaLevel: number;
+    };
+}
+export namespace DeathEvent {
+    export function of(ts: number, character: string, areaLevel: number): DeathEvent {
+        return { name: "death", ts, detail: { character, areaLevel } };
+    }
+    export const icon = 'bi-heartbreak-fill';
+    export const color = 'text-danger';
+    export function label(event: DeathEvent): string {
+        return `${event.detail.character} has been slain`;
+    }
+}
+
+export interface JoinedAreaEvent extends CharacterEvent {
+    name: "joinedArea";
+}
+export namespace JoinedAreaEvent {
+    export function of(ts: number, character: string): JoinedAreaEvent {
+        return { name: "joinedArea", ts, detail: { character } };
+    }
+    export const icon = 'bi-person-fill-add';
+    export const color = 'text-primary';
+    export function label(event: JoinedAreaEvent): string {
+        return `${event.detail.character} joined`;
+    }
+}
+
+export interface LeftAreaEvent extends CharacterEvent {
+    name: "leftArea";
+}
+export namespace LeftAreaEvent {
+    export function of(ts: number, character: string): LeftAreaEvent {
+        return { name: "leftArea", ts, detail: { character } };
+    }
+    export const icon = 'bi-person-fill-dash';
+    export const color = 'text-primary';
+    export function label(event: LeftAreaEvent): string {
+        return `${event.detail.character} left`;
+    }
+}
+
+export interface LevelUpEvent extends LogEventBase {
+    name: "levelUp";
+    detail: {
+        character: string;
+        ascendancy: string;
+        level: number;
+    };
+}
+export namespace LevelUpEvent {
+    export function of(ts: number, character: string, ascendancy: string, level: number): LevelUpEvent {
+        return { name: "levelUp", ts, detail: { character, ascendancy, level } };
+    }
+    export const icon = 'bi-arrow-up-square-fill';
+    export const color = 'text-success';
+    export function label(event: LevelUpEvent): string {
+        return `${event.detail.character} has reached level ${event.detail.level}`;
+    }
+}
+
+export interface SetCharacterEvent extends LogEventBase, VirtualEvent {
+    name: "setCharacter";
+    detail: {
+        character: string;
+    };
+}
+export namespace SetCharacterEvent {
+    export function of(ts: number, character: string): SetCharacterEvent {
+        return { name: "setCharacter", ts, detail: { character } };
+    }
+    export const icon = 'bi-person-fill';
+    export const color = 'text-secondary';
+    export function label(event: SetCharacterEvent): string {
+        return `${event.detail.character} set as current (internal)`;
+    }
 }
 
 export interface MsgEvent extends CharacterEvent {
@@ -49,6 +137,9 @@ export namespace MsgFromEvent {
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-primary';
+    export function label(event: MsgFromEvent): string {
+        return `From @${event.detail.character}: ${event.detail.msg}`;
+    }
 }
 
 export interface MsgToEvent extends MsgEvent {
@@ -60,6 +151,9 @@ export namespace MsgToEvent {
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-primary';
+    export function label(event: MsgToEvent): string {
+        return `To @${event.detail.character}: ${event.detail.msg}`;
+    }
 }
 
 export interface MsgPartyEvent extends MsgEvent {
@@ -71,6 +165,9 @@ export namespace MsgPartyEvent {
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-primary';
+    export function label(event: MsgPartyEvent): string {
+        return `%${event.detail.character}: ${event.detail.msg}`;
+    }
 }
 
 export interface MsgGuildEvent extends MsgEvent {
@@ -82,6 +179,9 @@ export namespace MsgGuildEvent {
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-primary';
+    export function label(event: MsgGuildEvent): string {
+        return `&${event.detail.character}: ${event.detail.msg}`;
+    }
 }
 
 export interface MsgLocalEvent extends MsgEvent {
@@ -93,6 +193,9 @@ export namespace MsgLocalEvent {
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-primary';
+    export function label(event: MsgLocalEvent): string {
+        return `${event.detail.character}: ${event.detail.msg}`;
+    }
 }
 
 export interface BossKillEvent extends LogEventBase {
@@ -109,59 +212,9 @@ export namespace BossKillEvent {
     }
     export const icon = 'bi-trophy-fill';
     export const color = 'text-warning';
-}
-
-export interface DeathEvent extends CharacterEvent {
-    name: "death";
-    detail: {
-        character: string;
-        areaLevel: number;
-    };
-}
-export namespace DeathEvent {
-    export function of(ts: number, character: string, areaLevel: number): DeathEvent {
-        return { name: "death", ts, detail: { character, areaLevel } };
+    export function label(event: BossKillEvent): string {
+        return `Boss ${event.detail.bossName} has been slain`;
     }
-    export const icon = 'bi-heartbreak-fill';
-    export const color = 'text-danger';
-}
-
-export interface JoinedAreaEvent extends CharacterEvent {
-    name: "joinedArea";
-}
-export namespace JoinedAreaEvent {
-    export function of(ts: number, character: string): JoinedAreaEvent {
-        return { name: "joinedArea", ts, detail: { character } };
-    }
-    export const icon = 'bi-person-fill-add';
-    export const color = 'text-primary';
-}
-
-export interface LeftAreaEvent extends CharacterEvent {
-    name: "leftArea";
-}
-export namespace LeftAreaEvent {
-    export function of(ts: number, character: string): LeftAreaEvent {
-        return { name: "leftArea", ts, detail: { character } };
-    }
-    export const icon = 'bi-person-fill-dash';
-    export const color = 'text-primary';
-}
-
-export interface LevelUpEvent extends LogEventBase {
-    name: "levelUp";
-    detail: {
-        character: string;
-        ascendancy: string;
-        level: number;
-    };
-}
-export namespace LevelUpEvent {
-    export function of(ts: number, character: string, ascendancy: string, level: number): LevelUpEvent {
-        return { name: "levelUp", ts, detail: { character, ascendancy, level } };
-    }
-    export const icon = 'bi-arrow-up-square-fill';
-    export const color = 'text-success';
 }
 
 export interface PassiveGainedEvent extends LogEventBase {
@@ -176,6 +229,9 @@ export namespace PassiveGainedEvent {
     }
     export const icon = 'bi-plus-circle-fill';
     export const color = 'text-success';
+    export function label(event: PassiveGainedEvent): string {
+        return `${event.detail.count} Passive points gained`;
+    }
 }
 
 export interface TradeAcceptedEvent extends LogEventBase {
@@ -187,6 +243,9 @@ export namespace TradeAcceptedEvent {
     }
     export const icon = 'bi-currency-exchange';
     export const color = 'text-warning';
+    export function label(event: TradeAcceptedEvent): string {
+        return `Trade accepted`;
+    }
 }
 
 export interface ItemsIdentifiedEvent extends LogEventBase {
@@ -201,6 +260,9 @@ export namespace ItemsIdentifiedEvent {
     }
     export const icon = 'bi-magic';
     export const color = 'text-dark';
+    export function label(event: ItemsIdentifiedEvent): string {
+        return `${event.detail.count} items identified`;
+    }
 }
 
 export interface HideoutEnteredEvent extends LogEventBase {
@@ -215,6 +277,9 @@ export namespace HideoutEnteredEvent {
     }
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
+    export function label(event: HideoutEnteredEvent): string {
+        return `Hideout entered: ${getZoneInfo(event.detail.areaName)?.label ?? event.detail.areaName}`;
+    }
 }
 
 export interface HideoutExitedEvent extends LogEventBase {
@@ -226,6 +291,9 @@ export namespace HideoutExitedEvent {
     }
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
+    export function label(event: HideoutExitedEvent): string {
+        return `Hideout exited`;
+    }
 }
 
 export interface MapReenteredEvent extends LogEventBase {
@@ -237,6 +305,9 @@ export namespace MapReenteredEvent {
     }
     export const icon = 'bi-repeat';
     export const color = 'text-primary';
+    export function label(event: MapReenteredEvent): string {
+        return `Map reentered`;
+    }
 }
 
 export interface MapEnteredEvent extends LogEventBase {
@@ -248,6 +319,9 @@ export namespace MapEnteredEvent {
     }
     export const icon = 'bi-box-arrow-in-right';
     export const color = 'text-muted';
+    export function label(event: MapEnteredEvent): string {
+        return `Map entered`;
+    }
 }
 
 export interface MapCompletedEvent extends LogEventBase {
@@ -262,6 +336,9 @@ export namespace MapCompletedEvent {
     }
     export const icon = "bi-box-arrow-in-right";
     export const color = "text-success";
+    export function label(event: MapCompletedEvent): string {
+        return `Map completed`;
+    }
 }
 
 export interface XPSnapshotEvent extends LogEventBase {
@@ -276,6 +353,9 @@ export namespace XPSnapshotEvent {
     }
     export const icon = 'bi-camera-fill';
     export const color = 'text-info';
+    export function label(event: XPSnapshotEvent): string {
+        return `XP snapshot`;
+    }
 }
 
 export function getEventMeta<E extends LogEvent>(event: E): typeof eventMeta[E["name"]] {

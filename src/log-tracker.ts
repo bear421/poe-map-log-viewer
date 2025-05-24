@@ -131,6 +131,10 @@ class MapSpan {
         return MapSpan.mapTime(this, end);
     }
 
+    static mapTimePlusIdle(span: MapSpan, end?: number): number {
+        return MapSpan.mapTime(span, end) + MapSpan.idleTime(span);
+    }
+
     static mapTime(span: MapSpan, end?: number): number {
         if (!end) {
             end = span.end;

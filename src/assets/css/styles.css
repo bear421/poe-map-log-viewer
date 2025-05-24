@@ -59,47 +59,6 @@ body {
         -1px 1px 1px var(--bs-btn-color), 
         1px -1px 1px var(--bs-btn-color);
 }
-.timeline {
-    position: relative;
-    padding: 20px 0;
-}
-.timeline:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 20px;
-    width: 4px;
-    background: #e9ecef;
-}
-.timeline-item {
-    position: relative;
-    margin-bottom: 30px;
-}
-.timeline-badge {
-    position: absolute;
-    left: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 40px;
-    color: white;
-}
-.timeline-badge i {
-    font-size: 1.2rem;
-    line-height: 40px;
-}
-.timeline-content {
-    margin-left: 60px;
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 5px;
-}
-.timeline-header {
-    margin: 0;
-    font-weight: bold;
-}
 
 .custom-file-input-tall {
     font-size: 2rem;
@@ -209,4 +168,37 @@ body {
 .journey-campaign-table a {
     text-decoration: none;
     color: var(--bs-primary);
+}
+
+.journey-event-tooltip .tooltip-inner {
+    max-width: 100%;
+}
+
+.tooltip {
+    visibility: hidden;
+}
+
+.tooltip.show {
+    visibility: visible;
+}
+
+.timeline-container {
+    position: relative;
+    padding-left: 30px; 
+}
+
+.timeline-event-item {
+    position: relative;
+    padding-left: 35px;
+    border-left: 2px solid #ddd;
+}
+
+.timeline-event-icon {
+    position: absolute;
+    left: -13px;
+    top: 0;
+}
+
+.timeline-event-icon i {
+    background-color: white;
 }

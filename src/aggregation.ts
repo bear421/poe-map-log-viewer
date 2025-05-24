@@ -1,5 +1,5 @@
 import { Filter, MapInstance, MapSpan, TSRange, Segmentation } from "./log-tracker";
-import { LogEvent, CharacterEvent, LevelUpEvent, MsgEvent } from "./log-events";
+import { LogEvent, CharacterEvent, LevelUpEvent, MsgEvent, SetCharacterEvent } from "./log-events";
 import { binarySearch, BinarySearchMode } from "./binary-search";
 
 export interface LogAggregation {
@@ -145,9 +145,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                     }
                 }
                 if (originCandidate) {  
-                    characterTsIndex.push({ 
-                        name: "setCharacter", detail: { character }, ts: originCandidate.ts 
-                    });
+                    characterTsIndex.push(SetCharacterEvent.of(originCandidate.ts, character));
                 }
             }
             characterTsIndex.push(characterEvent);

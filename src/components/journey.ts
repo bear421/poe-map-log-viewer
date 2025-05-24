@@ -1,14 +1,16 @@
-import { MapInstance, MapSpan, Filter } from '../log-tracker';
-import { getZoneInfo } from '../data/zone_table';
+import { MapInstance, MapSpan } from '../log-tracker';
 import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 import { binarySearch, BinarySearchMode, binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, LevelUpEvent, EventName } from '../log-events';
+import { eventMeta, getEventMeta, LevelUpEvent, EventName, LogEvent } from '../log-events';
 import { MapDetailComponent } from './map-detail';
-import { App } from '../app';
+import { getZoneInfo } from '../data/zone_table';
+import { createElementFromHTML } from '../util';
+
+declare var Popper: any;
+
 interface ActDefinition {
     name: string;
-    pattern: RegExp;
     maps: MapInstance[];
 }
 
@@ -27,17 +29,20 @@ const journeyEventNames = new Set<EventName>([
 export class JourneyComponent extends BaseComponent<LogAggregation> {
 
     private actDefinitions: ActDefinition[] = [
-        { name: 'Act 1', pattern: /^G1_.*/i, maps: [] },
-        { name: 'Act 2', pattern: /^G2_.*/i, maps: [] },
-        { name: 'Act 3', pattern: /^G3_.*/i, maps: [] },
-        { name: 'Act 4', pattern: /^(C_G1_.*|G4_.*)/i, maps: [] },
-        { name: 'Act 5', pattern: /^(C_G2_.*|G5_.*)/i, maps: [] },
-        { name: 'Act 6', pattern: /^(C_G3_.*|G6_.*)/i, maps: [] },
-        { name: 'Endgame', pattern: /.*/i, maps: [] } // Pattern is a placeholder for endgame logic
+        { name: 'Act 1', maps: [] },
+        { name: 'Act 2', maps: [] },
+        { name: 'Act 3', maps: [] },
+        { name: 'Act 4', maps: [] },
+        { name: 'Act 5', maps: [] },
+        { name: 'Act 6', maps: [] },
+        { name: 'Endgame', maps: [] }
     ];
 
     private currentActIndex: number = 0;
     private mapDetailModal: MapDetailComponent;
+    private tooltipElement: HTMLElement | null = null;
+    private popperInstance: any | null = null;
+    private popperTarget: HTMLElement | null = null;
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
@@ -46,19 +51,12 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
     }
 
     private categorizeMaps(): void {
-        this.actDefinitions.forEach(act => act.maps = []); // Reset maps
-
-        const campaignActs = this.actDefinitions.slice(0, -1);
-        const endgameAct = this.actDefinitions[this.actDefinitions.length - 1];
-
-        outer: for (const map of this.data!.maps) {
-            for (const act of campaignActs) {
-                if (act.pattern.test(map.name)) {
-                    act.maps.push(map);
-                    continue outer;
-                }
-            }
-            endgameAct.maps.push(map);
+        this.actDefinitions.forEach(act => act.maps = []);
+        const endgameNumber = this.actDefinitions.length;
+        for (const map of this.data!.maps) {
+            const zoneInfo = getZoneInfo(map.name);
+            const actNumber = zoneInfo?.act ?? endgameNumber;
+            this.actDefinitions[actNumber - 1].maps.push(map);
         }
     }
 
@@ -126,9 +124,6 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
                     <th class="col-2">Entered At</th>
                     <th class="col-1">Area Level</th>
                     <th class="col-1">Char Level</th>
-                    <!--
-                    <th class="col">Actions</th>
-                    -->
                 </tr>
             </thead>
             <tbody class="align-middle"></tbody>
@@ -138,10 +133,9 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
         if (!tbody) return;
 
         const characterLevelIndex = this.data!.characterAggregation.characterLevelIndex;
-        const sortedMaps = [...actData.maps].sort((a, b) => a.span.start - b.span.start);
-        sortedMaps.forEach((map) => {
+        actData.maps.forEach((map) => {
             const row = tbody.insertRow();
-            const mapTimeMs = MapSpan.mapTime(map.span);
+            const mapTimeMs = MapSpan.mapTimePlusIdle(map.span);
             const mapTimeFormatted = this.formatDuration(mapTimeMs);
             const prevLevelUpIx = binarySearch(characterLevelIndex, map.span.start, (e) => e.ts, BinarySearchMode.LAST);
             let prevLevelUpEvent = characterLevelIndex[prevLevelUpIx];
@@ -182,42 +176,25 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
                 this.mapDetailModal.show(map, this.data!);
             });
             mapNameCell.appendChild(mapNameLink);
-            row.insertCell().innerHTML = this.renderEvents(map);
+            this.renderEvents(row.insertCell(), map);
             row.insertCell().textContent = mapTimeFormatted;
             row.insertCell().textContent = new Date(map.span.start).toLocaleString();
             row.insertCell().textContent = map.areaLevel.toString();
             row.insertCell().textContent = levelUpEvent.detail.level.toString();
-
-            /*
-            const actionsCell = row.insertCell();
-            const zoneInfo = getZoneInfo(map.name);
-            if (zoneInfo) {
-                const anchor = document.createElement('a');
-                anchor.href = zoneInfo.url;
-                anchor.target = "_blank";
-                anchor.rel = "noopener noreferrer";
-                anchor.classList.add("btn", "btn-sm", "btn-outline-secondary");
-                anchor.title = `Open ${zoneInfo.label} details on poe2db.tw`;
-
-                const icon = document.createElement('i');
-                icon.classList.add("bi", "bi-box-arrow-up-right");
-
-                anchor.appendChild(icon);
-                actionsCell.appendChild(anchor);
-            }
-            */
         });
 
         contentContainer.appendChild(table);
     }
 
-    private renderEvents(map: MapInstance): string {
+    private renderEvents(cell: HTMLTableCellElement, map: MapInstance): void {
         const {loIx, hiIx} = binarySearchRange(this.data!.events, map.span.start, map.span.end, (e) => e.ts);
+        const events: LogEvent[] = [];
         let eventsHTML = "";
         for (let i = loIx; i < hiIx; i++) {
             const event = this.data!.events[i];
             if (!journeyEventNames.has(event.name)) continue;
-
+            
+            events.push(event);
             const meta = getEventMeta(event);
             let iconColorClass = meta.color;
             switch (meta) {
@@ -229,9 +206,85 @@ export class JourneyComponent extends BaseComponent<LogAggregation> {
                     }
                     break;
             }
-            eventsHTML += `<i class='bi ${meta.icon} ${iconColorClass}'></i> `;
+            eventsHTML += `<i class='bi ${meta.icon} ${iconColorClass}' data-event-ix='${events.length - 1}'></i> `;
         }
-        return eventsHTML;
+        cell.innerHTML = eventsHTML;
+
+        cell.addEventListener('mouseover', (e) => {
+            const targetElement = e.target as HTMLElement;
+            if (targetElement.tagName !== 'I') return;
+
+            const eventIxStr = targetElement.dataset.eventIx;
+            if (eventIxStr) {
+                const event = events[parseInt(eventIxStr)];
+                if (!event) return;
+
+                const tooltipElement = this.ensureTooltipElement();
+                const offsetDuration = this.formatDuration(event.ts - map.span.start);
+                const tooltipInner = tooltipElement.querySelector('.tooltip-inner') as HTMLElement;
+                tooltipInner.querySelector('.event-offset')!.textContent = offsetDuration;
+                tooltipInner.querySelector('.event-label')!.textContent = getEventMeta(event).label(event as any);
+                this.popperTarget = targetElement;
+
+                if (!this.popperInstance) {
+                    const virtualRef = {
+                        getBoundingClientRect: () => this.popperTarget!.getBoundingClientRect()
+                    };
+                    this.popperInstance = Popper.createPopper(virtualRef, tooltipElement, {
+                        placement: 'top',
+                        modifiers: [
+                            {
+                                name: 'offset',
+                                options: {
+                                    offset: [0, 8],
+                                },
+                            },
+                            {
+                                name: 'arrow', 
+                                options: {
+                                    element: tooltipElement.querySelector('.tooltip-arrow'),
+                                    padding: 4,
+                                }
+                            },
+                            {
+                                name: 'preventOverflow',
+                                options: { padding: 8 },
+                            },
+                            {
+                                name: 'flip',
+                                options: { fallbackPlacements: ['bottom', 'left', 'right'] },
+                            }
+                        ],
+                    });
+                } else {
+                    this.popperInstance.update();
+                }
+                tooltipElement.classList.add('show');
+            }
+        });
+
+        cell.addEventListener('mouseout', (e) => {
+            const targetElement = e.target as HTMLElement;
+            if (targetElement.tagName !== 'I') return;
+
+            this.tooltipElement!.classList.remove('show');
+        });
+    }
+
+    private ensureTooltipElement(): HTMLElement {
+        if (!this.tooltipElement) {
+            this.tooltipElement = createElementFromHTML(`
+                <div class="tooltip journey-event-tooltip bs-tooltip-auto fade hide" role="tooltip">
+                    <div class="tooltip-arrow"></div>
+                    <div class="tooltip-inner">
+                        <span class="event-offset text-light"></span>
+                        <span class="event-label"></span>
+                    </div>
+                </div>
+            `);
+            document.body.appendChild(this.tooltipElement);
+        }
+        return this.tooltipElement;
     }
 
     private formatDuration(ms: number): string {

@@ -1,10 +1,9 @@
-import { MapInstance, MapSpan } from '../log-tracker';
-import { LogEvent, LevelUpEvent, DeathEvent, BossKillEvent, PassiveGainedEvent, JoinedAreaEvent, LeftAreaEvent, getEventMeta, MsgFromEvent, MapReenteredEvent, MsgToEvent, MsgPartyEvent, MsgGuildEvent, MsgLocalEvent, AreaPostLoadEvent, TradeAcceptedEvent, HideoutExitedEvent, HideoutEnteredEvent, MapEnteredEvent, ItemsIdentifiedEvent } from '../log-events';
+import { MapInstance } from '../log-tracker';
+import { LogEvent, eventMeta, getEventMeta } from '../log-events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
 import { Filter } from '../log-tracker';
-import { getZoneInfo } from '../data/zone_table';
 import { logWorkerService } from '../log-worker-service';
 
 declare var bootstrap: any;
@@ -90,14 +89,12 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         this.modalBodyElement.innerHTML = ''; 
 
         const timelineContainer = document.createElement('div');
-        // Basic timeline styling; can be enhanced with dedicated CSS
-        timelineContainer.style.position = 'relative';
-        timelineContainer.style.paddingLeft = '30px'; // Space for badges/icons
+        timelineContainer.className = 'timeline-container';
 
         timelineContainer.appendChild(this.createTimelineEventElement(
             0,
-            'Map Started',
-            `Entered ${MapInstance.label(map)}, Area Level ${map.areaLevel}`,
+            `Map Started`,
+            '',
             'bi-play-circle',
             'text-primary'
         ));
@@ -172,95 +169,43 @@ export class MapDetailComponent extends BaseComponent<LogAggregation> {
         const meta = getEventMeta(event);
         let icon = meta.icon;
         let iconColorClass = meta.color;
-        let displayTitle: string = event.name;
+        let label = meta.label(event as any);
         let details = '';
 
         switch (meta) { 
-            case DeathEvent:
+            case eventMeta.death:
+            case eventMeta.levelUp:
                 if (!this.data!.characterAggregation.characters.has(event.detail.character)) {
                     iconColorClass = "text-secondary";
                 }
-                displayTitle = `${event.detail.character} has been slain`;
                 break;
-            case LevelUpEvent:
-                if (!this.data!.characterAggregation.characters.has(event.detail.character)) {
-                    iconColorClass = "text-secondary";
-                }
-                displayTitle = `Level up`;
-                details = `Level: ${event.detail.level}. Character: ${event.detail.character}`;
+            case eventMeta.msgFrom:
+            case eventMeta.msgTo:
+            case eventMeta.msgParty:
+            case eventMeta.msgGuild:
+            case eventMeta.msgLocal:
+                //details = `${event.detail.msg}`;
                 break;
-            case BossKillEvent:
-                details = `Boss: ${event.detail.bossName}`;
-                break;
-            case PassiveGainedEvent:
-                details = `Passive points gained: ${event.detail.count}`;
-                break;
-            case MapReenteredEvent:
-                displayTitle = `Map reentered`;
-                break;
-            case MsgFromEvent:
-            case MsgToEvent:
-            case MsgPartyEvent:
-            case MsgGuildEvent:
-            case MsgLocalEvent:
-                if (event.name === "msgFrom") displayTitle = `From @${event.detail.character}`;
-                else if (event.name === "msgTo") displayTitle = `To @${event.detail.character}`;
-                else if (event.name === "msgParty") displayTitle = `%${event.detail.character}`;
-                else if (event.name === "msgGuild") displayTitle = `&${event.detail.character}`;
-                else if (event.name === "msgLocal") displayTitle = `${event.detail.character}`;
-                details = `${event.detail.msg}`;
-                break;
-            case JoinedAreaEvent:
-                displayTitle = `${event.detail.character} Joined`;
-                break;
-            case LeftAreaEvent:
-                displayTitle = `${event.detail.character} left`;
-                break;
-            case HideoutEnteredEvent:
-                displayTitle = `Hideout entered: ${getZoneInfo(event.detail.areaName)?.label ?? event.detail.areaName}`;
-                break;
-            case HideoutExitedEvent:
-                displayTitle = `Hideout exited`;
-                break;
-            case TradeAcceptedEvent:
-                displayTitle = `Trade accepted`;
-                break;
-            case AreaPostLoadEvent:
-                displayTitle = `Loading finished`;
-                details = `Took: ${(event.detail.delta / 1000).toFixed(1)}s`;
-                break;
-            case ItemsIdentifiedEvent:
-                displayTitle = `${event.detail.count} Items identified`;
-                break;
-            case MapEnteredEvent:
+            case eventMeta.mapEntered:
                 return null;
-            default:
-                if (event.detail) {
-                    try {
-                        details = JSON.stringify(event.detail);
-                    } catch (e) { details = 'Complex object data'; }
-                }
         }
         details = details.replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const delta = event.ts - map.span.start;
-        return this.createTimelineEventElement(delta, displayTitle, details, icon, iconColorClass);
+        return this.createTimelineEventElement(delta, label, details, icon, iconColorClass);
     }
 
     private createTimelineEventElement(timeOffset: number, title: string, contentText: string, iconClass: string, iconColorClass: string): HTMLElement {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'timeline-event-item pb-3';
-        itemDiv.style.position = 'relative';
-        itemDiv.style.paddingLeft = '35px';
-        itemDiv.style.borderLeft = '2px solid #ddd';
         
         const timeString = this.formatDuration(timeOffset);
         const contentHTML = contentText ? `<p class="mb-0 text-muted"><small>${contentText}</small></p>` : '';
         itemDiv.innerHTML = `
-            <div class="timeline-event-icon ${iconColorClass}" style="position: absolute; left: -13px; top: 0; background-color: white; border-radius: 50%;">
+            <div class="timeline-event-icon ${iconColorClass}">
                 <i class="bi ${iconClass} fs-4"></i>
             </div>
             <div class="timeline-event-content ps-2">
-                <h6 class="fw-bold mb-0">
+                <h6 class="mb-0">
                     <small class="text-muted fw-normal">${timeString}</small> <span>${title}</span>
                 </h6>
                 ${contentHTML}
