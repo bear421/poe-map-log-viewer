@@ -1,4 +1,4 @@
-import { Filter, MapInstance, MapSpan, TSRange, Segmentation } from "./log-tracker";
+import { Filter, MapInstance, MapSpan, Segmentation } from "./log-tracker";
 import { LogEvent, CharacterEvent, LevelUpEvent, MsgEvent, SetCharacterEvent } from "./log-events";
 import { binarySearch, BinarySearchMode } from "./binary-search";
 

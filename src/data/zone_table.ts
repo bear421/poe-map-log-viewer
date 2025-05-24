@@ -142,7 +142,7 @@ const ZONE_TABLE: Record<string, ZoneInfo> = {
 const SANCTUM_A2 = ZI("Trial of the Sekhemas (A2)", 2, 22, []);
 const SANCTUM_A4 = ZI("Trial of the Sekhemas (A3)", 3, 40, []);
 
-export function getZoneInfo(areaName: String, areaLevel?: number): ZoneInfo | undefined {
+export function getZoneInfo(areaName: string, areaLevel?: number): ZoneInfo | undefined {
     const zi = ZONE_TABLE[areaName];
     if (zi) return zi;
 

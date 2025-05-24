@@ -243,7 +243,7 @@ export namespace TradeAcceptedEvent {
     }
     export const icon = 'bi-currency-exchange';
     export const color = 'text-warning';
-    export function label(event: TradeAcceptedEvent): string {
+    export function label(): string {
         return `Trade accepted`;
     }
 }
@@ -291,7 +291,7 @@ export namespace HideoutExitedEvent {
     }
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
-    export function label(event: HideoutExitedEvent): string {
+    export function label(): string {
         return `Hideout exited`;
     }
 }
@@ -305,7 +305,7 @@ export namespace MapReenteredEvent {
     }
     export const icon = 'bi-repeat';
     export const color = 'text-primary';
-    export function label(event: MapReenteredEvent): string {
+    export function label(): string {
         return `Map reentered`;
     }
 }
@@ -319,7 +319,7 @@ export namespace MapEnteredEvent {
     }
     export const icon = 'bi-box-arrow-in-right';
     export const color = 'text-muted';
-    export function label(event: MapEnteredEvent): string {
+    export function label(): string {
         return `Map entered`;
     }
 }
@@ -336,7 +336,7 @@ export namespace MapCompletedEvent {
     }
     export const icon = "bi-box-arrow-in-right";
     export const color = "text-success";
-    export function label(event: MapCompletedEvent): string {
+    export function label(): string {
         return `Map completed`;
     }
 }
@@ -353,7 +353,7 @@ export namespace XPSnapshotEvent {
     }
     export const icon = 'bi-camera-fill';
     export const color = 'text-info';
-    export function label(event: XPSnapshotEvent): string {
+    export function label(): string {
         return `XP snapshot`;
     }
 }

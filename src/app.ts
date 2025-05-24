@@ -380,7 +380,7 @@ export class App {
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title">Search Results (${lines.length})</h5>
-                    <pre class="card-text"><code>${lines.join('\n')}</code></pre>
+                    <pre class="card-text"><code>${lines.map(l => l.rawLine).join('\n')}</code></pre>
                 </div>
             </div>
         `;
