@@ -1,6 +1,6 @@
 import { Filter } from '../log-tracker';
 import { BaseComponent } from './base-component';
-import { LevelUpEvent } from '../log-events';
+import { LevelUpEvent, SetCharacterEvent } from '../log-events';
 
 export class FilterComponent extends BaseComponent {
     private onFilterChange: (filter: Filter) => void;
@@ -90,8 +90,12 @@ export class FilterComponent extends BaseComponent {
         }
 
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
-        const characters: LevelUpEvent[] = (this.data) ? Array.from(this.data.characterAggregation.characters.values()) : [];
+        const characters: LevelUpEvent[] = Array.from(this.data?.characterAggregation.characterLevelIndex.values() ?? [])
+            .map(levelIndex => levelIndex.findLast(e => e.name === "levelUp")!);
         characters.sort((a, b) => {
+            if (!b.detail) {
+                console.warn("b.detail is undefined", b, a);
+            }
             if (b.detail.level !== a.detail.level) {
                 return b.detail.level - a.detail.level;
             }

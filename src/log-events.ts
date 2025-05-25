@@ -33,7 +33,9 @@ export namespace AreaPostLoadEvent {
     }
 }
 
-export interface CharacterEvent extends LogEventBase {
+export type AnyCharacterEvent = Extract<LogEvent, CharacterEvent>;
+
+interface CharacterEvent extends LogEventBase {
     detail: {
         character: string;
     };
@@ -104,15 +106,16 @@ export namespace LevelUpEvent {
     }
 }
 
-export interface SetCharacterEvent extends LogEventBase, VirtualEvent {
+export interface SetCharacterEvent extends CharacterEvent, VirtualEvent {
     name: "setCharacter";
     detail: {
         character: string;
+        level: number;
     };
 }
 export namespace SetCharacterEvent {
-    export function of(ts: number, character: string): SetCharacterEvent {
-        return { name: "setCharacter", ts, detail: { character } };
+    export function of(ts: number, character: string, level: number): SetCharacterEvent {
+        return { name: "setCharacter", ts, detail: { character, level } };
     }
     export const icon = 'bi-person-fill';
     export const color = 'text-secondary';
@@ -121,7 +124,9 @@ export namespace SetCharacterEvent {
     }
 }
 
-export interface MsgEvent extends CharacterEvent {
+export type AnyMsgEvent = Extract<LogEvent, MsgEvent>;
+
+interface MsgEvent extends CharacterEvent {
     detail: {
         character: string;
         msg: string;
@@ -231,6 +236,44 @@ export namespace PassiveGainedEvent {
     export const color = 'text-success';
     export function label(event: PassiveGainedEvent): string {
         return `${event.detail.count} Passive points gained`;
+    }
+}
+
+export interface PassiveAllocatedEvent extends LogEventBase {
+    name: "passiveAllocated";
+    detail: {
+        id: string;
+        name: string;
+    };
+}
+export namespace PassiveAllocatedEvent {
+    export function of(ts: number, id: string, name: string): PassiveAllocatedEvent {
+        return { name: "passiveAllocated", ts, detail: { id, name } };
+    }
+    export const icon = 'bi-node-plus-fill';
+    export const color = 'text-success';
+    export function label(event: PassiveAllocatedEvent): string {
+        // TODO integrate with passive tree data
+        return `Passive skill ${event.detail.name} allocated`;
+    }
+}
+
+export interface PassiveUnallocatedEvent extends LogEventBase {
+    name: "passiveUnallocated";
+    detail: {
+        id: string;
+        name: string;
+    };
+}
+export namespace PassiveUnallocatedEvent {
+    export function of(ts: number, id: string, name: string): PassiveUnallocatedEvent {
+        return { name: "passiveUnallocated", ts, detail: { id, name } };
+    }
+    export const icon = 'bi-node-minus-fill';
+    export const color = 'text-danger';
+    export function label(event: PassiveUnallocatedEvent): string {
+        // TODO integrate with passive tree data
+        return `Passive skill ${event.detail.name} unallocated`;
     }
 }
 
@@ -374,7 +417,10 @@ export const eventMeta = {
     joinedArea: JoinedAreaEvent,
     leftArea: LeftAreaEvent,
     levelUp: LevelUpEvent,
+    setCharacter: SetCharacterEvent,
     passiveGained: PassiveGainedEvent,
+    passiveAllocated: PassiveAllocatedEvent,
+    passiveUnallocated: PassiveUnallocatedEvent,
     tradeAccepted: TradeAcceptedEvent,
     itemsIdentified: ItemsIdentifiedEvent,
     hideoutEntered: HideoutEnteredEvent,

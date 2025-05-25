@@ -1,7 +1,7 @@
 declare var bootstrap: any;
 import { Filter, LogLine, MapInstance, Progress } from './log-tracker';
 import { LogEvent } from './log-events';
-import { Mascot } from './components/mascot';
+import { Emotion, Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
 import { SearchComponent } from './components/search';
 import { MapStatsComponent } from './components/map-stats';
@@ -47,6 +47,11 @@ export class App {
     constructor() {
         this.setupElements();
         this.setupEventListeners();
+        setTimeout(() => {
+            if (!this.selectedFile) {
+                this.mascot.speak('Please select your Client.txt file to start', ['border-info', 'bg-gradient'], 30_000, Emotion.PLEADING);
+            }
+        }, 20 * 1000);
     }
 
     private setupElements() {
@@ -74,7 +79,6 @@ export class App {
 
         const titleElement = document.createElement('h1');
         titleElement.textContent = 'PoE Map Log Viewer';
-        titleElement.style.marginLeft = '20px';
         titleElement.className = 'display-1';
         headerContainer.appendChild(titleElement);
 
@@ -298,7 +302,7 @@ export class App {
                 component.setVisible(true);
                 this.currentComponent = component;
                 if (tabId === 'journey-tab' && !this.filterComponent.getFilter()?.character) {
-                    this.mascot.speak('Please select a character to use the Journey tab', ['bg-warning', 'bg-opacity-50']);
+                    this.mascot.speak('Please select a character to use the Journey tab', ['border-warning']);
                 }
             });
             tabButton.addEventListener('hide.bs.tab', () => {
@@ -360,6 +364,7 @@ export class App {
         for (const component of this.components) {
             component.updateData(agg);
         }
+        this.mascot.updateData(agg);
         this.currentComponent?.setVisible(true);
         const took = performance.now() - then;
         if (took > 20) {
@@ -485,11 +490,12 @@ export class App {
                     this.handleData(data.maps, data.events);
                     this.selectedFile = null;
                 } else {
-                    throw new Error('Invalid JSON format. Expected "maps" and "events" arrays.');
+                    this.mascot.speak('Invalid JSON format. Expected "maps" and "events" arrays.', ['border-danger'], 30_000);
+                    console.error("Invalid JSON format. Expected 'maps' and 'events' arrays.");
                 }
             } catch (error: any) {
-                console.error("Error importing JSON:", error);
-                this.showError(`Error importing JSON: ${error.message}`);
+                this.mascot.speak(error.message, ['border-danger'], 30_000);
+                console.error(error);
                 this.hideProgress();
                 this.fileSelectorComponent.show();
             }

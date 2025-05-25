@@ -89,51 +89,6 @@ body {
     max-width: 60rem;
 }
 
-.mascot-image {
-    width: 8rem;
-    height: 8rem;
-    display: block;
-    position: relative;
-    z-index: 1;
-}
-
-.speech-bubble {
-    position: absolute;
-    left: -220px;
-    top: 20px;
-    background: white;
-    border: 2px solid var(--bs-dark);
-    border-radius: 10px;
-    padding: 10px 15px;
-    max-width: 200px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    z-index: 2;
-}
-
-.speech-bubble:after {
-    content: '';
-    position: absolute;
-    right: -10px;
-    top: 20px;
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 10px solid var(--bs-dark);
-}
-
-.speech-bubble:before {
-    content: '';
-    position: absolute;
-    right: -8px;
-    top: 20px;
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    border-left: 10px solid transparent;
-}
-
 @keyframes mascotWiggleAnimation {
     0% { transform: rotate(0deg); }
     20% { transform: rotate(-5deg); }
@@ -143,10 +98,37 @@ body {
     100% { transform: rotate(0deg); }
 }
 
-.mascot-image:hover {
-    animation-name: mascotWiggleAnimation;
-    animation-duration: 1s;
-    animation-timing-function: ease-in-out;
+@keyframes bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes mascotWiggleAndBump {
+    0% { transform: rotate(0deg) scale(1); }
+    20% { transform: rotate(-4deg) scale(1.04); }
+    40% { transform: rotate(4deg) scale(1.04); }
+    60% { transform: rotate(-2deg) scale(1.04); }
+    80% { transform: rotate(2deg) scale(1.04); }
+    100% { transform: rotate(0deg) scale(1); }
+}
+
+.mascot-image {
+    width: 8rem;
+    height: 8rem;
+    display: block;
+    position: relative;
+    z-index: 1;
+}
+
+.mascot-image.d-none {
+    visibility: hidden !important;
+    display: inherit !important;
+}
+
+.mascot-image.poke {
+    animation: mascotWiggleAnimation 0.7s ease-in-out;
+    animation-fill-mode: forwards;
     transform-origin: bottom center;
 }
 
@@ -155,6 +137,64 @@ body {
     top: -7.2rem;
     left: 0;
     z-index: 1060;
+}
+
+.mascot-speaking {
+    animation: mascotWiggleAndBump 0.5s ease-in-out;
+}
+
+.speech-bubble {
+    position: absolute;
+    right: calc(100% + 0.625rem);
+    top: 1.25rem;
+    background: white;
+    border: 0.125rem solid var(--bs-dark);
+    border-radius: 0.625rem;
+    padding: 0.625rem 0.9375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+.measure-bubble {
+    visibility: hidden;
+    overflow-wrap: break-word;
+    max-width: 20rem;
+    right: 0;
+    top: 0;
+}
+
+.speech-bubble:after {
+    content: '';
+    position: absolute;
+    right: -0.625rem;
+    top: 1.25rem;
+    width: 0;
+    height: 0;
+    border-top: 0.625rem solid transparent;
+    border-bottom: 0.625rem solid transparent;
+    border-left: 0.625rem solid;
+    border-left-color: inherit;
+}
+
+@media (max-width: 2000px) {
+    .speech-bubble {
+        right: auto;
+        left: calc(100% + 0.625rem);
+    }
+    
+    .speech-bubble:after {
+        right: auto;
+        left: -0.625rem;
+        border-left: none;
+        border-right: 0.625rem solid;
+        border-right-color: inherit;
+    }
+    
+    .speech-bubble:before {
+        right: auto;
+        left: -0.5rem;
+        border-left: none;
+    }
 }
 
 .border-fade-secondary {
@@ -175,16 +215,9 @@ body {
     position: relative;
 }
 
-@keyframes bump {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-.anim-bump {
-    animation-name: bump;
-    animation-duration: 0.3s; /* Adjust duration as needed */
-    animation-timing-function: ease-out; /* Adjust timing function as needed */
+.app-header-container h1 {
+    pointer-events: none;
+    user-select: none;
 }
 
 .journey-campaign-table {

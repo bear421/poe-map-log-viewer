@@ -62,13 +62,13 @@ export class OverviewComponent extends BaseComponent {
                     <h4 class="card-title border-bottom border-fade-secondary">Totals</h4>
                     <div class="card-text">
                         <dl class="row mb-0 fs-5">
-                            <dt class="col-9"><i class="bi bi-map me-2"></i>Maps</dt>
+                            <dt class="col-9"><i class="bi bi-globe me-2"></i>Maps</dt>
                             <dd class="col-3 text-end">${agg.maps.length}</dd>
                             
                             <dt class="col-9"><i class="bi bi-power me-2"></i>Sessions</dt>
                             <dd class="col-3 text-end">${agg.totalSessions}</dd>
                             
-                            <dt class="col-9"><i class="bi bi-trophy-fill me-2"></i>Pinnacle Boss kills</dt>
+                            <dt class="col-9"><i class="bi bi-trophy-fill text-warning me-2"></i>Pinnacle Boss kills</dt>
                             <dd class="col-3 text-end">${agg.totalBossKills}</dd>
 
                             <dt class="col-9"><i class="bi bi-clock me-2"></i>Map time</dt>
@@ -82,6 +82,9 @@ export class OverviewComponent extends BaseComponent {
 
                             <dt class="col-9"><i class="bi bi-heartbreak-fill text-danger me-2"></i>Deaths</dt>
                             <dd class="col-3 text-end">${agg.totalDeaths}</dd>
+
+                            <dt class="col-9"><i class="bi bi-heartbreak-fill text-secondary me-2"></i>Witnessed deaths</dt>
+                            <dd class="col-3 text-end">${agg.totalWitnessedDeaths}</dd>
 
                             <dt class="col-9"><i class="bi bi-magic me-2"></i>Items identified (bulk)</dt>
                             <dd class="col-3 text-end">${agg.events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0)}</dd>

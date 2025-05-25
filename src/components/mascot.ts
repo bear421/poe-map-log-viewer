@@ -3,37 +3,92 @@ import mascotHappy from '../assets/images/mascot_happy.webp';
 import mascotHmm from '../assets/images/mascot_hmm.webp';
 import mascotHmm2 from '../assets/images/mascot_hmm2.webp';
 import mascotSurprised from '../assets/images/mascot_surprised.webp';
+import mascotPleading from '../assets/images/mascot_pleading.webp';
+import mascotLaughing from '../assets/images/mascot_laughing.webp';
 import { BaseComponent } from './base-component';
 import { createElementFromHTML } from '../util';
 
+export namespace Emotion {
+    export const HAPPY = mascotHappy;
+    export const HMM = mascotHmm;
+    export const HMM2 = mascotHmm2;
+    export const SURPRISED = mascotSurprised;
+    export const PLEADING = mascotPleading;
+    export const LAUGHING = mascotLaughing;
+}
+
 export class Mascot extends BaseComponent<HTMLImageElement> {
     private animationInterval: number | null = null;
-    private currentFrameIndex: number = 0;
-    private readonly frameImagePaths = [
-        mascotHappy,
-        mascotHmm,
-        mascotHmm2,
-        mascotSurprised
-    ];
-    private readonly animationFrames = [1, 2, 3];
+    private readonly animationEmotions = [Emotion.HMM, Emotion.HMM2, Emotion.SURPRISED];
+    private currentEmotion!: string;
+    private defaultEmotion: string;
     private speechBubble: HTMLDivElement;
     private measureBubble: HTMLDivElement;
+    private nextSpeechCancel?: () => void;
+    private heardMessages: Set<string> = new Set();
+    private pokeLog: number[] = [];
 
-    constructor(parentElement: HTMLElement, initialFrameIndex: number = 2) {
-        super(createElementFromHTML('<img class="mascot-image">') as HTMLImageElement, parentElement);
-        this.setFrame(initialFrameIndex);
-        
+    constructor(parentElement: HTMLElement, initialEmotion = Emotion.HMM2) {
+        super(createElementFromHTML('<img class="mascot-image" draggable="false">') as HTMLImageElement, parentElement);
+        this.setEmotion(initialEmotion);
+        this.defaultEmotion = initialEmotion;
         this.speechBubble = createElementFromHTML('<div class="speech-bubble d-none">') as HTMLDivElement;
-        this.measureBubble = createElementFromHTML('<div class="speech-bubble d-none" style="position: absolute; visibility: hidden;">') as HTMLDivElement;
-        this.element.parentElement?.insertBefore(this.speechBubble, this.element);
-        this.element.parentElement?.insertBefore(this.measureBubble, this.element);
+        this.measureBubble = createElementFromHTML('<div class="measure-bubble speech-bubble">') as HTMLDivElement;
+        parentElement.appendChild(this.measureBubble);
+        parentElement.appendChild(this.speechBubble);
+        let prevPoke: any, pokeStartedAt: number | null = null;
+        this.element.addEventListener('click', () => {
+            this.pokeLog.push(Date.now());
+            if (pokeStartedAt && Date.now() - pokeStartedAt < 500) return;
+
+            if (prevPoke) {
+                clearTimeout(prevPoke);
+                this.element.classList.remove('poke');
+                this.element.style.animation = 'none';
+                void(this.element.offsetHeight);
+                this.element.style.animation = '';
+            }
+            this.element.classList.add('poke');
+            pokeStartedAt = Date.now();
+            prevPoke = setTimeout(() => {
+                this.element.classList.remove('poke');
+                prevPoke = null;
+                pokeStartedAt = null;
+            }, 700);
+            if (this.pokeLog.length > 5 && this.pokeLog[0] > Date.now() - 10_000) {
+                this.pokeLog.splice(0, this.pokeLog.length);
+                if (!!this.data) {
+                    this.speak('Heeeey stop that!!', [], 3_000, Emotion.LAUGHING);
+                } else {
+                    this.speak('Grrr...', ['text-danger'], 3_000, Emotion.HMM2);
+                }
+            }
+        });
     }
 
-    private setFrame(frameIndex: number): void {
-        if (this.frameImagePaths[frameIndex]) {
-            this.element.src = this.frameImagePaths[frameIndex];
-            this.currentFrameIndex = frameIndex;
+    public updateData(data: any): void {
+        super.updateData(data);
+        this.setDefaultEmotion(Emotion.HAPPY);
+        if (data.totalBossKills > 10) { 
+            let baseMsg = "Wow! You've killed so many bosses!";
+            if (data.totalDeaths <= 0) {
+                baseMsg += " You must be an expert!";
+            } else if (data.totalDeaths < data.totalBossKills) {
+                baseMsg += " Very impressive!";
+            }
+            this.speak(`${baseMsg}`, ['border-success'], 5_000, Emotion.SURPRISED);
+        } else {
+            this.setEmotion(Emotion.HAPPY);
         }
+    }
+
+    public setDefaultEmotion(emotion: string): void {
+        this.defaultEmotion = emotion;
+    }
+
+    private setEmotion(emotion: string): void {
+        this.currentEmotion = emotion;
+        this.element.src = emotion;
     }
 
     setVisible(visible: boolean): this {
@@ -47,13 +102,12 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         if (this.animationInterval) return;
 
         const selectNewRandomFrame = () => {
-            let nextFrameToDisplay;
-            const currentlyDisplayedFrame = this.currentFrameIndex;
+            let nextEmotion;
             do {
-                const randomIndex = Math.floor(Math.random() * this.animationFrames.length);
-                nextFrameToDisplay = this.animationFrames[randomIndex];
-            } while (this.animationFrames.length > 1 && nextFrameToDisplay === currentlyDisplayedFrame);
-            this.setFrame(nextFrameToDisplay);
+                const randomIndex = Math.floor(Math.random() * this.animationEmotions.length);
+                nextEmotion = this.animationEmotions[randomIndex];
+            } while (this.animationEmotions.length > 1 && nextEmotion === this.currentEmotion);
+            this.setEmotion(nextEmotion);
         };
         selectNewRandomFrame();
         this.animationInterval = window.setInterval(() => {
@@ -66,7 +120,11 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
             clearInterval(this.animationInterval);
             this.animationInterval = null;
         }
-        this.setFrame(0); 
+        this.setEmotion(Emotion.HAPPY);
+        if (this.nextSpeechCancel) {
+            this.nextSpeechCancel();
+            this.nextSpeechCancel = undefined;
+        }
     }
 
     public setAnimation(isAnimating: boolean): void {
@@ -78,43 +136,53 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         }
     }
 
-    public speak(message: string, classes: string[] = ['bg-success', 'bg-opacity-50'], duration: number = 7000): { cancel: () => void } {
+    public speak(message: string, classes: string[] = ['bg-success', 'bg-opacity-50'], duration: number = 7_000, emotion: string = Emotion.HAPPY, once: boolean = true): { cancel: () => void } {
+        if (once && this.heardMessages.has(message)) {
+            return { cancel: () => {} };
+        }
+        if (this.nextSpeechCancel) {
+            this.nextSpeechCancel();
+            this.nextSpeechCancel = undefined;
+        }
+        this.setEmotion(emotion);
+        this.heardMessages.add(message);
         this.speechBubble.classList.remove('d-none');
         this.speechBubble.classList.add(...classes);
-        this.element.classList.add('anim-bump');
+        this.element.classList.add('mascot-speaking');
         
         this.measureBubble.textContent = message;
-        this.measureBubble.classList.remove('d-none');
-        const width = this.measureBubble.offsetWidth;
+        let width = Math.min(this.measureBubble.offsetWidth + 1, 320);
         const height = this.measureBubble.offsetHeight;
-        this.measureBubble.classList.add('d-none');
-        
         this.speechBubble.style.width = `${width}px`;
-        this.speechBubble.style.height = `${height}px`;
+        this.speechBubble.style.minHeight = `${height}px`;
         
         const words = message.split(/(\s+)/);
-        let currentText = '';
-        let wordIndex = 0;
-        
+        let currentText = words[0];
+        this.speechBubble.textContent = currentText;
+        let wordIndex = 1;
         const interval = setInterval(() => {
             if (wordIndex < words.length) {
                 currentText += words[wordIndex];
                 this.speechBubble.textContent = currentText;
                 wordIndex++;
             } else {
-                this.element.classList.remove('anim-bump');
+                this.element.classList.remove('mascot-speaking');
                 clearInterval(interval);
             }
-        }, 400 / words.length);
+        }, 500 / words.length);
+        let wasCleanedUp = false;
         const cleanUp = () => {
+            if (wasCleanedUp) return;
+
+            wasCleanedUp = true;
             clearInterval(interval);
             this.speechBubble.classList.add('d-none');
             this.speechBubble.classList.remove(...classes);
-            this.speechBubble.style.width = '';
-            this.speechBubble.style.height = '';
-            this.element.classList.remove('anim-bump');
+            this.element.classList.remove('mascot-speaking');
+            this.setEmotion(this.defaultEmotion);
         };
         setTimeout(cleanUp, duration);
+        this.nextSpeechCancel = cleanUp;
         return { cancel: cleanUp };
     }
 

@@ -15,6 +15,12 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
     "Doryani": {
         "deathCries": new Set([" Ugh... how could this happen...? All I have done. All that I sacrificed...", " Ugh... how could this happen... all I have done. All that I sacrificed..."])
     },
+    "The Trialmaster": {
+        "deathCries": new Set([" Ugh... my service is finally over..."])
+    },
+    "Zarokh, the Temporal": {
+        "deathCries": new Set([" The sands shift, Taljari...", " My sand... runs out..."])
+    },
     "Xesht, We That Are One": {
         "deathCries": new Set([" Ugh...! We That Failed..."])
     },

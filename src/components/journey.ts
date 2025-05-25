@@ -19,6 +19,8 @@ const journeyEventNames = new Set<EventName>([
     "levelUp",
     "bossKill",
     "passiveGained",
+    "passiveAllocated",
+    "passiveUnallocated",
     "mapReentered",
     "joinedArea",
     "leftArea",
@@ -140,41 +142,12 @@ export class JourneyComponent extends BaseComponent {
         `;
 
         const tbody = table.querySelector('tbody') as HTMLTableSectionElement;
-        const characterLevelIndex = this.data!.characterAggregation.characterLevelIndex;
         for (let i = 0; i < actData.maps.length; i++) {
             const map = actData.maps[i];
             const row = tbody.insertRow();
             const mapTimeMs = MapSpan.mapTimePlusIdle(map.span);
             const mapTimeFormatted = this.formatDuration(mapTimeMs);
-            const prevLevelUpIx = binarySearch(characterLevelIndex, map.span.start, (e) => e.ts, BinarySearchMode.LAST);
-            let prevLevelUpEvent = characterLevelIndex[prevLevelUpIx];
-            let nextLevelUpEvent = characterLevelIndex[prevLevelUpIx + 1];
-            let levelUpEvent;
-            if (!prevLevelUpEvent) {
-                // first character ever
-                levelUpEvent = LevelUpEvent.of(map.span.start, "?", "?", 1);
-            } else {
-                const prevLevel = prevLevelUpEvent.detail.level;
-                const nextLevel = nextLevelUpEvent?.detail?.level;
-                if (nextLevel && prevLevel + 1 !== nextLevel) {
-                    // either or both levelUpEvents do not belong to the character that is in this map
-                    let heuristicLevel;
-                    if (map.areaLevel === 1) {
-                        // new character, necessarily implied
-                        heuristicLevel = 1;
-                    } else {
-                        if (nextLevel && typeof nextLevel === 'number') {
-                            heuristicLevel = Math.abs(map.areaLevel - nextLevel) < Math.abs(map.areaLevel - prevLevel) ? nextLevel -1 : prevLevel;
-                        } else {
-                            heuristicLevel = prevLevel; 
-                        }
-                    }
-                    levelUpEvent = LevelUpEvent.of(map.span.start, "?", "?", heuristicLevel);
-                } else {
-                    levelUpEvent = prevLevelUpEvent;
-                }
-            }
-
+            let levelUpEvent = this.data!.characterAggregation.guessLevelEvent(map.span.start)!;
             const mapNameCell = row.insertCell();
             const mapNameLink = document.createElement('a');
             mapNameLink.href = '#';
@@ -218,6 +191,8 @@ export class JourneyComponent extends BaseComponent {
 
     private renderEvents(cell: HTMLTableCellElement, map: MapInstance): void {
         const {loIx, hiIx} = binarySearchRange(this.data!.events, map.span.start, map.span.end, (e) => e.ts);
+        if (loIx === -1) return;
+
         const events: LogEvent[] = [];
         let eventsHTML = "";
         for (let i = loIx; i < hiIx + 1; i++) {
@@ -230,8 +205,7 @@ export class JourneyComponent extends BaseComponent {
             switch (meta) {
                 case eventMeta.death:
                 case eventMeta.levelUp:
-                    if (event.detail && 'character' in event.detail && 
-                        !this.data!.characterAggregation.characters.has((event.detail as any).character)) {
+                    if (!this.data!.characterAggregation.isOwned(event.detail.character)) {
                         iconColorClass = "text-secondary";
                     }
                     break;

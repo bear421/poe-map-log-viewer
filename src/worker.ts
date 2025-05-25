@@ -1,6 +1,6 @@
 import { LogTracker, MapInstance, Filter, Segmentation, Progress, LogLine } from './log-tracker';
 import { LogEvent } from './log-events';
-import { binarySearchFind, binarySearchFindLast } from "./binary-search";
+import { binarySearchFindFirst, binarySearchFindLast } from "./binary-search";
 
 interface RequestMessage {
     requestId: string;
@@ -125,7 +125,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
             } as IngestResponse);
 
             const totalMiB = totalBytesValue / 1024 / 1024;
-            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds (Req ID: ${requestId})`);
+            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
             console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s (${(totalMiB / parseFloat(tookSeconds)).toFixed(1)} MiB/s)`);
         
         } else if (type === 'search') {
@@ -146,13 +146,11 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 const bytesTsIndex = TS_BYTES_CACHE.get(fileKey);
                 if (bytesTsIndex && bytesTsIndex.length > 0) {
                     const indexEntryLo = binarySearchFindLast(bytesTsIndex, x => x.ts < tsFilter.lo);
-                    const indexEntryHi = binarySearchFind(bytesTsIndex, x => x.ts > tsFilter.hi);
-                    if (indexEntryLo || indexEntryHi) {
-                        console.log(`using ts index lo: ${indexEntryLo && new Date(indexEntryLo.ts)}}`, indexEntryLo?.bytes, bytesTsIndex);
-                    }
+                    const indexEntryHi = binarySearchFindFirst(bytesTsIndex, x => x.ts > tsFilter.hi);
                     let bytesOffsetLo = indexEntryLo?.bytes ?? 0;
+                    let bytesOffsetHi = indexEntryHi?.bytes ?? file.size;
                     if (bytesOffsetLo) {
-                        offsetFile = new File([file.slice(bytesOffsetLo)], file.name, { type: file.type });
+                        offsetFile = new File([file.slice(bytesOffsetLo, bytesOffsetHi)], file.name, { type: file.type });
                     }
                 }
             }

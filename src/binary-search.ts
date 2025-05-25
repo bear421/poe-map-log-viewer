@@ -4,14 +4,44 @@ export enum BinarySearchMode {
     LAST = 'last'
 }
 
-export function binarySearchFind<T>(array: T[], predicate: (element: T) => Boolean): T | undefined {
-    // TODO implement binary search
-    return array.find(predicate);
+export function binarySearchFindFirst<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): T | undefined {
+    let result: T | undefined;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const isTrue = predicate(array[mid]);
+        
+        if (isTrue) {
+            // Found a match, store it and continue searching left
+            result = array[mid];
+            right = mid - 1;
+        } else {
+            // Continue searching right
+            left = mid + 1;
+        }
+    }
+
+    return result;
 }
 
-export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => Boolean): T | undefined {
-    // TODO implement binary search
-    return array.findLast(predicate);
+export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): T | undefined {
+    let result: T | undefined;
+
+    while (left <= right) {
+        const mid = Math.floor((left + right) / 2);
+        const isTrue = predicate(array[mid]);
+        
+        if (isTrue) {
+            // Found a match, store it and continue searching right
+            result = array[mid];
+            left = mid + 1;
+        } else {
+            // Continue searching left
+            right = mid - 1;
+        }
+    }
+
+    return result;
 }
 
 export function binarySearch<T>(

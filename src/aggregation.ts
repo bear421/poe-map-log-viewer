@@ -1,11 +1,11 @@
 import { Filter, MapInstance, MapSpan, Segmentation } from "./log-tracker";
-import { LogEvent, CharacterEvent, LevelUpEvent, MsgEvent, SetCharacterEvent } from "./log-events";
-import { binarySearch, BinarySearchMode } from "./binary-search";
+import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./log-events";
+import { binarySearch, binarySearchFindLast, BinarySearchMode, binarySearchRange } from "./binary-search";
 
 export interface LogAggregation {
     maps: MapInstance[];
     events: LogEvent[];
-    messages: Map<string, MsgEvent[]>;
+    messages: Map<string, AnyMsgEvent[]>;
     /**
      * total number of trades, includes both trades with NPCs and players
      */
@@ -36,10 +36,61 @@ export interface LogAggregation {
     characterAggregation: CharacterAggregation;
 }
 
-export interface CharacterAggregation {
-    characters: Map<string, LevelUpEvent>;
-    characterLevelIndex: LevelUpEvent[];
-    characterTsIndex: CharacterEvent[];
+export class CharacterAggregation {
+    characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>;
+    characterTsIndex: AnyCharacterEvent[];
+
+    constructor(characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>, characterTsIndex: AnyCharacterEvent[]) {
+        this.characterLevelIndex = characterLevelIndex;
+        this.characterTsIndex = characterTsIndex;
+    }
+
+    /**
+     * @returns true if the character is likely to be owned by the owner of the log file
+     */
+    isOwned(character: string): boolean {
+        return this.characterLevelIndex.has(character);
+    }
+
+    guessLevelEvent(ts: number): LevelUpEvent | SetCharacterEvent | null {
+        const anyEvent = this.guessAnyEvent(ts);
+        if (!anyEvent) return null;
+
+        const levelIndex = this.characterLevelIndex.get(anyEvent.detail.character);
+        if (!levelIndex) throw new Error("illegal state: no level index found for character " + anyEvent.detail.character);
+
+        const ix = binarySearch(levelIndex, ts, (e) => e.ts, BinarySearchMode.FIRST);
+        return ix === -1 ? null : levelIndex[ix];
+    }
+
+    guessAnyEvent(ts: number): AnyCharacterEvent | null {
+        const ix = binarySearch(this.characterTsIndex, ts, (e) => e.ts, BinarySearchMode.FIRST)
+        return ix === -1 ? null : this.characterTsIndex[ix];
+    }
+
+    guessSegmentation(levelFrom?: number, levelTo?: number, character?: string): Segmentation {
+        if (character) {
+            const levelIndex = this.characterLevelIndex.get(character);
+            if (!levelIndex) throw new Error("illegal state: no level index found for character " + character);
+
+            const segmentation: Segmentation = [];
+            const {loIx, hiIx} = binarySearchRange(levelIndex, levelFrom, levelTo, (e) => e.detail.level);
+            for (let i = loIx; i < hiIx - 1; i++) {
+                segmentation.push({lo: levelIndex[i].ts, hi: levelIndex[i + 1].ts});
+            }
+            return segmentation.length > 0 ? segmentation : [{lo: levelIndex[loIx].ts, hi: levelIndex[hiIx].ts}];
+        } else {
+            const segmentation: Segmentation = [];
+            for (const levelIndex of this.characterLevelIndex.values()) {
+                const {loIx, hiIx} = binarySearchRange(levelIndex, levelFrom, levelTo, (e) => e.detail.level);
+                if (loIx !== -1 && hiIx !== -1) {
+                    segmentation.push({lo: levelIndex[loIx].ts, hi: levelIndex[hiIx].ts});
+                }
+            }
+            segmentation.sort((a, b) => a.lo - b.lo);
+            return Segmentation.mergeContiguous(segmentation);
+        }
+    }
 }
 
 export interface CharacterInfo {
@@ -55,7 +106,8 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
     filter = reassembleFilter(filter, prevAgg);
     maps = Filter.filterMaps(maps, filter);
     events = Filter.filterEvents(events, filter);
-    const agg = aggregate0(maps, events, filter);
+    const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+    const agg = aggregate0(maps, events, filter, characterAggregation);
     if (prevAgg) {
         agg.characterAggregation = prevAgg.characterAggregation;
     }
@@ -67,112 +119,31 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
-    if (!prevAgg) return filter;
-
+    if (!prevAgg) return filter; 
+  
     const segmentations: Segmentation[] = [];
-    if (filter.fromCharacterLevel || filter.toCharacterLevel) {
-        const shrunkCharacterLevelIndex = prevAgg.characterAggregation.characterLevelIndex.filter(e => {
-            if (filter.character && e.detail.character !== filter.character) return false;
-
-            if (filter.fromCharacterLevel && e.detail.level < filter.fromCharacterLevel) return false;
-
-            if (filter.toCharacterLevel && e.detail.level > filter.toCharacterLevel) return false;
-
-            return true;
-        });
-        // FIXME include lower close boundary and upper close boundary (??) (e.g. character is still level 100 or character is lte level 2 (during strand))
-        // technically this is currently equal to:
-        // const x: Segmentation = [{lo: shrunkCharacterLevelIndex[0].ts, hi: shrunkCharacterLevelIndex[shrunkCharacterLevelIndex.length - 1].ts}];
-        segmentations.push(Segmentation.toBoundingInterval(Segmentation.ofEvents(shrunkCharacterLevelIndex)));
-    }
-    if (filter.character && prevAgg.characterAggregation.characterTsIndex.length > 1) {
-        const characterSegmentation: Segmentation = [];
-        const characterTsIndex = prevAgg.characterAggregation.characterTsIndex;
-        outer: for (let i = 0; i < characterTsIndex.length; i++) {
-            const event = characterTsIndex[i];
-            if (event.detail.character !== filter.character) continue;
-            
-            const lo = i === 0 ? -Infinity : event.ts;
-            do {
-                if (i + 1 >= characterTsIndex.length) {
-                    characterSegmentation.push({lo, hi: Infinity});
-                    break outer;
-                }
-                i++;
-                const nextEvent = characterTsIndex[i];
-                if (nextEvent.detail.character === filter.character) {
-                    continue;
-                }
-                characterSegmentation.push({lo, hi: nextEvent.ts});
-                break;
-            } while (i < characterTsIndex.length);
-        }
-        characterSegmentation.length && segmentations.push(characterSegmentation);
+    segmentations.push(prevAgg.characterAggregation.guessSegmentation(filter.fromCharacterLevel, filter.toCharacterLevel, filter.character));
+  
+    if (filter.tsBounds && filter.tsBounds.length) {
+        segmentations.push(filter.tsBounds);
     }
     if (segmentations.length) {
-        if (filter.tsBounds) {
-            segmentations.push(filter.tsBounds);
-        }
-        return filter.withBounds(Segmentation.intersectAll(segmentations));
+        const newBounds = Segmentation.intersectAll(segmentations);
+        return filter.withBounds(newBounds);
     }
     return filter;
 }
+  
 
 const TRADE_PATTERN = /^(Hi, I would like to buy your|你好，我想購買|안녕하세요, |こんにちは、 |Здравствуйте, хочу купить у вас |Hi, ich möchte |Bonjour, je souhaiterais t'acheter )/;
 
-function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): LogAggregation {
-    const foreignCharacters = new Set<string>();
-    const characters = new Map<string, LevelUpEvent>();
-    const characterLevelIndex: LevelUpEvent[] = [];
-    const characterTsIndex: CharacterEvent[] = [];
-    const handleCharacterEvent = (characterEvent: CharacterEvent, i: number) => {
-        const character = characterEvent.detail.character;
-        if (characterTsIndex.length >= 2 
-            && characterTsIndex[characterTsIndex.length - 1].detail.character === character 
-            && characterTsIndex[characterTsIndex.length - 2].detail.character === character
-        ) {
-            characterTsIndex[characterTsIndex.length - 1] = characterEvent;
-        } else {
-            if (characterTsIndex.length > 1) {
-                /*
-                    backtrack to find likeliest time when character logged in. 
-                    why is this needed? the only true identifying character events are death and levelUp.
-                    thus, when either of those events occured, there is NECESSARILY a prior event which matches a character
-                    UNLESS the player switched between characters which are both already in a campaign instance 
-                    (does that ever happen? - requires switched to character to still have the server instance up)
-                    because normally, when a character switch happens, the switched to character will need to join a town or the hideout first
-                */
-                const prevCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
-                const threshold = prevCharacterEvent.ts;
-                let originCandidate: LogEvent | null = null;
-                for (let y = i - 1; y >= 0; y--) {
-                    const event = events[y];
-                    if (event.ts <= threshold) break;
-
-                    switch (event.name) {
-                        // TODO check other events
-                        case "hideoutEntered":
-                            originCandidate = event;
-                            break;
-                        case "mapEntered":
-                            if (originCandidate) break;
-
-                            originCandidate = event;
-                    }
-                }
-                if (originCandidate) {  
-                    characterTsIndex.push(SetCharacterEvent.of(originCandidate.ts, character));
-                }
-            }
-            characterTsIndex.push(characterEvent);
-        }
-    }
+function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): LogAggregation {
     let totalBuys = 0, totalSales = 0, totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
-    let totalDeaths = 0;
-    const recentSales: CharacterEvent[] = [];
-    const recentBuys: CharacterEvent[] = [];
-    const probableNearbyCharacters = new Map<string, CharacterEvent>();
-    const messages = new Map<string, MsgEvent[]>();
+    let totalDeaths = 0, totalWitnessedDeaths = 0;
+    const recentSales: AnyCharacterEvent[] = [];
+    const recentBuys: AnyCharacterEvent[] = [];
+    const probableNearbyCharacters = new Map<string, AnyCharacterEvent>();
+    const messages = new Map<string, AnyMsgEvent[]>();
     let totalBossKills = 0;
     let totalSessions = 1;
     let prevEvent: LogEvent | null = null;
@@ -200,23 +171,18 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                 }
                 computeIfAbsent(messages, event.detail.character, () => []).push(event);
                 break;
-            case "msgLocal":
-            case "msgParty":
-                if (characters.has(event.detail.character)) {
-                    handleCharacterEvent(event, i);
-                }
-                break;
             case "tradeAccepted":
                 totalTrades++;
                 /*
                     proper trade attribution is impossible without additional user input such as from 3rd party trade tools. here's why:
+                    - NPC tradeAccepted events are indistinguishable from player tradeAccepted events
                     - it is not explicitly logged who or what tradeAccepted refers to
                     - whispers to and from Korean users are excluded from the log file (https://www.pathofexile.com/forum/view-thread/2567280/page/4)
                     - it is impossible to accurately track characters in the current instance;
                         when joining an instance with character(s) already present, the client doesn't generate a log of the present character(s) for the joiner
                 */
                 const thresholdTs = event.ts - maxSaleOffsetMillis;
-                const discardStaleEvents = (events: CharacterEvent[]) => {
+                const discardStaleEvents = (events: AnyCharacterEvent[]) => {
                     const index = binarySearch(events, thresholdTs, (e) => e.ts, BinarySearchMode.LAST);
                     if (index !== -1) {
                         events.splice(0, index);
@@ -266,22 +232,18 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                 }
                 // while many other heuristics such as load-times and hideout names exist, they likely wouldn't contribute much to accuracy
                 break;
-            case "levelUp":
-                handleCharacterEvent(event, i);
-                characters.set(event.detail.character, event);
-                characterLevelIndex.push(event);
-                break;
             case "death":
-                handleCharacterEvent(event, i);
                 if (filter.fromAreaLevel && event.detail.areaLevel < filter.fromAreaLevel) break;
 
                 if (filter.toAreaLevel && event.detail.areaLevel > filter.toAreaLevel) break;
 
-                // FIXME split between deaths / witnessed deaths depending on foreign characters
-                totalDeaths++;
+                if (characterAggregation.isOwned(event.detail.character)) {
+                    totalDeaths++;
+                } else {
+                    totalWitnessedDeaths++;
+                }
                 break;
             case "joinedArea":
-                foreignCharacters.add(event.detail.character);
                 probableNearbyCharacters.set(event.detail.character, event);
                 break;
             case "leftArea":
@@ -297,36 +259,6 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
                 }
                 break;
         }
-    }
-
-    foreignCharacters.forEach(character => {
-        characters.delete(character);
-    });
-
-    const compactedCharacterTsIndex: CharacterEvent[] = [];
-    outer: for (let i = 0; i < characterTsIndex.length; i++) {
-        const event = characterTsIndex[i];
-        if (!characters.has(event.detail.character)) continue;
-
-        compactedCharacterTsIndex.push(event);
-        const character = event.detail.character;
-        do {
-            i++;
-            if (i >= characterTsIndex.length) break outer;
-
-            const nextEvent = characterTsIndex[i];
-            if (!characters.has(nextEvent.detail.character)) continue outer;
-
-            if (nextEvent.detail.character === character && i + 1 < characterTsIndex.length) {
-                const nextNextEvent = characterTsIndex[i + 1];
-                if (nextNextEvent.detail.character === character) continue;
-
-                compactedCharacterTsIndex.push(nextEvent);
-                continue outer;
-            } else {
-                compactedCharacterTsIndex.push(nextEvent);
-            }
-        } while (i < characterTsIndex.length);
     }
 
     let totalMapTime = 0, totalLoadTime = 0, totalHideoutTime = 0;
@@ -345,18 +277,171 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter): Lo
         totalBuysAttempted,
         totalSalesAttempted,
         totalDeaths,
-        totalWitnessedDeaths: 0, // TODO
+        totalWitnessedDeaths,
         totalMapTime,
         totalLoadTime,
         totalHideoutTime,
         totalBossKills,
         totalSessions,
-        characterAggregation: {
-            characters,
-            characterLevelIndex,
-            characterTsIndex: compactedCharacterTsIndex
-        }
+        characterAggregation
     };
+}
+
+function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): CharacterAggregation {
+    const foreignCharacters = new Set<string>();
+    const characterLevelIndex = new Map<string, (LevelUpEvent|SetCharacterEvent)[]>();
+    const characterTsIndex: AnyCharacterEvent[] = [];
+    const expandCharacterRanges = (ts: number, character: string, level: number, eventLoopIndex: number) => {
+        /*
+            expands the supplied character's adjacent character level range by appending a setCharacter event to both
+        */
+        for (let i = characterTsIndex.length - 1; i >= 0; i--) {
+            const prev = characterTsIndex[i];
+            const index = characterLevelIndex.get(prev.detail.character);
+            if (!index) {
+                if (prev.detail.character === character) {
+                    throw new Error("illegal state: expected prior event to be of another character " + character);
+                }
+                // prev is definitely an event of a foreign character
+                continue;
+            }
+            const levelLikePrev = index[index.length - 1];
+            // backtrack to ANY prior event. if we take ts both character would share an event / map (WRONG!)
+            const prevTs = binarySearchFindLast(events, (e) => e.ts < ts, 0, eventLoopIndex - 1)?.ts;
+            if (!prevTs) {
+                throw new Error(`illegal state: no prior event found for character ${character} at ts ${ts}`);
+            }
+            const shrinkCharacter = SetCharacterEvent.of(prevTs, levelLikePrev.detail.character, levelLikePrev.detail.level);
+            index.push(shrinkCharacter);
+            characterTsIndex.push(shrinkCharacter);
+            break;
+        }
+        const expandCharacter = SetCharacterEvent.of(ts, character, level);
+        characterTsIndex.push(expandCharacter);
+        computeIfAbsent(characterLevelIndex, character, () => []).push(expandCharacter);
+    };
+    const handleCharacterEvent = (event: AnyCharacterEvent, eventLoopIndex: number) => {
+        const character = event.detail.character;
+        if (event.name == "levelUp" && event.detail.level === 2) {
+            // must be in 1st zone
+            const map = binarySearchFindLast(maps, (m) => m.span.start < event.ts);
+            let ts;
+            if (map) {
+                ts = map.span.start;
+            } else {
+                // possible if log is incomplete
+                console.warn("log incomplete? failed to find map for level 2 character", event.detail.character, event.ts);
+                ts = event.ts - 1;
+            }
+            if (characterLevelIndex.has(character)) {
+                throw new Error("illegal state: character level index already has character " + character);
+            }
+            const index: (LevelUpEvent|SetCharacterEvent)[] = [];
+            characterLevelIndex.set(character, index);
+            expandCharacterRanges(ts, character, 1, eventLoopIndex);
+            index.push(event);
+        } else if (characterTsIndex.length >= 2 
+            && characterTsIndex[characterTsIndex.length - 1].detail.character === character 
+            && characterTsIndex[characterTsIndex.length - 2].detail.character === character
+        ) {
+            characterTsIndex[characterTsIndex.length - 1] = event;
+            if (event.name == "levelUp") {
+                computeIfAbsent(characterLevelIndex, character, () => []).push(event);
+            }
+        } else {
+            if (characterTsIndex.length > 1) {
+                /*
+                    backtrack to find likeliest time when character logged in. it is guaranteed that the character event follows the login event.
+
+                    why is this needed? the only true identifying character events are death and levelUp.
+                    thus, when either of those events occured, there is NECESSARILY a prior event which matches a character
+                    UNLESS the player switched between characters which are both already in a campaign instance 
+                    (does that ever happen? - requires switched to character to still have the server instance up)
+                    because normally, when a character switch happens, the switched to character will need to join a town or the hideout first
+                    
+                    keep in mind that this is still highly inaccurate, especially during endgame where identifying character events may not fire
+                    for a long time. and a player may choose to alternate characters often.
+                    for example, assume character events [A1, B1]: it is possible that between A1 and B1 character C and D were logged in but
+                    never fired a character event.
+                */
+                const prevCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
+                const threshold = prevCharacterEvent.ts;
+                let originCandidate: LogEvent | null = null;
+                for (let y = eventLoopIndex - 1; y >= 0; y--) {
+                    const event = events[y];
+                    if (event.ts <= threshold) break;
+
+                    switch (event.name) {
+                        // TODO check other events
+                        case "hideoutEntered":
+                            originCandidate = event;
+                            break;
+                        case "mapEntered":
+                            if (originCandidate) break;
+
+                            originCandidate = event;
+                    }
+                }
+                if (originCandidate) {  
+                    const levelIndex = characterLevelIndex.get(character);
+                    if (levelIndex) {
+                        // levelIndex may be absent for foreign characters
+                        const level = levelIndex[levelIndex.length - 1].detail.level;
+                        expandCharacterRanges(originCandidate.ts, character, level, eventLoopIndex);
+                    }
+                }
+            }
+            characterTsIndex.push(event);
+            if (event.name == "levelUp") {
+                computeIfAbsent(characterLevelIndex, character, () => []).push(event);
+            }
+        }
+    }
+    for (let i = 0; i < events.length; i++) {
+        const event = events[i];
+        switch (event.name) {
+            case "msgLocal":
+            case "msgParty":
+            case "msgGuild":
+                // it is possible that there's a false positive despite this check;
+                // when playing with a guild mate for at least one level, but they always join the area first
+                if (characterLevelIndex.has(event.detail.character)) {
+                    handleCharacterEvent(event, i);
+                }
+                break;
+            case "levelUp":
+            case "death":
+                handleCharacterEvent(event, i);
+                break;
+            case "joinedArea":
+                // joinedArea is never fired for the player's own character from the perspective of the player's log
+                foreignCharacters.add(event.detail.character);
+                break;
+        }
+    }
+
+    foreignCharacters.forEach(character => {
+        characterLevelIndex.delete(character);
+    });
+    for (const levelIndex of characterLevelIndex.values()) {
+        for (let i = 0; i < levelIndex.length - 1; i++) {
+            const level = levelIndex[i].detail.level, nextLevel = levelIndex[i + 1].detail.level;
+            if (level > nextLevel) {
+                throw new Error(`character index is not contiguous: ${level} > ${nextLevel} (${levelIndex[i].detail.character})`);
+            }
+        }
+    }
+    const ownedCharacterTsIndex = characterTsIndex.filter(e => !foreignCharacters.has(e.detail.character));
+    for (let i = 0; i < ownedCharacterTsIndex.length - 1; i++) {
+        const event = ownedCharacterTsIndex[i];
+        const nextEvent = ownedCharacterTsIndex[i + 1];
+        const ts = event.ts, nextTs = nextEvent.ts;
+        if (ts > nextTs) {
+            console.error(new Date(ts), new Date(nextTs));
+            throw new Error(`ts index[${i}] is not contiguous: ${ts} > ${nextTs} (${event.detail.character} > ${nextEvent.detail.character})`);
+        }
+    }
+    return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex);
 }
 
 function computeIfAbsent<K, V>(map: Map<K, V>, key: K, compute: () => V): V {

@@ -25,7 +25,9 @@ import {
     MapReenteredEvent,
     MapEnteredEvent,
     MapCompletedEvent,
-    XPSnapshotEvent
+    XPSnapshotEvent,
+    PassiveUnallocatedEvent,
+    PassiveAllocatedEvent
 } from "./log-events";
 
 class AreaInfo {
@@ -382,7 +384,7 @@ export namespace Segmentation {
         return res;
     }
 
-    export function merge(segmentation: Segmentation): Segmentation {
+    export function mergeContiguous(segmentation: Segmentation): Segmentation {
         if (segmentation.length <= 1) return segmentation;
 
         const res: Segmentation = [];
@@ -415,6 +417,13 @@ export namespace Segmentation {
         return segmentations.reduce((a, b) => intersect(a, b), segmentations[0]);
     }
     
+    /**
+     * Intersects two segmentations using closed intervals [a,b] (including zero-width ranges where a=b).
+     * For example:
+     * - [1,2] ∩ [2,3] = [2,2] (includes the point where they touch)
+     * - [1,3] ∩ [2,4] = [2,3] (includes both endpoints)
+     * - [1,2] ∩ [3,4] = [] (no overlap)
+     */
     export function intersect(a: Segmentation, b: Segmentation): Segmentation {
         const res: Segmentation = [];
         let iA = 0, iB = 0;
@@ -423,13 +432,13 @@ export namespace Segmentation {
             const lo = Math.max(rangeA.lo, rangeB.lo);
             const hi = Math.min(rangeA.hi, rangeB.hi);
             if (rangeA.hi > rangeB.hi) {
-                lo < hi && res.push({lo, hi});
+                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
                 if (++iB >= b.length) break;
             } else if (rangeB.hi < rangeA.hi) {
-                lo < hi && res.push({lo, hi});
+                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
                 if (++iA >= a.length) break;
             } else {
-                lo < hi && res.push({lo, hi});
+                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
                 if (++iA >= a.length || ++iB >= b.length) break;
             }
         }
@@ -589,6 +598,8 @@ enum EventCG {
     Left,            
     LevelUp,
     PassiveGained,
+    PassiveAllocated,
+    PassiveUnallocated,
     BonusGained,
     MsgBoss,
     MsgLocal
@@ -598,30 +609,32 @@ enum EventCG {
  * common prefix between all examples, note that the prefix "ends" with a space: 
  *                  2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] 
  * example logs:
- * MsgFrom         @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
- * MsgTo           @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
- * MsgParty        Generating level 1 area "G1_1" with seed 2665241567
- * TradeAccepted   : Trade accepted.
- * ItemsIdentified : 5 Items identified
- * Slain           : Player1 has been slain.
- * Joined          : Player1 has joined the area.
- * Left            : Player1 has left the area.
- * LevelUp         : Player1 (Sorceress) is now level 2
- * LevelUp         : Player1 (Stormweaver) is now level 100
- * PassiveGained   : You have received 2 Weapon Set Passive Skill Points.
- * PassiveGained   : You have received 2 Passive Skill Points.
- * PassiveGained   : You have received a Passive Skill Point.
- * BonusGained     : You have received +10% to [Resistances|Cold Resistance].
- * BonusGained     : You have received +30 to [Spirit|Spirit].
- * BonusGained     : You have received +20 to maximum Life.
- * BonusGained     : You have received +10% to [Resistances|Lightning Resistance].
- * BonusGained     : You have received +10% to [Resistances|Fire Resistance].
- * BonusGained     : You have received 8% increased maximum Life.
- * BossKill        Xesht, We That Are One: Ugh...! We That Failed...
- * BossKill        The Arbiter of Ash: The Mothersoul... Must prevail...
- * BossKill        Strange Voice: So be it. Keep your precious sanity, my agent of chaos. You shall serve me, whether you like it or not. I'm not going anywhere...
- * BossKill        Sirus, Awakener of Worlds: At least I felt something...
- * MsgLocal        Player1: hello
+ * MsgFrom            @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
+ * MsgTo              @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
+ * MsgParty           Generating level 1 area "G1_1" with seed 2665241567
+ * TradeAccepted      : Trade accepted.
+ * ItemsIdentified    : 5 Items identified
+ * Slain              : Player1 has been slain.
+ * Joined             : Player1 has joined the area.
+ * Left               : Player1 has left the area.
+ * LevelUp            : Player1 (Sorceress) is now level 2
+ * LevelUp            : Player1 (Stormweaver) is now level 100
+ * PassiveGained      : You have received 2 Weapon Set Passive Skill Points.
+ * PassiveGained      : You have received 2 Passive Skill Points.
+ * PassiveGained      : You have received a Passive Skill Point.
+ * BonusGained        : You have received +10% to [Resistances|Cold Resistance].
+ * BonusGained        : You have received +30 to [Spirit|Spirit].
+ * BonusGained        : You have received +20 to maximum Life.
+ * BonusGained        : You have received +10% to [Resistances|Lightning Resistance].
+ * BonusGained        : You have received +10% to [Resistances|Fire Resistance].
+ * BonusGained        : You have received 8% increased maximum Life.
+ * BossKill           Xesht, We That Are One: Ugh...! We That Failed...
+ * BossKill           The Arbiter of Ash: The Mothersoul... Must prevail...
+ * BossKill           Strange Voice: So be it. Keep your precious sanity, my agent of chaos. You shall serve me, whether you like it or not. I'm not going anywhere...
+ * BossKill           Sirus, Awakener of Worlds: At least I felt something...
+ * PassiveAllocated   Successfully allocated passive skill id: spells18, name: Spell Damage
+ * PassiveUnallocated Successfully unallocated passive skill id: shock5, name: Branching Bolts
+ * MsgLocal           Player1: hello
  */
 
 // if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
@@ -639,7 +652,9 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
     `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?Passive Skill Points`, // weapon set passives are redundant with normal ones
     `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
-    `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)` 
+    `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)`,
+    `Successfully allocated passive skill id: (?<g${EventCG.PassiveAllocated}>[^ ]+), name: (.+)`,
+    `Successfully unallocated passive skill id: (?<g${EventCG.PassiveUnallocated}>[^ ]+), name: (.+)`,
 ];
 
 const COMPOSITE_EV_REGEX = new RegExp(`^(?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
@@ -755,16 +770,13 @@ export class LogTracker {
             for (;;) {
                 const { done, value } = await reader.read();
                 const handleLine = (line: string) => {
-                    // cannot use fast parseTs here, because lines may be malformed or non-timestamped logs
+                    // cannot use fast parseTs here, because lines may be malformed due to file offset or non-timestamped logs
                     const ts = parseTsStrict(line);
                     if (tsFilter) {
                         if (ts) {
                             if (ts < tsFilter.lo) return true;
 
-                            if (ts > tsFilter.hi) {
-                                console.log(`ts > tsFilter.hi: ${ts} > ${tsFilter.hi} early exit, because: ${line}`, new Date(ts), progress.bytesRead);
-                                return false; // done, don't care about non-timestampd logs after this
-                            }
+                            if (ts > tsFilter.hi) return false; // done, don't care about non-timestampd logs after this
 
                             hadTsMatch = true;
                         } else if (!hadTsMatch) {
@@ -934,6 +946,12 @@ export class LogTracker {
                     const passiveCount = strPassive == 'a' ? 1 : parseInt(strPassive);
                     this.dispatchEvent(PassiveGainedEvent.of(ts, passiveCount));
                     break;
+                case EventCG.PassiveAllocated:
+                    this.dispatchEvent(PassiveAllocatedEvent.of(ts, m[offset], m[offset + 1]));
+                    break;
+                case EventCG.PassiveUnallocated:
+                    this.dispatchEvent(PassiveUnallocatedEvent.of(ts, m[offset], m[offset + 1]));
+                    break;
                 case EventCG.TradeAccepted:
                     this.dispatchEvent(TradeAcceptedEvent.of(ts));
                     break;
@@ -1053,6 +1071,7 @@ export class LogTracker {
     }
 
     informInteraction(ts: number): void {
+        // FIXME should also count during hideout to get more accurate campaign times (and hideout times)
         if (this.inMap()) {
             this.currentMap!.span.lastInteraction = ts;
         }

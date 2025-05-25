@@ -199,13 +199,22 @@ export class MapDetailComponent extends BaseComponent {
             const map = this.currentMap!;
             const listGroup = document.createElement('ul');
             listGroup.className = 'list-group font-monospace raw-log';
+            let pastMapEnd = false;
             for (let i = 0; i < this.logSearchResults.length; i++) {
                 const line = this.logSearchResults[i];
                 let className = 'list-group-item';
-                if (line.ts) {
-                    if ((map.span.end && line.ts > map.span.end) || line.ts < map.span.start) {
-                        className += ' bg-secondary bg-opacity-25';
+                let outOfMapBounds = pastMapEnd;
+                if (!outOfMapBounds && line.ts) {
+                    if (map.span.end && line.ts > map.span.end) {
+                        pastMapEnd = true;
+                        outOfMapBounds = true;
                     }
+                    if (line.ts < map.span.start) {
+                        outOfMapBounds = true;
+                    }
+                }
+                if (outOfMapBounds) {
+                    className += ' bg-secondary bg-opacity-25';
                 }
                 const listItem = createElementFromHTML(`
                     <li class="${className}">
@@ -238,7 +247,7 @@ export class MapDetailComponent extends BaseComponent {
         switch (meta) { 
             case eventMeta.death:
             case eventMeta.levelUp:
-                if (!this.data!.characterAggregation.characters.has(event.detail.character)) {
+                if (!this.data!.characterAggregation.isOwned(event.detail.character)) {
                     iconColorClass = "text-secondary";
                 }
                 break;
