@@ -1,6 +1,6 @@
 import { Filter } from '../log-tracker';
 import { BaseComponent } from './base-component';
-import { LevelUpEvent, SetCharacterEvent } from '../log-events';
+import { LevelUpEvent } from '../log-events';
 
 export class FilterComponent extends BaseComponent {
     private onFilterChange: (filter: Filter) => void;
@@ -219,11 +219,13 @@ export class FilterComponent extends BaseComponent {
         
         let lo = -Infinity, hi = Infinity;
         if (fromDateInput) {
-            lo = new Date(fromDateInput).getTime();
+            const fromDate = new Date(fromDateInput);
+            fromDate.setHours(0, 0, 0, 0);
+            lo = fromDate.getTime();
         }
         if (toDateInput) {
             const toDate = new Date(toDateInput);
-            toDate.setHours(23, 59, 59, 999); // Set to end of day
+            toDate.setHours(23, 59, 59, 999);
             hi = toDate.getTime();
         }
         if (lo !== -Infinity || hi !== Infinity) {

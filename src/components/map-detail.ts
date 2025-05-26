@@ -26,32 +26,23 @@ export class MapDetailComponent extends BaseComponent {
     }
 
     private createModalStructure(): void {
-        if (document.getElementById('mapInstanceDetailModal')) {
-            this.modalElement = document.getElementById('mapInstanceDetailModal');
-            this.modalTitleElement = this.modalElement!.querySelector('#mapInstanceDetailModalLabel');
-            this.modalBodyElement = this.modalElement!.querySelector('#mapInstanceDetailModalBody');
-            return;
-        }
-
         const modal = document.createElement('div');
-        modal.className = 'modal fade';
-        modal.id = 'mapInstanceDetailModal';
+        modal.className = 'modal fade map-detail-modal';
         modal.tabIndex = -1;
-        modal.setAttribute('aria-labelledby', 'mapInstanceDetailModalLabel');
         modal.setAttribute('aria-hidden', 'true');
 
         modal.innerHTML = `
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title" id="mapInstanceDetailModalLabel">Map Details</h5>
+                        <h5 class="modal-title map-detail-title">Map Details</h5>
                         <div class="form-check form-switch ms-auto">
                             <input class="form-check-input" type="checkbox" role="switch" id="timelineSwitch">
                             <label class="form-check-label" for="timelineSwitch">View Raw Log</label>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="modal-body" id="mapInstanceDetailModalBody"></div>
+                    <div class="modal-body map-detail-body"></div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
@@ -60,37 +51,35 @@ export class MapDetailComponent extends BaseComponent {
         `;
         document.body.appendChild(modal);
         this.modalElement = modal;
-        this.modalTitleElement = modal.querySelector('#mapInstanceDetailModalLabel');
-        this.modalBodyElement = modal.querySelector('#mapInstanceDetailModalBody');
+        this.modalTitleElement = modal.querySelector('.map-detail-title');
+        this.modalBodyElement = modal.querySelector('.map-detail-body');
         
         const timelineSwitch = modal.querySelector('#timelineSwitch') as HTMLInputElement;
-        if (timelineSwitch) {
-            timelineSwitch.addEventListener('change', (event) => {
-                const isChecked = (event.target as HTMLInputElement).checked;
-                if (isChecked) {
-                    this.showTimeline = false;
-                    if (!this.logSearchResults && this.currentMap) {
-                        const tsBounds = [{
-                            lo: this.currentMap.span.start - this.currentMap.span.loadTime - 1000 * 5,
-                            hi: (this.currentMap.span.end || Date.now()) + 1000 * 60 * 10
-                        }];
-                        logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, new Filter(tsBounds)).then(results => {
-                            this.logSearchResults = results.lines;
-                            this.showTimeline = false;
-                            const currentSwitchState = this.modalElement?.querySelector('#timelineSwitch') as HTMLInputElement;
-                            if (currentSwitchState) currentSwitchState.checked = true;
+        timelineSwitch.addEventListener('change', (event) => {
+            const isChecked = (event.target as HTMLInputElement).checked;
+            if (isChecked) {
+                this.showTimeline = false;
+                if (!this.logSearchResults && this.currentMap) {
+                    const tsBounds = [{
+                        lo: this.currentMap.span.start - this.currentMap.span.loadTime - 1000 * 5,
+                        hi: (this.currentMap.span.end || Date.now()) + 1000 * 60 * 10
+                    }];
+                    logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, new Filter(tsBounds)).then(results => {
+                        this.logSearchResults = results.lines;
+                        this.showTimeline = false;
+                        const currentSwitchState = this.modalElement?.querySelector('#timelineSwitch') as HTMLInputElement;
+                        if (currentSwitchState) currentSwitchState.checked = true;
 
-                            this.renderModalContent();
-                        });
-                    } else {
                         this.renderModalContent();
-                    }
+                    });
                 } else {
-                    this.showTimeline = true;
                     this.renderModalContent();
                 }
-            });
-        }
+            } else {
+                this.showTimeline = true;
+                this.renderModalContent();
+            }
+        });
     }
 
     public show(map: MapInstance, aggregation: LogAggregation): void {
@@ -132,13 +121,12 @@ export class MapDetailComponent extends BaseComponent {
         } else {
             this.renderLogSearchResults();
         }
-        this.setupModalFooter(); 
     }
 
     private renderTimelineContent(map: MapInstance, agg: LogAggregation): void {
         if (!this.modalBodyElement) return;
-        this.modalBodyElement.innerHTML = '';
 
+        this.modalBodyElement.innerHTML = '';
         const timelineContainer = document.createElement('div');
         timelineContainer.className = 'timeline-container';
 
@@ -158,7 +146,7 @@ export class MapDetailComponent extends BaseComponent {
 
             if (lo !== -1 && hi !== -1 && lo <= hi) {
                 const eventSlice = agg.events.slice(lo, hi + 1);
-                relevantEvents = eventSlice.length > 500 ? eventSlice.slice(0,500) : eventSlice;
+                relevantEvents = eventSlice.length > 500 ? eventSlice.slice(0, 500) : eventSlice;
                 if (eventSlice.length > 500) {
                     console.warn(`Timeline for map ${map.name} truncated to 500 events out of ${eventSlice.length}`);
                 }
@@ -230,11 +218,6 @@ export class MapDetailComponent extends BaseComponent {
             noResultsMessage.textContent = 'No log results to display or search not performed yet.';
             this.modalBodyElement.appendChild(noResultsMessage);
         }
-    }
-
-    private setupModalFooter() {
-        // No longer managing the "Explore Log Segment" button here.
-        // The "Close" button is handled by bootstrap attributes in the modal's HTML structure.
     }
 
     private formatEventToTimelineElement(event: LogEvent, map: MapInstance): HTMLElement | null {

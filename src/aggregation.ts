@@ -3,42 +3,42 @@ import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEve
 import { binarySearch, binarySearchFindLast, BinarySearchMode, binarySearchRange } from "./binary-search";
 
 export interface LogAggregation {
-    maps: MapInstance[];
-    events: LogEvent[];
-    messages: Map<string, AnyMsgEvent[]>;
+    readonly maps: MapInstance[];
+    readonly events: LogEvent[];
+    readonly messages: Map<string, AnyMsgEvent[]>;
     /**
      * total number of trades, includes both trades with NPCs and players
      */
-    totalTrades: number;
+    readonly totalTrades: number;
     /**
      * total number of items bought from players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
      */
-    totalItemsBought: number;   
+    readonly totalItemsBought: number;   
     /**
      * total number of items sold to players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
      */
-    totalItemsSold: number;
+    readonly totalItemsSold: number;
     /**
      * total number of buys attempted from players. based on whispers sent
      */
-    totalBuysAttempted: number;
+    readonly totalBuysAttempted: number;
     /**
      * total number of sales attempted to players. based on whispers received
      */
-    totalSalesAttempted: number;
-    totalDeaths: number;
-    totalWitnessedDeaths: number;
-    totalMapTime: number;
-    totalLoadTime: number;
-    totalHideoutTime: number;
-    totalBossKills: number;
-    totalSessions: number;
-    characterAggregation: CharacterAggregation;
+    readonly totalSalesAttempted: number;
+    readonly totalDeaths: number;
+    readonly totalWitnessedDeaths: number;
+    readonly totalMapTime: number;
+    readonly totalLoadTime: number;
+    readonly totalHideoutTime: number;
+    readonly totalBossKills: number;
+    readonly totalSessions: number;
+    readonly characterAggregation: CharacterAggregation;
 }
 
 export class CharacterAggregation {
-    characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>;
-    characterTsIndex: AnyCharacterEvent[];
+    readonly characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>;
+    readonly characterTsIndex: AnyCharacterEvent[];
 
     constructor(characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>, characterTsIndex: AnyCharacterEvent[]) {
         this.characterLevelIndex = characterLevelIndex;
@@ -83,8 +83,12 @@ export class CharacterAggregation {
             const segmentation: Segmentation = [];
             for (const levelIndex of this.characterLevelIndex.values()) {
                 const {loIx, hiIx} = binarySearchRange(levelIndex, levelFrom, levelTo, (e) => e.detail.level);
-                if (loIx !== -1 && hiIx !== -1) {
-                    segmentation.push({lo: levelIndex[loIx].ts, hi: levelIndex[hiIx].ts});
+                if (loIx !== -1 && loIx === hiIx) {
+                    segmentation.push({lo: levelIndex[loIx].ts, hi: levelIndex[loIx].ts});
+                } else {
+                    for (let i = loIx; i < hiIx - 1; i++) {
+                        segmentation.push({lo: levelIndex[i].ts, hi: levelIndex[i + 1].ts});
+                    }
                 }
             }
             segmentation.sort((a, b) => a.lo - b.lo);
@@ -103,19 +107,25 @@ const maxSaleOffsetMillis = 1000 * 60 * 10;
 
 export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
     const then = performance.now();
-    filter = reassembleFilter(filter, prevAgg);
-    maps = Filter.filterMaps(maps, filter);
-    events = Filter.filterEvents(events, filter);
-    const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
-    const agg = aggregate0(maps, events, filter, characterAggregation);
-    if (prevAgg) {
-        agg.characterAggregation = prevAgg.characterAggregation;
+    try {
+        filter = reassembleFilter(filter, prevAgg);
+        maps = Filter.filterMaps(maps, filter);
+        events = Filter.filterEvents(events, filter);
+        const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+        const agg = aggregate0(maps, events, filter, characterAggregation);
+        if (prevAgg) {
+            return {
+                ...agg,
+                characterAggregation: prevAgg.characterAggregation
+            };
+        }
+        return agg;
+    } finally {
+        const took = performance.now() - then;
+        if (took > 20) {
+            console.warn("aggregate took ", took, "ms");
+        }
     }
-    const took = performance.now() - then;
-    if (took > 20) {
-        console.warn("aggregate took ", took, "ms");
-    }
-    return agg;
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
@@ -123,7 +133,6 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
   
     const segmentations: Segmentation[] = [];
     segmentations.push(prevAgg.characterAggregation.guessSegmentation(filter.fromCharacterLevel, filter.toCharacterLevel, filter.character));
-  
     if (filter.tsBounds && filter.tsBounds.length) {
         segmentations.push(filter.tsBounds);
     }
@@ -293,7 +302,7 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
     const characterTsIndex: AnyCharacterEvent[] = [];
     const expandCharacterRanges = (ts: number, character: string, level: number, eventLoopIndex: number) => {
         /*
-            expands the supplied character's adjacent character level range by appending a setCharacter event to both
+            expands the supplied and prior's character's adjacent character level range by appending a setCharacter event to both
         */
         for (let i = characterTsIndex.length - 1; i >= 0; i--) {
             const prev = characterTsIndex[i];
@@ -306,6 +315,10 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
                 continue;
             }
             const levelLikePrev = index[index.length - 1];
+            if (!levelLikePrev) {
+                // not sure how this corner-case is possible, but it is (at least for PoE 1 logs)
+                break;
+            }
             // backtrack to ANY prior event. if we take ts both character would share an event / map (WRONG!)
             const prevTs = binarySearchFindLast(events, (e) => e.ts < ts, 0, eventLoopIndex - 1)?.ts;
             if (!prevTs) {
@@ -334,7 +347,8 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
                 ts = event.ts - 1;
             }
             if (characterLevelIndex.has(character)) {
-                throw new Error("illegal state: character level index already has character " + character);
+                // FIXME handle character name reuse, maybe with an alias
+                console.warn("duplicate characters not supported yet, discarding prior character data", character);
             }
             const index: (LevelUpEvent|SetCharacterEvent)[] = [];
             characterLevelIndex.set(character, index);
@@ -427,7 +441,8 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
         for (let i = 0; i < levelIndex.length - 1; i++) {
             const level = levelIndex[i].detail.level, nextLevel = levelIndex[i + 1].detail.level;
             if (level > nextLevel) {
-                throw new Error(`character index is not contiguous: ${level} > ${nextLevel} (${levelIndex[i].detail.character})`);
+                console.log(levelIndex);
+                throw new Error(`character index[${i}] is not contiguous: ${level} > ${nextLevel} (${levelIndex[i].detail.character})`);
             }
         }
     }

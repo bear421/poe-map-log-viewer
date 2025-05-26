@@ -205,7 +205,7 @@ class MapSpan {
     }
 }
 
-enum AreaType {
+export enum AreaType {
     Map,
     Hideout,
     Campaign,

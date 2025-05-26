@@ -1,10 +1,10 @@
 import { MapInstance, MapSpan } from '../log-tracker';
 import { BaseComponent } from './base-component';
-import { binarySearch, BinarySearchMode, binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, LevelUpEvent, EventName, LogEvent } from '../log-events';
+import { binarySearchRange } from '../binary-search';
+import { eventMeta, getEventMeta, EventName, LogEvent } from '../log-events';
 import { MapDetailComponent } from './map-detail';
 import { getZoneInfo } from '../data/zone_table';
-import { createElementFromHTML } from '../util';
+import { createElementFromHTML, DynamicTooltip } from '../util';
 
 declare var Popper: any;
 
@@ -42,9 +42,7 @@ export class JourneyComponent extends BaseComponent {
 
     private currentActIndex: number = 0;
     private mapDetailModal: MapDetailComponent;
-    private tooltipElement: HTMLElement | null = null;
-    private popperInstance: any | null = null;
-    private popperTarget: HTMLElement | null = null;
+    private tooltip: DynamicTooltip = new DynamicTooltip(`<span class="event-offset"></span> <span class="event-label"></span>`);
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
@@ -125,21 +123,21 @@ export class JourneyComponent extends BaseComponent {
             return;
         }
 
-        const table = document.createElement('table');
-        table.className = 'table table-sm table-striped table-fixed caption-top journey-campaign-table';
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th class="th-area">Area</th>
-                    <th class="th-events">Events</th>
-                    <th class="th-time-spent">Time Spent</th>
-                    <th class="th-entered-at">Entered At</th>
-                    <th class="th-area-level">Area Level</th>
-                    <th class="th-char-level">Char Level</th>
-                </tr>
-            </thead>
-            <tbody class="align-middle"></tbody>
-        `;
+        const table = createElementFromHTML(`
+            <table class="table table-sm table-striped table-fixed caption-top journey-campaign-table">
+                <thead>
+                    <tr>
+                        <th class="th-area">Area</th>
+                        <th class="th-events">Events</th>
+                        <th class="th-time-spent">Time</th>
+                        <th class="th-entered-at">Entered At</th>
+                        <th class="th-area-level">Area Lvl</th>
+                        <th class="th-char-level">Char Lvl</th>
+                    </tr>
+                </thead>
+                <tbody class="align-middle"></tbody>
+            </table>
+        `);
 
         const tbody = table.querySelector('tbody') as HTMLTableSectionElement;
         for (let i = 0; i < actData.maps.length; i++) {
@@ -152,7 +150,6 @@ export class JourneyComponent extends BaseComponent {
             const mapNameLink = document.createElement('a');
             mapNameLink.href = '#';
             mapNameLink.textContent = MapInstance.label(map);
-            mapNameLink.title = 'Click to see map timeline';
             mapNameLink.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.mapDetailModal.show(map, this.data!);
@@ -210,85 +207,23 @@ export class JourneyComponent extends BaseComponent {
                     }
                     break;
             }
-            eventsHTML += `<i class='bi ${meta.icon} ${iconColorClass}' data-event-ix='${events.length - 1}'></i> `;
+            eventsHTML += `<i class='bi ${meta.icon} ${iconColorClass}' data-e-ix='${events.length - 1}'></i> `;
         }
         cell.innerHTML = eventsHTML;
-
-        cell.addEventListener('mouseover', (e) => {
+        this.tooltip.hook(cell, (inner, e) => {
             const targetElement = e.target as HTMLElement;
             if (targetElement.tagName !== 'I') return;
 
-            const eventIxStr = targetElement.dataset.eventIx;
-            if (eventIxStr) {
-                const event = events[parseInt(eventIxStr)];
-                if (!event) return;
+            const eventIxStr = targetElement.dataset.eIx;
+            if (!eventIxStr) return;
 
-                const tooltipElement = this.ensureTooltipElement();
-                const offsetDuration = this.formatDuration(event.ts - map.span.start);
-                const tooltipInner = tooltipElement.querySelector('.tooltip-inner') as HTMLElement;
-                tooltipInner.querySelector('.event-offset')!.textContent = offsetDuration;
-                tooltipInner.querySelector('.event-label')!.textContent = getEventMeta(event).label(event as any);
-                this.popperTarget = targetElement;
+            const event = events[parseInt(eventIxStr)];
+            if (!event) return;
 
-                if (!this.popperInstance) {
-                    const virtualRef = {
-                        getBoundingClientRect: () => this.popperTarget!.getBoundingClientRect()
-                    };
-                    this.popperInstance = Popper.createPopper(virtualRef, tooltipElement, {
-                        placement: 'top',
-                        modifiers: [
-                            {
-                                name: 'offset',
-                                options: {
-                                    offset: [0, 8],
-                                },
-                            },
-                            {
-                                name: 'arrow', 
-                                options: {
-                                    element: tooltipElement.querySelector('.tooltip-arrow'),
-                                    padding: 4,
-                                }
-                            },
-                            {
-                                name: 'preventOverflow',
-                                options: { padding: 8 },
-                            },
-                            {
-                                name: 'flip',
-                                options: { fallbackPlacements: ['bottom', 'left', 'right'] },
-                            }
-                        ],
-                    });
-                } else {
-                    this.popperInstance.update();
-                }
-                tooltipElement.classList.add('show');
-            }
+            inner.querySelector('.event-offset')!.textContent = this.formatDuration(event.ts - map.span.start);
+            inner.querySelector('.event-label')!.textContent = getEventMeta(event).label(event as any);
+            return targetElement;
         });
-
-        cell.addEventListener('mouseout', (e) => {
-            const targetElement = e.target as HTMLElement;
-            if (targetElement.tagName !== 'I') return;
-
-            this.tooltipElement!.classList.remove('show');
-        });
-    }
-
-    private ensureTooltipElement(): HTMLElement {
-        if (!this.tooltipElement) {
-            this.tooltipElement = createElementFromHTML(`
-                <div class="tooltip journey-event-tooltip bs-tooltip-auto fade hide" role="tooltip">
-                    <div class="tooltip-arrow"></div>
-                    <div class="tooltip-inner">
-                        <span class="event-offset text-light"></span>
-                        <span class="event-label"></span>
-                    </div>
-                </div>
-            `);
-            document.body.appendChild(this.tooltipElement);
-        }
-        return this.tooltipElement;
     }
 
     private formatDuration(ms: number): string {

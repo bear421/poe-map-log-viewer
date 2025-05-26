@@ -227,9 +227,7 @@ body {
 .journey-campaign-table .th-area {
     width: 22%;
 }
-.journey-campaign-table .th-events {
-    width: 39%;
-}
+.journey-campaign-table .th-events {}
 
 .journey-campaign-table .th-entered-at {
     width: 15%;
