@@ -73,7 +73,7 @@ export class FileSelectorComponent {
         this.element.appendChild(this.inputGroupElement);
 
         this.pathHelperCardElement = document.createElement('div');
-        this.pathHelperCardElement.className = 'card mb-4';
+        this.pathHelperCardElement.className = 'card';
         
         const cardHeader = document.createElement('div');
         cardHeader.className = 'card-header';

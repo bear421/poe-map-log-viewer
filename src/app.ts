@@ -56,14 +56,8 @@ export class App {
 
     private setupElements() {
         const container = document.createElement('div');
-        container.className = 'container py-2 flex-grow-1 bg-white';
-        const gradientSpaceLeft = document.createElement('div');
-        gradientSpaceLeft.className = 'gradient-space-left';
-        document.body.appendChild(gradientSpaceLeft);
+        container.className = 'container py-2 rounded-4 bg-white';
         document.body.appendChild(container);
-        const gradientSpaceRight = document.createElement('div');
-        gradientSpaceRight.className = 'gradient-space-right';
-        document.body.appendChild(gradientSpaceRight);
 
         const faviconLink = document.createElement('link');
         faviconLink.rel = 'icon';
@@ -238,7 +232,7 @@ export class App {
 
         const importJsonInput = document.createElement('input');
         importJsonInput.type = 'file';
-        importJsonInput.accept = '.json,application/json';
+        importJsonInput.accept = '.mlv';
         importJsonInput.style.display = 'none';
         importJsonInput.id = 'import-json-input';
         container.appendChild(importJsonInput);
@@ -447,67 +441,76 @@ export class App {
         this.mascot?.setVisible(true);
     }
 
-    private exportJsonData() {
+    private async exportJsonData() {
         if (!this.currentAggregation) {
             this.showError('No data available to download.');
             return;
         }
-        const jsonData = JSON.stringify(this.currentAggregation, null, 2);
-        const blob = new Blob([jsonData], { type: 'application/json' });
+        const data = { "maps": this.currentAggregation.maps, "events": this.currentAggregation.events };
+        const jsonData = JSON.stringify(data, null, 2);
+        const stream = new Blob([jsonData], { type: 'application/json' }).stream();
+        const compressedStream = stream.pipeThrough(new CompressionStream('gzip'));
+        const blob = await new Response(compressedStream).blob();
+
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'poe_map_log_data.json';
+        a.download = 'poe_map_log_data.mlv';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    private handleImportJson(file: File) {
+    private async handleImportJson(file: File) {
         if (!file) {
-            this.showError('Please select a JSON file to import.');
+            this.mascot.speak('Please select a file to import.', ['border-danger'], 30_000);
             return;
         }
 
-        this.showProgress();
-
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const content = e.target?.result as string;
-                if (!content) {
-                    throw new Error("File content is empty.");
+        this.showProgress("Importing Data...");
+        try {
+            const fileStream = file.stream();
+            const decompressedStream = fileStream.pipeThrough(new DecompressionStream('gzip'));
+            const reader = decompressedStream.getReader();
+            let result = '';
+            let done = false;
+            const decoder = new TextDecoder();
+            while (!done) {
+                const { value, done: readerDone } = await reader.read();
+                if (readerDone) {
+                    done = true;
+                    break;
                 }
-                const data: LogAggregation = JSON.parse(content);
+                result += decoder.decode(value, { stream: true });
+            }
+            result += decoder.decode(); // append tail
 
-                if (data) {
-                    this.hideProgress();
-                    const overviewTabButton = document.getElementById('overview-tab');
-                    if (overviewTabButton) {
-                        bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
-                    }
-                    this.handleData(data.maps, data.events);
-                    this.selectedFile = null;
-                } else {
-                    this.mascot.speak('Invalid JSON format. Expected "maps" and "events" arrays.', ['border-danger'], 30_000);
-                    console.error("Invalid JSON format. Expected 'maps' and 'events' arrays.");
+            if (!result) throw new Error("File content is empty or could not be decompressed.");
+
+            const data: LogAggregation = JSON.parse(result);
+
+            if (data && data.maps && data.events) {
+                this.hideProgress();
+                const overviewTabButton = document.getElementById('overview-tab');
+                if (overviewTabButton) {
+                    bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
                 }
-            } catch (error: any) {
-                this.mascot.speak(error.message, ['border-danger'], 30_000);
-                console.error(error);
+                this.handleData(data.maps, data.events);
+                this.selectedFile = null;
+            } else {
+                this.mascot.speak('Invalid JSON format. Expected "maps" and "events" arrays.', ['border-danger'], 30_000);
+                console.error("Invalid JSON format. Expected 'maps' and 'events' arrays.");
                 this.hideProgress();
                 this.fileSelectorComponent.show();
             }
-        };
-        reader.onerror = (error) => {
-            console.error("Error reading file:", error);
-            this.showError('Error reading the selected file.');
+        } catch (error: any) {
+            this.mascot.speak(error.message || 'Failed to import file.', ['border-danger'], 30_000);
+            console.error("Error processing imported file:", error);
+            this.showError(error.message || 'Error processing the selected file.');
             this.hideProgress();
             this.fileSelectorComponent.show();
-        };
-
-        reader.readAsText(file);
+        }
     }
 
     private updateProgressBar(bytesRead: number, totalBytes: number) {

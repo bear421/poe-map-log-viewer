@@ -27,7 +27,8 @@ import {
     MapCompletedEvent,
     XPSnapshotEvent,
     PassiveUnallocatedEvent,
-    PassiveAllocatedEvent
+    PassiveAllocatedEvent,
+    BonusGainedEvent
 } from "./log-events";
 
 class AreaInfo {
@@ -234,7 +235,9 @@ class MapInstance {
     xpGained: number;
     xph: number;
     waystone: any | null;
+    areaType: AreaType;
     hasBoss: boolean;
+    isUnique: boolean;
     state: MapState;
 
     constructor(
@@ -267,7 +270,37 @@ class MapInstance {
         this.xpGained = xpGained;
         this.xph = xph;
         this.waystone = waystone;
-        this.hasBoss = !this.name.toLowerCase().endsWith("noboss") || this.name.toLowerCase().startsWith("uberboss");
+        const towerMaps = [
+            "maplosttowers",
+            "mapmesa",
+            "mapalpineridge",
+            "mapbluff",
+            "mapswamptower"
+        ];
+        const lowerName = name.toLowerCase();
+        if (seed > 1) {
+            if (towerMaps.includes(lowerName)) {
+                this.areaType = AreaType.Tower;
+            } else if (lowerName.startsWith("map")) {
+                this.areaType = AreaType.Map;
+            } else if (lowerName.startsWith("sanctum")) {
+                this.areaType = AreaType.Sanctum;
+            } else if (lowerName.startsWith("expeditionlogbook")) {
+                this.areaType = AreaType.Logbook;
+            } else if (MAP_NAME_CAMPAIGN.test(lowerName)) {
+                this.areaType = AreaType.Campaign;
+            } else {
+                this.areaType = AreaType.Unknown;
+            }
+        } else {
+            if (MAP_NAME_TOWN.test(name)) {
+                this.areaType = AreaType.Town;
+            } else {
+                this.areaType = AreaType.Hideout;
+            }
+        }
+        this.hasBoss = this.areaType === AreaType.Map && !lowerName.endsWith("noboss") && !lowerName.endsWith("_claimable");
+        this.isUnique = lowerName.startsWith("mapunique");
         this.state = MapState.LOADING;
     }
 
@@ -323,14 +356,13 @@ class MapInstance {
     }
     
     static label(map: MapInstance): string {
-        const areaType = MapInstance.areaType(map);
-        switch (areaType) {
+        switch (map.areaType) {
             case AreaType.Campaign:
                 return getZoneInfo(map.name, map.areaLevel)?.label ?? "Campaign " + map.name;
             case AreaType.Town:
                 return getZoneInfo(map.name, map.areaLevel)?.label ?? "Town " + map.name;
         }
-        const name = map.name.replace(/^Map/, '');
+        const name = map.name.replace(/(^MapUnique)|(^Map)|(_NoBoss$)/gi, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
         return words.join(' ');
     }
@@ -434,7 +466,7 @@ export namespace Segmentation {
             if (rangeA.hi > rangeB.hi) {
                 res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
                 if (++iB >= b.length) break;
-            } else if (rangeB.hi < rangeA.hi) {
+            } else if (rangeA.hi < rangeB.hi) {
                 res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
                 if (++iA >= a.length) break;
             } else {
@@ -624,6 +656,7 @@ enum EventCG {
  * PassiveGained      : You have received a Passive Skill Point.
  * BonusGained        : You have received +10% to [Resistances|Cold Resistance].
  * BonusGained        : You have received +30 to [Spirit|Spirit].
+ * BonusGained        : Player1 have received +30 to [Spirit|Spirit].
  * BonusGained        : You have received +20 to maximum Life.
  * BonusGained        : You have received +10% to [Resistances|Lightning Resistance].
  * BonusGained        : You have received +10% to [Resistances|Fire Resistance].
@@ -639,6 +672,7 @@ enum EventCG {
 
 // if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
 // very important to fail fast on those patterns, e.g. avoid starting off with wildcard matches
+// optional capturing groups BEFORE the named capturing group are not supported within the composite regex
 const EVENT_PATTERNS = [
     `@From (?<g${EventCG.MsgFrom}>[^ ]+): (.*)`,
     `@To (?<g${EventCG.MsgTo}>[^ ]+): (.*)`,
@@ -650,7 +684,8 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
     `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
     `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
-    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?Passive Skill Points`, // weapon set passives are redundant with normal ones
+    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?(Weapon Set )?Passive Skill Points`, 
+    `: ((?:You)|(?:[^ ]+?)) have received (?<g${EventCG.BonusGained}>.+)`, // 2024 legacy format and new format
     `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
     `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)`,
     `Successfully allocated passive skill id: (?<g${EventCG.PassiveAllocated}>[^ ]+), name: (.+)`,
@@ -944,13 +979,19 @@ export class LogTracker {
                 case EventCG.PassiveGained:
                     const strPassive = m[offset];
                     const passiveCount = strPassive == 'a' ? 1 : parseInt(strPassive);
-                    this.dispatchEvent(PassiveGainedEvent.of(ts, passiveCount));
+                    const isWeaponSet = m[offset + 1] === 'Weapon Set';
+                    if (!isWeaponSet) { // redundant (aligned) with normal passive gained events
+                        this.dispatchEvent(PassiveGainedEvent.of(ts, passiveCount));
+                    }
                     break;
                 case EventCG.PassiveAllocated:
                     this.dispatchEvent(PassiveAllocatedEvent.of(ts, m[offset], m[offset + 1]));
                     break;
                 case EventCG.PassiveUnallocated:
                     this.dispatchEvent(PassiveUnallocatedEvent.of(ts, m[offset], m[offset + 1]));
+                    break;
+                case EventCG.BonusGained:
+                    this.dispatchEvent(BonusGainedEvent.of(ts, m[offset + 1], m[offset]));
                     break;
                 case EventCG.TradeAccepted:
                     this.dispatchEvent(TradeAcceptedEvent.of(ts));

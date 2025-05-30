@@ -64,7 +64,10 @@ export class OverviewComponent extends BaseComponent {
                         <dl class="row mb-0 fs-5">
                             <dt class="col-9"><i class="bi bi-globe me-2"></i>Maps</dt>
                             <dd class="col-3 text-end">${agg.maps.length}</dd>
-                            
+
+                            <dt class="col-9"><i class="bi bi-gem text-unique me-2"></i>Unique maps</dt>
+                            <dd class="col-3 text-end">${agg.mapsUnique.length}</dd>
+
                             <dt class="col-9"><i class="bi bi-power me-2"></i>Sessions</dt>
                             <dd class="col-3 text-end">${agg.totalSessions}</dd>
                             
@@ -74,7 +77,7 @@ export class OverviewComponent extends BaseComponent {
                             <dt class="col-9"><i class="bi bi-clock me-2"></i>Map time</dt>
                             <dd class="col-3 text-end">${(agg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h</dd>
 
-                            <dt class="col-9"><i class="bi bi-house-fill me-2"></i>Hideout time</dt>
+                            <dt class="col-9"><i class="bi bi-house-fill text-primary me-2"></i>Hideout time</dt>
                             <dd class="col-3 text-end">${(agg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h</dd>
 
                             <dt class="col-9"><i class="bi bi-stopwatch me-2"></i>Load time</dt>
@@ -130,9 +133,9 @@ export class OverviewComponent extends BaseComponent {
                             medianIdleTime / 1000    // seconds
                         ],
                         backgroundColor: [
-                            '#36A2EB', // Blue
-                            '#FF6384', // Red
-                            '#FFCE56'  // Yellow
+                            '#198754', // success
+                            '#212529', // dark
+                            '#0d6efd'  // primary
                         ]
                     }]
                 },

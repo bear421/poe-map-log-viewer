@@ -15,7 +15,7 @@ export class MapStatsComponent extends BaseComponent {
     protected render(): void {
         this.element.innerHTML = '';
         const agg = this.data!;
-        const maps = agg.maps.filter(map => MapInstance.areaType(map) !== AreaType.Campaign);
+        const maps = agg.maps.filter(map => map.areaType !== AreaType.Campaign);
         const mapStats = new Map<string, {
             label: string,
             count: number,

@@ -9,9 +9,7 @@ export function binarySearchFindFirst<T>(array: T[], predicate: (element: T) => 
 
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        const isTrue = predicate(array[mid]);
-        
-        if (isTrue) {
+        if (predicate(array[mid])) {
             // Found a match, store it and continue searching left
             result = array[mid];
             right = mid - 1;
@@ -29,9 +27,7 @@ export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => b
 
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
-        const isTrue = predicate(array[mid]);
-        
-        if (isTrue) {
+        if (predicate(array[mid])) {
             // Found a match, store it and continue searching right
             result = array[mid];
             left = mid + 1;

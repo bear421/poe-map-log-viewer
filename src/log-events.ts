@@ -67,7 +67,7 @@ export namespace JoinedAreaEvent {
         return { name: "joinedArea", ts, detail: { character } };
     }
     export const icon = 'bi-person-fill-add';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: JoinedAreaEvent): string {
         return `${event.detail.character} joined`;
     }
@@ -81,7 +81,7 @@ export namespace LeftAreaEvent {
         return { name: "leftArea", ts, detail: { character } };
     }
     export const icon = 'bi-person-fill-dash';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: LeftAreaEvent): string {
         return `${event.detail.character} left`;
     }
@@ -102,7 +102,7 @@ export namespace LevelUpEvent {
     export const icon = 'bi-arrow-up-square-fill';
     export const color = 'text-success';
     export function label(event: LevelUpEvent): string {
-        return `${event.detail.character} has reached level ${event.detail.level}`;
+        return `${event.detail.character} is now level ${event.detail.level}`;
     }
 }
 
@@ -141,7 +141,7 @@ export namespace MsgFromEvent {
         return { name: "msgFrom", ts, detail: { character, msg } };
     }
     export const icon = 'bi-chat-fill';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: MsgFromEvent): string {
         return `From @${event.detail.character}: ${event.detail.msg}`;
     }
@@ -155,7 +155,7 @@ export namespace MsgToEvent {
         return { name: "msgTo", ts, detail: { character, msg } };
     }
     export const icon = 'bi-chat-fill';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: MsgToEvent): string {
         return `To @${event.detail.character}: ${event.detail.msg}`;
     }
@@ -169,7 +169,7 @@ export namespace MsgPartyEvent {
         return { name: "msgParty", ts, detail: { character, msg } };
     }
     export const icon = 'bi-chat-fill';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: MsgPartyEvent): string {
         return `%${event.detail.character}: ${event.detail.msg}`;
     }
@@ -183,7 +183,7 @@ export namespace MsgGuildEvent {
         return { name: "msgGuild", ts, detail: { character, msg } };
     }
     export const icon = 'bi-chat-fill';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: MsgGuildEvent): string {
         return `&${event.detail.character}: ${event.detail.msg}`;
     }
@@ -197,7 +197,7 @@ export namespace MsgLocalEvent {
         return { name: "msgLocal", ts, detail: { character, msg } };
     }
     export const icon = 'bi-chat-fill';
-    export const color = 'text-primary';
+    export const color = 'text-secondary';
     export function label(event: MsgLocalEvent): string {
         return `${event.detail.character}: ${event.detail.msg}`;
     }
@@ -255,6 +255,25 @@ export namespace PassiveAllocatedEvent {
     export function label(event: PassiveAllocatedEvent): string {
         // TODO integrate with passive tree data
         return `Passive skill ${event.detail.name} allocated`;
+    }
+}
+
+export interface BonusGainedEvent extends LogEventBase {
+    name: "bonusGained";
+    detail: {
+        character?: string;
+        bonus: string;
+    };
+}
+export namespace BonusGainedEvent {
+    export function of(ts: number, bonus: string, character?: string): BonusGainedEvent {
+        const effectiveCharacter = character === 'You' ? undefined : character;
+        return { name: "bonusGained", ts, detail: { character: effectiveCharacter, bonus } };
+    }
+    export const icon = 'bi-patch-plus-fill';
+    export const color = 'text-success';
+    export function label(event: BonusGainedEvent): string {
+        return `${event.detail.character ?? "You"} received ${event.detail.bonus}`;
     }
 }
 
@@ -321,7 +340,11 @@ export namespace HideoutEnteredEvent {
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
     export function label(event: HideoutEnteredEvent): string {
-        return `Hideout entered: ${getZoneInfo(event.detail.areaName)?.label ?? event.detail.areaName}`;
+        if (event.detail.areaName.startsWith("Hideout")) {
+            return `Hideout entered: ${getZoneInfo(event.detail.areaName)?.label ?? event.detail.areaName.replace(/^Hideout/, "")}`;
+        } else {
+            return `Town entered: ${getZoneInfo(event.detail.areaName)?.label ?? event.detail.areaName}`;
+        }
     }
 }
 
@@ -421,6 +444,7 @@ export const eventMeta = {
     passiveGained: PassiveGainedEvent,
     passiveAllocated: PassiveAllocatedEvent,
     passiveUnallocated: PassiveUnallocatedEvent,
+    bonusGained: BonusGainedEvent,
     tradeAccepted: TradeAcceptedEvent,
     itemsIdentified: ItemsIdentifiedEvent,
     hideoutEntered: HideoutEnteredEvent,

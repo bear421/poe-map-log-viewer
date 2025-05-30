@@ -75,7 +75,7 @@ export class MapListComponent extends BaseComponent {
             row.insertCell().textContent = mapTimeFormatted;
             row.insertCell().textContent = new Date(map.span.start).toLocaleString();
             row.insertCell().textContent = map.areaLevel.toString();
-            row.insertCell().textContent = this.data!.characterAggregation.guessLevelEvent(map.span.start)?.detail.level.toString() || '?';
+            row.insertCell().textContent = this.data!.characterAggregation.guessLevel(map.span.start).toString();
         }
 
         this.element.innerHTML = '';

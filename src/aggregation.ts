@@ -2,38 +2,54 @@ import { Filter, MapInstance, MapSpan, Segmentation } from "./log-tracker";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./log-events";
 import { binarySearch, binarySearchFindLast, BinarySearchMode, binarySearchRange } from "./binary-search";
 
-export interface LogAggregation {
-    readonly maps: MapInstance[];
-    readonly events: LogEvent[];
-    readonly messages: Map<string, AnyMsgEvent[]>;
+
+export type LogAggregation = Readonly<MutableLogAggregation>;
+
+export interface MutableLogAggregation {
+    /**
+     * all maps, including unique and campaign
+     */
+    maps: MapInstance[];
+    /**
+     * all events
+     */
+    events: LogEvent[];
+    /**
+     * all messages
+     */
+    messages: Map<string, AnyMsgEvent[]>;
+    /**
+     * all unique maps
+     */
+    mapsUnique: MapInstance[];
     /**
      * total number of trades, includes both trades with NPCs and players
      */
-    readonly totalTrades: number;
+    totalTrades: number;
     /**
      * total number of items bought from players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
      */
-    readonly totalItemsBought: number;   
+    totalItemsBought: number;   
     /**
      * total number of items sold to players, highly inaccurate because there's no disambiguation between NPC/player tradeAccepted events
      */
-    readonly totalItemsSold: number;
+    totalItemsSold: number;
     /**
      * total number of buys attempted from players. based on whispers sent
      */
-    readonly totalBuysAttempted: number;
+    totalBuysAttempted: number;
     /**
      * total number of sales attempted to players. based on whispers received
      */
-    readonly totalSalesAttempted: number;
-    readonly totalDeaths: number;
-    readonly totalWitnessedDeaths: number;
-    readonly totalMapTime: number;
-    readonly totalLoadTime: number;
-    readonly totalHideoutTime: number;
-    readonly totalBossKills: number;
-    readonly totalSessions: number;
-    readonly characterAggregation: CharacterAggregation;
+    totalSalesAttempted: number;
+    totalDeaths: number;
+    totalWitnessedDeaths: number;
+    totalMapTime: number;
+    totalLoadTime: number;
+    totalHideoutTime: number;
+    totalBossKills: number;
+    totalSessions: number;
+    characterAggregation: CharacterAggregation;
 }
 
 export class CharacterAggregation {
@@ -52,20 +68,38 @@ export class CharacterAggregation {
         return this.characterLevelIndex.has(character);
     }
 
-    guessLevelEvent(ts: number): LevelUpEvent | SetCharacterEvent | null {
+    /**
+     * @returns the level of the character that was likely active at the specified timestamp
+     */
+    guessLevel(ts: number): number {
+        const levelEvent = this.guessLevelEvent(ts);
+        if (!levelEvent) return 1;
+
+        return levelEvent.detail.level;
+    }
+
+    /**
+     * @returns the levelUp event or setCharacter event that occurred at or before the specified timestamp
+     */
+    guessLevelEvent(ts: number): LevelUpEvent | SetCharacterEvent | undefined {
         const anyEvent = this.guessAnyEvent(ts);
-        if (!anyEvent) return null;
+        if (!anyEvent) return undefined;
 
         const levelIndex = this.characterLevelIndex.get(anyEvent.detail.character);
         if (!levelIndex) throw new Error("illegal state: no level index found for character " + anyEvent.detail.character);
 
-        const ix = binarySearch(levelIndex, ts, (e) => e.ts, BinarySearchMode.FIRST);
-        return ix === -1 ? null : levelIndex[ix];
+        const k = binarySearchFindLast(levelIndex, (e) => e.ts <= ts);
+        if (!k) {
+            console.log("why?", ts, anyEvent);
+        }
+        return k;
     }
 
-    guessAnyEvent(ts: number): AnyCharacterEvent | null {
-        const ix = binarySearch(this.characterTsIndex, ts, (e) => e.ts, BinarySearchMode.FIRST)
-        return ix === -1 ? null : this.characterTsIndex[ix];
+    /**
+     * @returns any character event before or at the specified timestamp, i.e. the character that was likely active at the specified timestamp
+     */
+    guessAnyEvent(ts: number): AnyCharacterEvent | undefined {
+        return binarySearchFindLast(this.characterTsIndex, (e) => e.ts <= ts);
     }
 
     guessSegmentation(levelFrom?: number, levelTo?: number, character?: string): Segmentation {
@@ -79,7 +113,7 @@ export class CharacterAggregation {
                 segmentation.push({lo: levelIndex[i].ts, hi: levelIndex[i + 1].ts});
             }
             return segmentation.length > 0 ? segmentation : [{lo: levelIndex[loIx].ts, hi: levelIndex[hiIx].ts}];
-        } else {
+        } else if (levelFrom || levelTo) {
             const segmentation: Segmentation = [];
             for (const levelIndex of this.characterLevelIndex.values()) {
                 const {loIx, hiIx} = binarySearchRange(levelIndex, levelFrom, levelTo, (e) => e.detail.level);
@@ -94,6 +128,7 @@ export class CharacterAggregation {
             segmentation.sort((a, b) => a.lo - b.lo);
             return Segmentation.mergeContiguous(segmentation);
         }
+        return [];
     }
 }
 
@@ -107,32 +142,40 @@ const maxSaleOffsetMillis = 1000 * 60 * 10;
 
 export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
     const then = performance.now();
-    try {
-        filter = reassembleFilter(filter, prevAgg);
-        maps = Filter.filterMaps(maps, filter);
-        events = Filter.filterEvents(events, filter);
-        const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
-        const agg = aggregate0(maps, events, filter, characterAggregation);
-        if (prevAgg) {
-            return {
-                ...agg,
-                characterAggregation: prevAgg.characterAggregation
-            };
-        }
-        return agg;
-    } finally {
-        const took = performance.now() - then;
-        if (took > 20) {
-            console.warn("aggregate took ", took, "ms");
-        }
+    filter = reassembleFilter(filter, prevAgg);
+    maps = Filter.filterMaps(maps, filter);
+    events = Filter.filterEvents(events, filter);
+    const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+    const agg = aggregate0(maps, events, filter, characterAggregation);
+    if (prevAgg) {
+        return freezeIntermediate({
+            ...agg,
+            characterAggregation: prevAgg.characterAggregation
+        });
     }
+    const took = performance.now() - then;
+    if (took > 20) {
+        console.warn("aggregate took ", took, "ms");
+    }
+    return freezeIntermediate(agg);
+}
+
+function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
+    (Reflect.ownKeys(obj) as (keyof T)[]).forEach(key => {
+        const value = obj[key];
+        if (value && typeof value === "object") {
+            Object.freeze(value);
+        }
+    });
+    return Object.freeze(obj) as Readonly<T>;
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
     if (!prevAgg) return filter; 
   
     const segmentations: Segmentation[] = [];
-    segmentations.push(prevAgg.characterAggregation.guessSegmentation(filter.fromCharacterLevel, filter.toCharacterLevel, filter.character));
+    const characterSegmentation = prevAgg.characterAggregation.guessSegmentation(filter.fromCharacterLevel, filter.toCharacterLevel, filter.character);
+    characterSegmentation.length && segmentations.push(characterSegmentation);
     if (filter.tsBounds && filter.tsBounds.length) {
         segmentations.push(filter.tsBounds);
     }
@@ -142,11 +185,10 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
     }
     return filter;
 }
-  
 
 const TRADE_PATTERN = /^(Hi, I would like to buy your|你好，我想購買|안녕하세요, |こんにちは、 |Здравствуйте, хочу купить у вас |Hi, ich möchte |Bonjour, je souhaiterais t'acheter )/;
 
-function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): LogAggregation {
+function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): MutableLogAggregation {
     let totalBuys = 0, totalSales = 0, totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
     let totalDeaths = 0, totalWitnessedDeaths = 0;
     const recentSales: AnyCharacterEvent[] = [];
@@ -276,8 +318,10 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
         totalLoadTime += map.span.loadTime;
         totalHideoutTime += map.span.hideoutTime;
     }
+    const mapsUnique = maps.filter(m => m.isUnique);
     return {
         maps,
+        mapsUnique,
         events,
         messages,
         totalTrades,

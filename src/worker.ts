@@ -160,7 +160,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 type: 'search',
                 payload: { lines }
             } as SearchResponse);
-            console.log(`search took ${((performance.now() - then) / 1000).toFixed(2)} seconds`, new Date(tsFilter?.lo), new Date(tsFilter?.hi), filter);
+            console.log(`search took ${((performance.now() - then) / 1000).toFixed(2)} seconds`, filter);
         }
     } catch (error: any) {
         console.error(`Worker error for requestId ${requestId}:`, error);

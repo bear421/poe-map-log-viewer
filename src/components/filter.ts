@@ -49,11 +49,11 @@ export class FilterComponent extends BaseComponent {
                         </div>
                         <div class="col-md-2">
                             <label for="fromDateFilter" class="form-label">From Date</label>
-                            <input type="date" class="form-control border-info" id="fromDateFilter">
+                            <input type="date" class="form-control border-dark" id="fromDateFilter">
                         </div>
                         <div class="col-md-2">
                             <label for="toDateFilter" class="form-label">To Date</label>
-                            <input type="date" class="form-control border-info" id="toDateFilter">
+                            <input type="date" class="form-control border-dark" id="toDateFilter">
                         </div>
                         <div class="col-4">
                             <button id="resetFiltersBtn" class="btn btn-outline-secondary">Reset</button>
@@ -75,12 +75,12 @@ export class FilterComponent extends BaseComponent {
                             </button>
                         </div>
                         <div class="date-presets col-2 d-flex justify-content-between">
-                            <button id="presetLastHourBtn" class="btn btn-sm btn-outline-info" data-bs-toggle="button">Last Hour</button>
-                            <button id="presetLast24HoursBtn" class="btn btn-sm btn-outline-info" data-bs-toggle="button">Last 24 Hours</button>
+                            <button id="presetLastHourBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last Hour</button>
+                            <button id="presetLast24HoursBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 24 Hours</button>
                         </div>
                         <div class="date-presets col-2 d-flex justify-content-between">
-                            <button id="presetLast7DaysBtn" class="btn btn-sm btn-outline-info" data-bs-toggle="button">Last 7 Days</button>
-                            <button id="presetLast30DaysBtn" class="btn btn-sm btn-outline-info" data-bs-toggle="button">Last 30 Days</button>
+                            <button id="presetLast7DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 7 Days</button>
+                            <button id="presetLast30DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 30 Days</button>
                         </div>
                     </div>
                 </div>

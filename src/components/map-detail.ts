@@ -181,12 +181,11 @@ export class MapDetailComponent extends BaseComponent {
 
     private renderLogSearchResults(): void {
         if (!this.modalBodyElement) return;
-        this.modalBodyElement.innerHTML = '';
 
+        this.modalBodyElement.innerHTML = '';
         if (this.logSearchResults && this.logSearchResults.length > 0) {
             const map = this.currentMap!;
-            const listGroup = document.createElement('ul');
-            listGroup.className = 'list-group font-monospace raw-log';
+            const listGroup = createElementFromHTML(`<ul class="list-group font-monospace raw-log"></ul>`);
             let pastMapEnd = false;
             for (let i = 0; i < this.logSearchResults.length; i++) {
                 const line = this.logSearchResults[i];
@@ -212,6 +211,14 @@ export class MapDetailComponent extends BaseComponent {
                 `);
                 listGroup.appendChild(listItem);
             }
+            this.modalBodyElement.appendChild(createElementFromHTML(`
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Map</h5>
+                        <pre class="card-text">${JSON.stringify(map, null, 2)}</pre>
+                    </div>
+                </div>
+            `));
             this.modalBodyElement.appendChild(listGroup);
         } else {
             const noResultsMessage = document.createElement('p');
