@@ -25,7 +25,6 @@ import {
     MapReenteredEvent,
     MapEnteredEvent,
     MapCompletedEvent,
-    XPSnapshotEvent,
     PassiveUnallocatedEvent,
     PassiveAllocatedEvent,
     BonusGainedEvent
@@ -226,30 +225,20 @@ enum MapState {
 }
 
 class MapInstance {
-    id: string;
     span: MapSpan;
     name: string;
     areaLevel: number;
     seed: number;
-    xpStart: number | null;
-    xpGained: number;
-    xph: number;
-    waystone: any | null;
     areaType: AreaType;
     hasBoss: boolean;
     isUnique: boolean;
     state: MapState;
 
     constructor(
-        id: string,
         span: MapSpan,
         name: string,
         areaLevel: number,
         seed: number,
-        xpStart: number | null = null,
-        xpGained: number = 0,
-        xph: number = 0,
-        waystone: any | null = null
     ) {
         if (!name?.trim()) {
             throw new Error("name must be a non-empty string");
@@ -257,19 +246,11 @@ class MapInstance {
         if (areaLevel < 0) {
             throw new Error("areaLevel must be a positive integer");
         }
-        if (xpStart !== null && xpStart < 0) {
-            throw new Error("initialXp may not be negative");
-        }
 
-        this.id = id;
         this.span = span;
         this.name = name;
         this.areaLevel = areaLevel;
         this.seed = seed;
-        this.xpStart = xpStart;
-        this.xpGained = xpGained;
-        this.xph = xph;
-        this.waystone = waystone;
         const towerMaps = [
             "maplosttowers",
             "mapmesa",
@@ -730,15 +711,11 @@ export class LogTracker {
     
     public eventDispatcher = new EventDispatcher();
     private recentMaps: RingBuffer<MapInstance>;
-    private recentXpSnapshots: RingBuffer<XPSnapshot>;
     private currentMap: MapInstance | null;
-    private nextWaystone: any | null;
 
     constructor() {
         this.recentMaps = new RingBuffer<MapInstance>(100);
-        this.recentXpSnapshots = new RingBuffer<XPSnapshot>(100);
         this.currentMap = null;
-        this.nextWaystone = null;
     }
 
     async ingestLogFile(file: File, onProgress?: (progress: Progress) => void): Promise<boolean> {
@@ -1089,21 +1066,14 @@ export class LogTracker {
             this.completeMap(currentMap, areaInfo.ts);
         }
 
-        const initialXp = this.recentXpSnapshots.last()?.xp ?? null;
         this.currentMap = new MapInstance(
-            crypto.randomUUID(),
             new MapSpan(areaInfo.ts),
             areaInfo.name,
             areaInfo.level,
-            areaInfo.seed,
-            initialXp,
-            0,
-            0,
-            this.nextWaystone
+            areaInfo.seed
         );
         this.currentMap.span.preloadTs = areaInfo.ts;
         this.currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
-        this.nextWaystone = null;
         this.dispatchEvent(MapEnteredEvent.of(areaInfo.ts));
     }
 
@@ -1123,12 +1093,6 @@ export class LogTracker {
 
         map.span.end = endTime;
         map.state = MapState.COMPLETED;
-        const xpEnd = this.recentXpSnapshots.last()?.xp;
-        if (xpEnd) {
-            const mapTimeMs = map.span.mapTime();
-            map.xpGained = (xpEnd && map.xpStart) ? (xpEnd - map.xpStart) : 0;
-            map.xph = mapTimeMs > 0 ? (map.xpGained / mapTimeMs) * 3600 * 1000 : 0;
-        }
         this.recentMaps.push(map);
         this.dispatchEvent(MapCompletedEvent.of(map.span.start, map));
     }
@@ -1145,17 +1109,6 @@ export class LogTracker {
 
     inMap(): boolean {
         return !this.inHideout();
-    }
-
-    setNextWaystone(item: any): void {
-        if (!item) {
-            throw new TypeError("item must be an Item object");
-        }
-        this.nextWaystone = item;
-    }
-
-    getNextWaystone(): any | null {
-        return this.nextWaystone;
     }
 
     pause(): void {
@@ -1186,57 +1139,6 @@ export class LogTracker {
             }
         }
         currentMap.span.pausedAt = null;
-    }
-
-    applyXpSnapshot(xp: number, ts: number | null = null, source: string | null = null, encounterType: string | null = null): XPSnapshot {
-        if (ts === null) {
-            ts = Date.now();
-        }
-        if (xp < 0) {
-            throw new Error("xp must be a positive integer");
-        }
-        const prev = this.recentXpSnapshots.last() ?? null;
-        const prevXp = prev?.xp ?? null;
-        const delta = prevXp !== null ? xp - prevXp : 0;
-
-        if (source === "ladder" && prev) {
-            const timeDiff = (prev.ts - ts) / 1000; // Convert to seconds
-            if (prev.source !== source && delta < 0 && timeDiff <= 300) {
-                logger.info(`skipping ladder XP snapshot with negative delta (prev was non-ladder), delta: ${delta}`);
-                return prev;
-            }
-        }
-
-        const currentMap = this.currentMap;
-        const areaLevel = currentMap?.areaLevel ?? null;
-
-        const snapshot = new XPSnapshot(
-            crypto.randomUUID(),
-            ts,
-            xp,
-            delta,
-            areaLevel,
-            source,
-            encounterType
-        );
-
-        this.recentXpSnapshots.push(snapshot);
-        this.dispatchEvent(XPSnapshotEvent.of(ts, snapshot));
-
-        if (currentMap) {
-            if (currentMap.xpStart !== null) {
-                const xpGained = xp ? (xp - currentMap.xpStart) : 0;
-                currentMap.xpGained = xpGained;
-            } else {
-                const delta = ts - currentMap.span.start - currentMap.span.idleTime();
-                // grace period if user takes snapshot after entering map
-                if (delta <= 30000) { // 30 seconds in milliseconds
-                    currentMap.xpStart = xp;
-                }
-            }
-        }
-
-        return snapshot;
     }
 }
 
