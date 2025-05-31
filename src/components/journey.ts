@@ -176,6 +176,8 @@ export class JourneyComponent extends BaseComponent {
             let icon: string;
             if (map.areaType === AreaType.Campaign) {
                 icon = '<i class="bi bi-map text-dark"></i>';
+            } else if (map.areaType === AreaType.Sanctum) {
+                icon = '<i class="bi bi-hexagon text-dark"></i>';
             } else if (map.isUnique) {
                 icon = '<i class="bi bi-gem text-unique"></i>';
             } else if (map.hasBoss) {
@@ -187,7 +189,7 @@ export class JourneyComponent extends BaseComponent {
             mapNameLink.innerHTML = icon + ' ' + MapInstance.label(map);
             row.cells[1].innerHTML = this.renderEventsHTML(map); 
             row.cells[2].textContent = this.formatDuration(MapSpan.mapTimePlusIdle(map.span));
-            row.cells[3].textContent = new Date(map.span.start).toLocaleString();
+            row.cells[3].textContent = this.formatTs(map.span.start);
             row.cells[4].textContent = map.areaLevel.toString();
             row.cells[5].textContent = this.data!.characterAggregation.guessLevel(map.span.start).toString();
         }
@@ -220,16 +222,18 @@ export class JourneyComponent extends BaseComponent {
     }
 
     private categorizeMaps(): void {
-        this.actDefinitions.forEach(a => {
-            a.maps = [];
-            a.duration = 0;
-        });
+        this.actDefinitions.length = 0;
+        for (let i = 0; i < 10; i++) {
+            this.actDefinitions.push({ name: `Act ${i + 1}`, maps: [], duration: 0 });
+        }
+        this.actDefinitions.push({ name: `Endgame`, maps: [], duration: 0 });
         const endgameNumber = this.actDefinitions.length;
         for (const map of this.data!.maps) {
             const zoneInfo = getZoneInfo(map.name, map.areaLevel);
             const actNumber = zoneInfo?.act ?? endgameNumber;
             this.actDefinitions[actNumber - 1].maps.push(map);
         }
+        this.actDefinitions = this.actDefinitions.filter(a => a.maps.length > 0);
         for (const act of this.actDefinitions) {
             if (act.maps.length === 1) {
                 act.duration = MapSpan.mapTimePlusIdle(act.maps[0].span);
@@ -435,6 +439,12 @@ export class JourneyComponent extends BaseComponent {
         document.addEventListener('scroll', (_) => {
             this.tooltip.hide();
         });
+    }
+
+    private formatTs(ts: number): string {
+        const date = new Date(ts);
+        const fmt2d = (n: number) => n.toString().padStart(2, '0');
+        return `${date.getFullYear()}-${fmt2d(date.getMonth() + 1)}-${fmt2d(date.getDate())} ${fmt2d(date.getHours())}:${fmt2d(date.getMinutes())}:${fmt2d(date.getSeconds())}`;
     }
 
     private formatDuration(ms: number): string {

@@ -345,6 +345,9 @@ class MapInstance {
         }
         const name = map.name.replace(/(^MapUnique)|(^Map)|(_NoBoss$)/gi, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
+        if (words.length === 0) {
+            return name;
+        }
         return words.join(' ');
     }
 
@@ -689,7 +692,7 @@ const COMPOSITE_PATTERN_OFFSETS: number[] = [];
     }
 }
 
-const MAP_NAME_CAMPAIGN = /^(?:g\d+_|c_g|g_)/;
+const MAP_NAME_CAMPAIGN = /^(?:g\d+_|c_g|g_|\d+_)/;
 const MAP_NAME_TOWN = /^(g([a-z0-9]+)_town)$/;
 const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 
