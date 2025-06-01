@@ -23,23 +23,14 @@ export abstract class BaseComponent<
     public updateData(newData: TData): void {
         this.data = newData;
         this.isDataChanged = true;
-        if (this.isVisible) {
-            if (!this.isInitialized) {
-                this.init();
-                this.isInitialized = true;
-            }
-            const then = performance.now();
-            this.render();
-            const took = performance.now() - then;
-            if (took > 20) {
-                console.warn(this.constructor.name + ".render took " + (took) + " ms");
-            }
-            this.isDataChanged = false;
-        }
+        this.tryRender();
     }
 
     public setVisible(visible: boolean): this {
-        if (this.notifyVisibility(visible)) {
+        const visibilityChanged = this.isVisible !== visible;
+        this.isVisible = visible;
+        if (visibilityChanged) {
+            this.tryRender();
             visible ? this.element.classList.remove('d-none') : this.element.classList.add('d-none');
         }
         return this;
@@ -49,14 +40,20 @@ export abstract class BaseComponent<
         this.app = app;
     }
 
-    public notifyVisibility(isVisible: boolean): boolean {
-        const visibilityChanged = this.isVisible !== isVisible;
-        this.isVisible = isVisible;
-        if (visibilityChanged && this.isVisible && this.isDataChanged) {
-            this.render();
-            this.isDataChanged = false;
+    private tryRender(): void {
+        if (!this.isVisible || !this.isDataChanged) return;
+
+        if (!this.isInitialized) {
+            this.init();
+            this.isInitialized = true;
         }
-        return visibilityChanged;
+        const then = performance.now();
+        this.render();
+        const took = performance.now() - then;
+        if (took > 20) {
+            console.warn(this.constructor.name + ".render took " + (Math.ceil(took * 100) / 100) + " ms");
+        }
+        this.isDataChanged = false;
     }
 
     protected init() {}
