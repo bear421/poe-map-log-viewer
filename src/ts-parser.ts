@@ -28,31 +28,12 @@ export function parseTs(line: string): number | null {
     const mm  = d(14)*10 + d(15);
     const ss  = d(17)*10 + d(18);
 
-    const offsetMillis = getOffsetMillisForHour(yr, mo, day, hh);
-    return Date.UTC(yr, mo - 1, day, hh, mm, ss) - offsetMillis;
+    return Date.UTC(yr, mo - 1, day, hh, mm, ss) + getOffsetMillisForHour(yr, mo, day, hh);
 }
 
-const TS_REGEX_STRICT = /^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
-
 export function parseTsStrict(line: string): number | null {
-    const m = TS_REGEX_STRICT.exec(line);
-    if (!m) return null;
-
-    const yr  = parseInt(m[1]);
-    if (isNaN(yr)) return null;
-    const mo  = parseInt(m[2]);
-    if (isNaN(mo)) return null;
-    const day = parseInt(m[3]);
-    if (isNaN(day)) return null;
-    const hh  = parseInt(m[4]);
-    if (isNaN(hh)) return null;
-    const mm  = parseInt(m[5]);
-    if (isNaN(mm)) return null;
-    const ss  = parseInt(m[6]);
-    if (isNaN(ss)) return null;
-
-    const offsetMillis = getOffsetMillisForHour(yr, mo, day, hh);
-    return Date.UTC(yr, mo - 1, day, hh, mm, ss) - offsetMillis;
+    // this is fast enough for now, only used for search really
+    return parseTsSlow(line);
 }
 
 export function parseUptimeMillis(line: string): number {
@@ -73,7 +54,8 @@ export function parseTsSlow(line: string): number | null {
     const tsMatch = TS_REGEX.exec(line);
     if (!tsMatch) return null;
 
-    return new Date(tsMatch[1].replace(/\//g, '-')).getTime();
+    const millis = new Date(tsMatch[1].replace(/\//g, '-')).getTime();
+    return isNaN(millis) ? null : millis;
 }
 
 export function clearOffsetCache(): void {
