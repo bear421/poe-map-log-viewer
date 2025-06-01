@@ -1,17 +1,17 @@
-const tzOffsetCache = new Map<number, number>();
+const tzHourCache = new Map<number, number>();
 
-function getOffsetMs(year: number, month: number, day: number): number {
-    const key = year * 10000 + month * 100 + day;
-    let off = tzOffsetCache.get(key);
-    if (off === undefined) {
-        off = new Date(year, month - 1, day).getTimezoneOffset() * 60_000;
-        tzOffsetCache.set(key, off);
+function getOffsetMillisForHour(year: number, month: number, day: number, hour: number): number {
+    const key = year * 1_000_000 + (month * 10_000) + (day * 100) + hour;
+    let offsetMillis = tzHourCache.get(key);
+    if (offsetMillis === undefined) {
+        offsetMillis = new Date(year, month - 1, day, hour).getTimezoneOffset() * 60_000;
+        tzHourCache.set(key, offsetMillis);
     }
-    return off;
+    return offsetMillis;
 }
 
 /**
- * optmizied ts parser that doesn't create a date object internally. the supplied timestamp is expected to be in the users timezone.
+ * optimized ts parser. the supplied timestamp is expected to be in the user's timezone.
  * @param line a log line that starts with a timestamp with the exact format YYYY/MM/DD HH:MM:SS
  * @returns epoch millis
  */
@@ -28,7 +28,8 @@ export function parseTs(line: string): number | null {
     const mm  = d(14)*10 + d(15);
     const ss  = d(17)*10 + d(18);
 
-    return Date.UTC(yr, mo - 1, day, hh, mm, ss) + getOffsetMs(yr, mo, day);
+    const offsetMillis = getOffsetMillisForHour(yr, mo, day, hh);
+    return Date.UTC(yr, mo - 1, day, hh, mm, ss) - offsetMillis;
 }
 
 const TS_REGEX_STRICT = /^(\d{4})\/(\d{2})\/(\d{2}) (\d{2}):(\d{2}):(\d{2})/;
@@ -49,7 +50,9 @@ export function parseTsStrict(line: string): number | null {
     if (isNaN(mm)) return null;
     const ss  = parseInt(m[6]);
     if (isNaN(ss)) return null;
-    return Date.UTC(yr, mo - 1, day, hh, mm, ss) + getOffsetMs(yr, mo, day);
+
+    const offsetMillis = getOffsetMillisForHour(yr, mo, day, hh);
+    return Date.UTC(yr, mo - 1, day, hh, mm, ss) - offsetMillis;
 }
 
 export function parseUptimeMillis(line: string): number {
@@ -74,5 +77,5 @@ export function parseTsSlow(line: string): number | null {
 }
 
 export function clearOffsetCache(): void {
-    tzOffsetCache.clear();
+    tzHourCache.clear();
 }
