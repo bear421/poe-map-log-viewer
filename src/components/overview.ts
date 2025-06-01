@@ -55,6 +55,35 @@ export class OverviewComponent extends BaseComponent {
         overviewRow.className = 'row';
 
         const summaryCard = document.createElement('div');
+        interface TotalStat {
+            label: string;
+            value: number | string;
+            iconClass: string;
+            optional: boolean;
+        }
+        const totalItemsIdentified = agg.events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0);
+        const totals: TotalStat[] = [
+            { label: 'Maps', value: agg.maps.length, iconClass: 'bi-globe', optional: false},
+            { label: 'Sessions', value: agg.totalSessions, iconClass: 'bi-power', optional: false },
+            { label: 'Unique maps', value: agg.mapsUnique.length, iconClass: 'bi-gem text-unique', optional: true },
+            { label: 'Delve Nodes', value: agg.mapsDelve.length, iconClass: 'bi-diamond-half text-primary', optional: true },
+            { label: 'Pinnacle Boss kills', value: agg.totalBossKills, iconClass: 'bi-trophy-fill text-warning', optional: true },
+            { label: 'Map time', value: `${(agg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-clock', optional: false },
+            { label: 'Hideout time', value: `${(agg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-house-fill text-primary', optional: false },
+            { label: 'Load time', value: `${(agg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-stopwatch', optional: false },
+            { label: 'Deaths', value: agg.totalDeaths, iconClass: 'bi-heartbreak-fill text-danger', optional: false },
+            { label: 'Witnessed deaths', value: agg.totalWitnessedDeaths, iconClass: 'bi-heartbreak-fill text-secondary', optional: false },
+            { label: 'Items identified (bulk)', value: totalItemsIdentified, iconClass: 'bi-magic', optional: true },
+            { label: 'Trades (NPCs and Players)', value: agg.totalTrades, iconClass: 'bi-currency-exchange text-warning', optional: false },
+            { label: 'Item purchases attempted', value: agg.totalBuysAttempted, iconClass: 'bi-cart-fill', optional: true },
+            { label: 'Item sales attempted', value: agg.totalSalesAttempted, iconClass: 'bi-tags-fill', optional: true }
+        ];
+        const totalsHtml = totals.filter(t => !t.optional || typeof t.value !== 'number' || t.value !== 0).map(t => 
+            `
+            <dt class="col-9"><i class="${t.iconClass} me-2"></i>${t.label}</dt>
+            <dd class="col-3 text-end">${t.value}</dd>
+            `
+        ).join('\n');
         summaryCard.className = 'col-md-6 mb-4';
         summaryCard.innerHTML = `
             <div class="card">
@@ -62,44 +91,7 @@ export class OverviewComponent extends BaseComponent {
                     <h4 class="card-title border-bottom border-fade-secondary">Totals</h4>
                     <div class="card-text">
                         <dl class="row mb-0 fs-5">
-                            <dt class="col-9"><i class="bi bi-globe me-2"></i>Maps</dt>
-                            <dd class="col-3 text-end">${agg.maps.length}</dd>
-
-                            <dt class="col-9"><i class="bi bi-gem text-unique me-2"></i>Unique maps</dt>
-                            <dd class="col-3 text-end">${agg.mapsUnique.length}</dd>
-
-                            <dt class="col-9"><i class="bi bi-power me-2"></i>Sessions</dt>
-                            <dd class="col-3 text-end">${agg.totalSessions}</dd>
-                            
-                            <dt class="col-9"><i class="bi bi-trophy-fill text-warning me-2"></i>Pinnacle Boss kills</dt>
-                            <dd class="col-3 text-end">${agg.totalBossKills}</dd>
-
-                            <dt class="col-9"><i class="bi bi-clock me-2"></i>Map time</dt>
-                            <dd class="col-3 text-end">${(agg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h</dd>
-
-                            <dt class="col-9"><i class="bi bi-house-fill text-primary me-2"></i>Hideout time</dt>
-                            <dd class="col-3 text-end">${(agg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h</dd>
-
-                            <dt class="col-9"><i class="bi bi-stopwatch me-2"></i>Load time</dt>
-                            <dd class="col-3 text-end">${(agg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h</dd>
-
-                            <dt class="col-9"><i class="bi bi-heartbreak-fill text-danger me-2"></i>Deaths</dt>
-                            <dd class="col-3 text-end">${agg.totalDeaths}</dd>
-
-                            <dt class="col-9"><i class="bi bi-heartbreak-fill text-secondary me-2"></i>Witnessed deaths</dt>
-                            <dd class="col-3 text-end">${agg.totalWitnessedDeaths}</dd>
-
-                            <dt class="col-9"><i class="bi bi-magic me-2"></i>Items identified (bulk)</dt>
-                            <dd class="col-3 text-end">${agg.events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0)}</dd>
-
-                            <dt class="col-9"><i class="bi bi-currency-exchange text-warning me-2"></i>Trades (NPCs and Players)</dt>
-                            <dd class="col-3 text-end">${agg.totalTrades}</dd>
-
-                            <dt class="col-9"><i class="bi bi-cart-fill me-2"></i>Item purchases attempted</dt>
-                            <dd class="col-3 text-end">${agg.totalBuysAttempted}</dd>
-
-                            <dt class="col-9"><i class="bi bi-tags-fill me-2"></i>Item sales attempted</dt>
-                            <dd class="col-3 text-end">${agg.totalSalesAttempted}</dd>
+                            ${totalsHtml}
                         </dl>
                     </div>
                 </div>
