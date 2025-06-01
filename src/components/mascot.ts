@@ -66,9 +66,9 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         });
     }
 
-    public updateData(data: any): void {
-        super.updateData(data);
+    protected init(): void {
         this.setDefaultEmotion(Emotion.HAPPY);
+        const data = this.data!;
         if (data.totalBossKills > 10) { 
             let baseMsg = "Wow! You've killed so many bosses!";
             if (data.totalDeaths <= 0) {
