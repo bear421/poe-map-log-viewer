@@ -1,7 +1,7 @@
 import { RingBuffer } from "./ringbuffer";
 import { clearOffsetCache, parseTs, parseTsStrict, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
-import { binarySearchRange } from "./binary-search";
+import { binarySearchFindFirstIx, binarySearchFindLastIx, binarySearchRange } from "./binary-search";
 import { getZoneInfo } from "./data/zone_table";
 import { BOSS_TABLE } from "./data/boss_table";
 import { Feature, isFeatureSupportedAt } from "./data/log-versions";
@@ -214,6 +214,7 @@ export enum AreaType {
     Sanctum,
     Logbook,
     Tower,
+    Delve,
     Unknown
 }
 
@@ -271,6 +272,8 @@ class MapInstance {
                 this.areaType = AreaType.Logbook;
             } else if (MAP_NAME_CAMPAIGN.test(lowerName)) {
                 this.areaType = AreaType.Campaign;
+            } else if (lowerName.startsWith("delve")) {
+                this.areaType = AreaType.Delve;
             } else {
                 this.areaType = AreaType.Unknown;
             }
@@ -397,23 +400,30 @@ export namespace Segmentation {
         return res;
     }
 
-    export function mergeContiguous(segmentation: Segmentation): Segmentation {
+    /**
+     * Merges contiguous ranges that are connected (touching or overlapping)
+     * @segmentation must be sorted by lo
+     */
+    export function mergeContiguousConnected(segmentation: Segmentation): Segmentation {
         if (segmentation.length <= 1) return segmentation;
 
         const res: Segmentation = [];
         for (let i = 0; i < segmentation.length; i++) {
-            const range = segmentation[i];
+            let range = segmentation[i];
             if (i + 1 >= segmentation.length) {
                 res.push(range);
                 break;
             }
-            const nextRange = segmentation[i + 1];
-            if (range.hi > nextRange.lo) {
-                res.push({lo: range.lo, hi: nextRange.hi});
-                i++;
-            } else {
-                res.push(range);
+            while (i + 1 < segmentation.length) {
+                const nextRange = segmentation[i + 1];
+                if (range.hi >= nextRange.lo) {
+                    range = {lo: range.lo, hi: Math.max(range.hi, nextRange.hi)};
+                    i++;
+                } else {
+                    break;
+                }
             }
+            res.push(range);
         }
         return res;
     }
@@ -438,6 +448,8 @@ export namespace Segmentation {
      * - [1,2] ∩ [3,4] = [] (no overlap)
      */
     export function intersect(a: Segmentation, b: Segmentation): Segmentation {
+        if (a.length === 0 || b.length === 0) return [];
+        
         const res: Segmentation = [];
         let iA = 0, iB = 0;
         for (;;) {
@@ -445,13 +457,19 @@ export namespace Segmentation {
             const lo = Math.max(rangeA.lo, rangeB.lo);
             const hi = Math.min(rangeA.hi, rangeB.hi);
             if (rangeA.hi > rangeB.hi) {
-                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
+                if (lo <= hi) {
+                    res.push({lo, hi});
+                }
                 if (++iB >= b.length) break;
             } else if (rangeA.hi < rangeB.hi) {
-                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
+                if (lo <= hi) {
+                    res.push({lo, hi});
+                }
                 if (++iA >= a.length) break;
             } else {
-                res.push({lo, hi});  // Removed lo < hi check to allow closed intervals
+                if (lo <= hi) {
+                    res.push({lo, hi});
+                }
                 if (++iA >= a.length || ++iB >= b.length) break;
             }
         }
@@ -519,16 +537,20 @@ class Filter {
 
         const tsBounds = filter.tsBounds;
         if (!filter.fromAreaLevel && !filter.toAreaLevel && tsBounds) {
-            let ix = 0, hiIx = maps.length - 1;
+            let ix = 0;
             const res = [];
             for (const {lo, hi} of tsBounds) {
-                const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
+                const boundsLoIx = binarySearchFindFirstIx(maps, (m) => m.span.start >= lo, ix);
                 if (boundsLoIx === -1) continue;
 
-                const slice = Filter.sliceOrShare(maps, boundsLoIx, boundsHiIx + 1);
-                if (tsBounds.length === 1) return slice;
+                const boundsHiIx = binarySearchFindLastIx(maps, (m) => m.span.start <= hi, ix);
+                if (boundsHiIx === -1) continue;
 
-                res.push(...slice);
+                if (tsBounds.length === 1 && boundsLoIx === 0 && boundsHiIx === maps.length - 1) return maps;
+                
+                for (let i = boundsLoIx; i <= boundsHiIx; i++) {
+                    res.push(maps[i]);
+                }
                 ix = boundsHiIx + 1;
             }
             return res;
@@ -540,14 +562,12 @@ class Filter {
                 const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
                 if (boundsLoIx === -1) continue;
 
-                for (let i = boundsLoIx; i < boundsHiIx; i++) {
+                for (let i = boundsLoIx; i <= boundsHiIx; i++) {
                     const map = maps[i];
-                    if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
-                        continue;
-                    }
-                    if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) {
-                        continue;
-                    }
+                    if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) continue;
+
+                    if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) continue;
+
                     res.push(map);
                 }
                 ix = boundsHiIx + 1;
@@ -555,12 +575,10 @@ class Filter {
         } else {
             for (let i = 0; i < maps.length; i++) {
                 const map = maps[i];
-                if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) {
-                    continue;
-                }
-                if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) {
-                    continue;
-                }
+                if (filter.fromAreaLevel && map.areaLevel < filter.fromAreaLevel) continue;
+
+                if (filter.toAreaLevel && map.areaLevel > filter.toAreaLevel) continue;
+
                 res.push(map);
             }
         }
@@ -572,26 +590,20 @@ class Filter {
         if (!tsBounds) return events;
 
         let ix = 0, hiIx = events.length - 1;
-        const res = [];
+        let res: LogEvent[] = [];
         for (const {lo, hi} of tsBounds) {
             const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(events, lo, hi, (e) => e.ts, ix, hiIx);
 
             if (boundsLoIx === -1) continue;
 
-            const slice = Filter.sliceOrShare(events, boundsLoIx, boundsHiIx + 1);
-            if (tsBounds.length === 1) return slice;
-            
-            res.push(...slice);
+            if (tsBounds.length === 1 && boundsLoIx === 0 && boundsHiIx === events.length - 1) return events;
+
+            for (let i = boundsLoIx; i <= boundsHiIx; i++) {
+                res.push(events[i]);
+            }
             ix = boundsHiIx + 1;
         }
         return res;
-    }
-
-    private static sliceOrShare<T>(array: T[], ix: number, endIx: number): T[] {
-        if (ix === 0 && endIx === array.length - 1) {
-            return array;
-        }
-        return array.slice(ix, endIx);
     }
 
 }

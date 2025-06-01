@@ -59,9 +59,11 @@ describe('Timestamp Parser Performance', () => {
 
     test('correctness test', () => {
         for (const line of logLines) {
-            const result1 = parseTs(line);
-            const result2 = parseTsSlow(line);
-            expect(result1).toEqual(result2);
+            const resultFast = parseTs(line);
+            const resultStrict = parseTsStrict(line);
+            const resultSlow = parseTsSlow(line);
+            expect(resultFast).toEqual(resultStrict);
+            expect(resultFast).toEqual(resultSlow);
         }
     });
 
