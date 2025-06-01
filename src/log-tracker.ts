@@ -1,9 +1,10 @@
 import { RingBuffer } from "./ringbuffer";
-import { parseTs, parseTsStrict, clearOffsetCache, parseUptimeMillis } from "./ts-parser";
+import { clearOffsetCache, parseTs, parseTsStrict, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
 import { binarySearchRange } from "./binary-search";
 import { getZoneInfo } from "./data/zone_table";
 import { BOSS_TABLE } from "./data/boss_table";
+import { Feature, isFeatureSupportedAt } from "./data/log-versions";
 import {
     LogEvent,
     AreaPostLoadEvent,
@@ -330,10 +331,6 @@ class MapInstance {
         }
         this.span.addToLoadTime(delta);
         return delta;
-    }
-
-    isUnlockableHideout(): boolean {
-        return this.name.toLowerCase().endsWith("_claimable");
     }
     
     static label(map: MapInstance): string {
@@ -668,7 +665,7 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.Joined}>[^ ]+) has joined the area`,
     `: (?<g${EventCG.Left}>[^ ]+) has left the area`,
     `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
-    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?(Weapon Set )?Passive Skill Points`, 
+    `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?(Weapon Set )?Passive Skill Point`, 
     `: ((?:You)|(?:[^ ]+?)) have received (?<g${EventCG.BonusGained}>.+)`, // 2024 legacy format and new format
     `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
     `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)`,
@@ -721,7 +718,7 @@ export class LogTracker {
         this.currentMap = null;
     }
 
-    async ingestLogFile(file: File, onProgress?: (progress: Progress) => void): Promise<boolean> {
+    async ingestLogFile(file: File, onProgress?: (progress: Progress) => void, checkIntegrity: boolean = false): Promise<boolean> {
         const progress = {
             totalBytes: file.size,
             bytesRead: 0
@@ -730,11 +727,27 @@ export class LogTracker {
         try {
             const decoder = new TextDecoder();
             let tail = '';
+            let prevTs: number | undefined;
+            let prevLine: string | undefined;
+            const handleLine = (line: string) => {
+                if (checkIntegrity) {
+                    // a bit inefficient to parse ts twice, however this is mostly for debugging currently
+                    const ts = parseTs(line);
+                    if (ts) {
+                        if (prevTs && prevTs > ts) {
+                            logger.error(`Client.txt integrity violation: subsequent line precedes previous line ts by ${(prevTs - ts) / 1000}s`, [prevLine, line], prevTs, ts);
+                        }
+                        prevTs = ts;
+                        prevLine = line;
+                    }
+                }
+                return this.processLogLine(line);
+            }
             for (;;) {
                 const { done, value } = await reader.read();
                 if (done) {
                     if (tail) {
-                        this.processLogLine(tail);
+                        handleLine(tail);
                     }
                     this.processEOF();
                     return true;
@@ -745,7 +758,7 @@ export class LogTracker {
                 if (tail) {
                     ix = chunk.indexOf('\n');
                     if (ix !== -1) {
-                        if (!this.processLogLine(tail + chunk.slice(0, ix))) return false;
+                        if (!handleLine(tail + chunk.slice(0, ix))) return false;
 
                         tail = '';
                         start = ix + 1;
@@ -757,7 +770,7 @@ export class LogTracker {
                 while ((ix = chunk.indexOf('\n', start)) !== -1) {
                     const line = chunk.slice(start, ix);
                     start = ix + 1;
-                    if (!this.processLogLine(line)) return false;
+                    if (!handleLine(line)) return false;
                 }
                 if (start < chunk.length) {
                     tail = chunk.slice(start);
@@ -920,7 +933,11 @@ export class LogTracker {
                     const boss = BOSS_TABLE[m[offset]];
                     if (boss) {
                         if (boss.deathCries.has(m[offset + 1])) {
-                            this.dispatchEvent(BossKillEvent.of(ts, boss.alias ?? m[offset], m[offset + 1], this.currentMap!.areaLevel));
+                            if (this.currentMap) {
+                                this.dispatchEvent(BossKillEvent.of(ts, boss.alias ?? m[offset], m[offset + 1], this.currentMap.areaLevel));
+                            } else if (isFeatureSupportedAt(Feature.ZoneGeneration, ts)) {
+                                logger.warn(`Boss kill log for ${m[offset]} but currentMap is null. Line: ${line}`);
+                            }
                         }
                     }
                     break;
@@ -943,7 +960,7 @@ export class LogTracker {
                 case EventCG.Slain:
                     if (this.currentMap) {
                         this.dispatchEvent(DeathEvent.of(ts, m[offset], this.currentMap.areaLevel));
-                    } else {
+                    } else if (isFeatureSupportedAt(Feature.ZoneGeneration, ts)) {
                         logger.warn(`Slain log for ${m[offset]} but currentMap is null. Line: ${line}`);
                     }
                     break;
@@ -1008,6 +1025,8 @@ export class LogTracker {
             const prevMap = currentMap || this.recentMaps.last();
             if (prevMap && areaInfo.ts <= prevMap.span.start && prevMap.seed !== areaInfo.seed) {
                 const delta = (areaInfo.ts - prevMap.span.start);
+                // TODO sometimes kind of a false positive, this can happen within the same second (area failed to load + player spamming??)
+                //  in which case it would be more correct to discard the prior map
                 logger.warn(`new areas must be ingested chronologically, discarding current map: ${areaInfo.ts} (${areaInfo.name}) <= ${prevMap.span.start} (${prevMap.name}) (offset: ${delta / 1000}s).`);
                 this.currentMap = null;
                 return;

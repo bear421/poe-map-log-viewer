@@ -20,7 +20,7 @@ const journeyEventNames = new Set<EventName>([
     "death",
     "levelUp",
     "bossKill",
-    // "passiveGained",
+    "passiveGained",
     "passiveAllocated",
     "passiveUnallocated",
     "bonusGained",

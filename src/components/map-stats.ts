@@ -86,7 +86,6 @@ export class MapStatsComponent extends BaseComponent {
             mapDetailsModal.id = 'mapDetailsModal';
             mapDetailsModal.tabIndex = -1;
             mapDetailsModal.setAttribute('aria-labelledby', 'mapDetailsModalLabel');
-            mapDetailsModal.setAttribute('aria-hidden', 'true');
             
             mapDetailsModal.innerHTML = `
                 <div class="modal-dialog modal-fullscreen-lg-down modal-xl">
@@ -111,7 +110,6 @@ export class MapStatsComponent extends BaseComponent {
             mapEventsModal.id = 'mapEventsModal';
             mapEventsModal.tabIndex = -1;
             mapEventsModal.setAttribute('aria-labelledby', 'mapEventsModalLabel');
-            mapEventsModal.setAttribute('aria-hidden', 'true');
             
             mapEventsModal.innerHTML = `
                 <div class="modal-dialog modal-lg">

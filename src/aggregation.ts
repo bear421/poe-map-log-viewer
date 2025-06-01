@@ -1,7 +1,8 @@
 import { Filter, MapInstance, MapSpan, Segmentation } from "./log-tracker";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./log-events";
-import { binarySearch, binarySearchFindLast, BinarySearchMode, binarySearchRange } from "./binary-search";
-
+import { binarySearch, binarySearchFindLast, binarySearchFindLastIx, BinarySearchMode, binarySearchRange } from "./binary-search";
+import { Feature, isFeatureSupportedAt } from "./data/log-versions";
+import { freezeIntermediate, logTook } from "./util";
 
 export type LogAggregation = Readonly<MutableLogAggregation>;
 
@@ -145,7 +146,13 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
     filter = reassembleFilter(filter, prevAgg);
     maps = Filter.filterMaps(maps, filter);
     events = Filter.filterEvents(events, filter);
-    const characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+    let characterAggregation;
+    try {
+        characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+    } catch (e) {
+        console.error("failed to build character aggregation, limited functionality available", e);
+        characterAggregation = new CharacterAggregation(new Map(), []);
+    }
     const agg = aggregate0(maps, events, filter, characterAggregation);
     if (prevAgg) {
         return freezeIntermediate({
@@ -153,21 +160,9 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
             characterAggregation: prevAgg.characterAggregation
         });
     }
-    const took = performance.now() - then;
-    if (took > 20) {
-        console.warn("aggregate took ", took, "ms");
-    }
-    return freezeIntermediate(agg);
-}
-
-function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
-    (Reflect.ownKeys(obj) as (keyof T)[]).forEach(key => {
-        const value = obj[key];
-        if (value && typeof value === "object") {
-            Object.freeze(value);
-        }
-    });
-    return Object.freeze(obj) as Readonly<T>;
+    const frozen = freezeIntermediate(agg);
+    logTook("aggregate", then);
+    return frozen;
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter {
@@ -340,25 +335,111 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
     };
 }
 
-function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): CharacterAggregation {
-    const foreignCharacters = new Set<string>();
-    const characterLevelIndex = new Map<string, (LevelUpEvent|SetCharacterEvent)[]>();
-    const characterTsIndex: AnyCharacterEvent[] = [];
-    const contiguousPushCharacterTsIndex = (event: AnyCharacterEvent) => {
-        if (characterTsIndex.length > 0) {
-            const prevEvent = characterTsIndex[characterTsIndex.length - 1];
-            if (event.ts < prevEvent.ts) {
-                const index = events.findIndex(e => e.ts === event.ts);
-                console.error(new Date(event.ts), new Date(prevEvent.ts), event, prevEvent, events.slice(index - 5, index + 5));
-                throw new Error(`new event precedes prior event: new event ts ${event.ts} < ${prevEvent.ts} characters (${event.detail.character} < ${prevEvent.detail.character})`);
+class ContiguousArray<T extends {ts: number}> extends Array<T> {
+    push(...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length > 0) {
+                const tail = this[this.length - 1];
+                const itemHead = items[0];
+                if (itemHead.ts < tail.ts) {
+                    throw new Error(`new element precedes prior element: ${itemHead.ts} < ${tail.ts}`);
+                }
             }
         }
-        characterTsIndex.push(event);
-    };
+        return super.push(...items);
+    }
+
+    unshift(...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length) {
+                const head = this[0];
+                const itemTail = items[items.length - 1];
+                if (itemTail.ts > head.ts) {
+                    throw new Error(`new tail[${items.length - 1}] succeeds current head[0]: ${itemTail.ts} > ${head.ts}`);
+                }
+            }
+        }
+        return super.unshift(...items);
+    }
+
+    checkedSet(ix: number, item: T) {
+        if (ix < 0 || ix >= this.length) {
+            throw new Error(`index out of bounds: ${ix} is not in range [0, ${this.length})`);
+        }
+        if (ix > 0) {
+            const prev = this[ix - 1];
+            if (item.ts < prev.ts) {
+                throw new Error(`new element precedes prior element: ${item.ts} < ${prev.ts}`);
+            }
+        }
+        if (ix < this.length - 1) {
+            const next = this[ix + 1];
+            if (item.ts > next.ts) {
+                throw new Error(`new element succeeds next element: ${item.ts} > ${next.ts}`);
+            }
+        }
+        super[ix] = item;
+    }
+
+    sort(): this {
+        throw new Error("must not sort a contiguous array");
+    }
+
+    reverse(): this {
+        throw new Error("must not reverse a contiguous array");
+    }
+
+    copyWithin(): this {
+        throw new Error("unsupported");
+    }
+
+    fill(): this {
+        throw new Error("unsupported");
+    }
+
+    splice(ix: number, delCount: number, ...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length) {
+                if (items[0].ts < this[ix - 1].ts) {
+                    throw new Error(`new head[0] precedes prior element: ${items[0].ts} < ${this[ix - 1].ts}`);
+                }
+                if (items[items.length - 1].ts > this[ix].ts) {
+                    throw new Error(`new tail[${items.length - 1}] precedes prior element: ${items[items.length - 1].ts} > ${this[ix].ts}`);
+                }
+            }
+        }
+        return super.splice(ix, delCount, ...items);
+    }
+}
+
+function checkContiguous<T extends {ts: number}>(items: T[]) {
+    for (let i = 0; i < items.length - 1; i++) {
+        const prev = items[i];
+        const next = items[i + 1];
+        if (prev.ts > next.ts) {
+            const e = new Error(`element[${i}] precedes element[${i + 1}]: ${next.ts} < ${prev.ts}`,
+                { cause: { prev, next } }
+            );
+            console.error(e, e.cause);
+            throw e;
+        }
+    }
+}
+
+function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): CharacterAggregation {
+    checkContiguous(events);
+    // a foreign character is a character that's owned by another player
+    const foreignCharacters = new Set<string>();
+    const characterLevelIndex = new Map<string, ContiguousArray<LevelUpEvent|SetCharacterEvent>>();
+    const characterTsIndex = new ContiguousArray<AnyCharacterEvent>();
+    /*
+        expands the supplied and prior's character's adjacent character level range by appending a setCharacter event to both
+    */
     const expandCharacterRanges = (ts: number, character: string, level: number, eventLoopIndex: number) => {
-        /*
-            expands the supplied and prior's character's adjacent character level range by appending a setCharacter event to both
-        */
+        // expand the range of the prior character, unless this is the first character
         for (let i = characterTsIndex.length - 1; i >= 0; i--) {
             const prev = characterTsIndex[i];
             const index = characterLevelIndex.get(prev.detail.character);
@@ -375,46 +456,80 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
                 break;
             }
             // backtrack to ANY prior event. if we take ts both character would share an event / map (WRONG!)
-            const prevTs = binarySearchFindLast(events, (e) => e.ts < ts, 0, eventLoopIndex)?.ts;
-            if (!prevTs) {
-                throw new Error(`illegal state: no prior event found for character ${character} at ts ${ts}`);
+            // it is unusual, perhaps even impossible for prevTs to not be found, but just in case:
+            // ts - 1 is fair enough and prevents character from including the initial breach event
+            const prevTs = binarySearchFindLast(events, (e) => e.ts < ts, 0, eventLoopIndex)?.ts ?? ts - 1;
+            if (prevTs < levelLikePrev.ts) {
+                throw new Error(`illegal state: prevTs < levelLikePrev.ts for character ${character} at ts ${ts}`);
             }
-            const prevCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
-            const prevCharacter = SetCharacterEvent.of(prevTs, levelLikePrev.detail.character, levelLikePrev.detail.level);
-            index.push(prevCharacter);
-            contiguousPushCharacterTsIndex(prevCharacter);
+            if (prev.ts > prevTs) {
+                // prior character event is after supplied threshold ts, should only be possible for a fresh character after it's levelUp(2) event
+                // in the case of death or msg events AFTER character creation but BEFORE the levelUp(2) event
+                const ix = binarySearchFindLastIx(characterTsIndex, (e) => e.ts < prevTs);
+                if (ix === -1) throw new Error(`illegal state: no prior event found for character ${character} at ts ${prevTs}`);
+
+                const prevCharacter = SetCharacterEvent.of(prevTs, levelLikePrev.detail.character, levelLikePrev.detail.level);
+                index.push(prevCharacter);
+                // also handle next character with special offset 
+                const nextCharacter = SetCharacterEvent.of(ts, character, level);
+                characterTsIndex.splice(ix, 0, prevCharacter, nextCharacter);
+                // const nextIndex = characterLevelIndex.get(character);
+                computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(nextCharacter);
+                /*
+                if (!nextIndex) {
+                    throw new Error(`illegal state: no next index found for character ${character} at ts ${ts}`);
+                }
+                const nextCharacterIx = binarySearchFindLastIx(nextIndex, (e) => e.ts < prevTs);
+                if (nextCharacterIx === -1) {
+                    console.error(nextIndex);
+                    throw new Error(`invariant: character index (${character}) has no preceding event at ${prevTs}`);
+                }
+                nextIndex.splice(nextCharacterIx, 0, nextCharacter);*/
+                return;
+            } else {
+                const prevCharacter = SetCharacterEvent.of(prevTs, levelLikePrev.detail.character, levelLikePrev.detail.level);
+                index.push(prevCharacter);
+                characterTsIndex.push(prevCharacter);
+            }
             break;
         }
         const nextCharacter = SetCharacterEvent.of(ts, character, level);
-        contiguousPushCharacterTsIndex(nextCharacter);
-        computeIfAbsent(characterLevelIndex, character, () => []).push(nextCharacter);
+        characterTsIndex.push(nextCharacter);
+        computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(nextCharacter);
     };
     const handleCharacterEvent = (event: AnyCharacterEvent, eventLoopIndex: number) => {
         const character = event.detail.character;
         if (event.name == "levelUp" && event.detail.level === 2) {
             // must be in 1st zone (beach / riverbank)
-            const map = binarySearchFindLast(maps, (m) => m.span.start < event.ts);
-            let ts;
-            if (map) {
-                ts = map.span.start;
-                if (characterTsIndex[characterTsIndex.length - 1].ts > ts) {
-                    const prevCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
-                    // FIXME recheck
-                    if (ts < prevCharacterEvent.ts) {
-                        console.warn("event offset", event.ts - ts, event, characterTsIndex.slice(-10));
-                        return;
-                    }
+            // note that this will not find the earliest possible beach event (for this character)
+            // this is desirable if a player is resetting the 1st area for speedruns or what have you
+            let beachEvent: LogEvent | undefined = undefined;
+            // cannot use binary search for non-monotonic predicate
+            for (let i = eventLoopIndex; i > 0; i--) {
+                const e = events[i];
+                if (e.name == "mapEntered" && e.ts < event.ts) {
+                    beachEvent = e;
+                    break;
                 }
+            }
+            let ts;
+            if (beachEvent) {
+                ts = beachEvent.ts;
             } else {
                 // possible if log is incomplete, or very old log format (?)
-                console.warn("log incomplete? failed to find map for level 2 character", event.detail.character, event.ts);
+                if (isFeatureSupportedAt(Feature.ZoneGeneration, event.ts)) {
+                    console.warn("log incomplete? failed to find beach event for level 2 character", event.detail.character, event.ts);
+                } else {
+                    // legacy log format, silently discard for now
+                    return;
+                }
                 ts = event.ts - 1;
             }
             if (characterLevelIndex.has(character)) {
                 // FIXME handle character name reuse, maybe with an alias
                 console.warn("duplicate characters not supported yet, discarding prior character data", character);
             }
-            const index: (LevelUpEvent|SetCharacterEvent)[] = [];
+            const index = new ContiguousArray<LevelUpEvent|SetCharacterEvent>();
             characterLevelIndex.set(character, index);
             expandCharacterRanges(ts, character, 1, eventLoopIndex);
             index.push(event);
@@ -422,9 +537,9 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
             && characterTsIndex[characterTsIndex.length - 1].detail.character === character 
             && characterTsIndex[characterTsIndex.length - 2].detail.character === character
         ) {
-            characterTsIndex[characterTsIndex.length - 1] = event;
+            characterTsIndex.checkedSet(characterTsIndex.length - 1, event);
             if (event.name == "levelUp") {
-                computeIfAbsent(characterLevelIndex, character, () => []).push(event);
+                computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(event);
             }
         } else {
             if (characterTsIndex.length > 1) {
@@ -469,9 +584,9 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
                     }
                 }
             }
-            contiguousPushCharacterTsIndex(event);
+            characterTsIndex.push(event);
             if (event.name == "levelUp") {
-                computeIfAbsent(characterLevelIndex, character, () => []).push(event);
+                computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(event);
             }
         }
     }
@@ -516,10 +631,13 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
             let isEndOfThisContiguousSegment = isLast;
 
             if (!isLast) {
-                const currentLevel = levelIndex[i].detail.level;
-                const nextLevel = levelIndex[i + 1].detail.level;
-                if (currentLevel > nextLevel) {
-                    console.info(`found non-contiguous level, aliasing ${originalBaseCharacterName} (${currentLevel} > ${nextLevel})`);
+                const current = levelIndex[i], next = levelIndex[i + 1];
+                if (current.ts > next.ts) {
+                    // non-contiguity indicates a bug in the character aggregation and necessarily causes follow up bugs elsewhere
+                    throw new Error(`illegal state: current ts ${current.ts} > next ts ${next.ts} for character ${current.detail.character}`);
+                }
+                if (current.detail.level > next.detail.level) {
+                    console.info(`found non-contiguous level, aliasing ${originalBaseCharacterName} (${current.detail.level} > ${next.detail.level})`);
                     isEndOfThisContiguousSegment = true;
                 }
             }
@@ -549,7 +667,7 @@ function buildCharacterAggregation(maps: MapInstance[], events: LogEvent[]): Cha
         const nextEvent = ownedCharacterTsIndex[i + 1];
         const ts = event.ts, nextTs = nextEvent.ts;
         if (ts > nextTs) {
-            console.error(new Date(ts), new Date(nextTs), event, nextEvent);
+            // non-contiguity indicates a bug in the character aggregation and necessarily causes follow up bugs elsewhere
             throw new Error(`ts index[${i}] is not contiguous: ${ts} > ${nextTs} (${event.detail.character} > ${nextEvent.detail.character})`);
         }
     }

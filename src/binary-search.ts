@@ -5,39 +5,45 @@ export enum BinarySearchMode {
 }
 
 export function binarySearchFindFirst<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): T | undefined {
-    let result: T | undefined;
+    const index = binarySearchFindFirstIx(array, predicate, left, right);
+    return index === -1 ? undefined : array[index];
+}
 
+export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): T | undefined {
+    const index = binarySearchFindLastIx(array, predicate, left, right);
+    return index === -1 ? undefined : array[index];
+}
+
+export function binarySearchFindFirstIx<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): number {
+    let res = -1;
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (predicate(array[mid])) {
             // Found a match, store it and continue searching left
-            result = array[mid];
+            res = mid;
             right = mid - 1;
         } else {
             // Continue searching right
             left = mid + 1;
         }
     }
-
-    return result;
+    return res;
 }
 
-export function binarySearchFindLast<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): T | undefined {
-    let result: T | undefined;
-
+export function binarySearchFindLastIx<T>(array: T[], predicate: (element: T) => boolean, left = 0, right = array.length - 1): number {
+    let res = -1;
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (predicate(array[mid])) {
             // Found a match, store it and continue searching right
-            result = array[mid];
+            res = mid;
             left = mid + 1;
         } else {
             // Continue searching left
             right = mid - 1;
         }
     }
-
-    return result;
+    return res;
 }
 
 export function binarySearch<T>(

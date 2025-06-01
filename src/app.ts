@@ -73,7 +73,7 @@ export class App {
 
         const titleElement = document.createElement('h1');
         titleElement.textContent = 'PoE Map Log Viewer';
-        titleElement.className = 'display-1';
+        titleElement.className = 'display-2';
         headerContainer.appendChild(titleElement);
 
         const githubButton = document.createElement('a');
@@ -124,7 +124,7 @@ export class App {
 
         const modalId = 'progressModal';
         const modalHtml = `
-            <div class="modal progress-modal" id="${modalId}" tabindex="-1" aria-labelledby="progressModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal progress-modal" id="${modalId}" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
                 <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header" style="position: relative;">
@@ -354,16 +354,11 @@ export class App {
     }
 
     private displayResults(agg: LogAggregation) {
-        const then = performance.now();
         for (const component of this.components) {
             component.updateData(agg);
         }
         this.mascot.updateData(agg);
         this.currentComponent?.setVisible(true);
-        const took = performance.now() - then;
-        if (took > 20) {
-            console.warn("Data processing and rendering for displayResults took " + took + " ms");
-        }
     }
 
     private displaySearchLogResults(lines: LogLine[]) {

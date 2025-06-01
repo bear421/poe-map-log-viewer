@@ -4,6 +4,43 @@ export function createElementFromHTML(html: string): HTMLElement {
     return template.content.firstElementChild as HTMLElement;
 }
 
+export function deepFreeze<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
+    const then = performance.now();
+    freeze0(obj);
+    logTook("deepFreeze", then);
+    return obj;
+}
+
+function freeze0<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
+    (Reflect.ownKeys(obj) as (keyof T)[]).forEach(key => {
+        const value = obj[key];
+        if (value && typeof value === "object") {
+            deepFreeze(value);
+        }
+    });
+    return Object.freeze(obj) as Readonly<T>;
+}
+
+export function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
+    const then = performance.now();
+    (Reflect.ownKeys(obj) as (keyof T)[]).forEach(key => {
+        const value = obj[key];
+        if (value && typeof value === "object") {
+            Object.freeze(value);
+        }
+    });
+    const frozen = Object.freeze(obj) as Readonly<T>;
+    logTook("freezeIntermediate", then);
+    return frozen;
+}
+
+export function logTook(name: string, then: number, logThresholdMs: number = 20): void {
+    const took = performance.now() - then;
+    if (took > logThresholdMs) {
+        console.warn(name + " took " + (Math.ceil(took * 100) / 100) + " ms");
+    }
+}
+
 export function checkContiguous<T>(array: T[], extractValue: (t: T) => number): void {
     for (let i = 0; i < array.length - 1; i++) {
         const value = extractValue(array[i]);

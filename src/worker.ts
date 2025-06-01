@@ -125,7 +125,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
             } as IngestResponse);
 
             const totalMiB = totalBytesValue / 1024 / 1024;
-            console.info(`Processed ${maps.length} maps (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
+            console.info(`Ingested ${maps.length} maps and ${events.length} events (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
             console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s (${(totalMiB / parseFloat(tookSeconds)).toFixed(1)} MiB/s)`);
         
         } else if (type === 'search') {

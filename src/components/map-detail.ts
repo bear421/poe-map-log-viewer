@@ -29,7 +29,6 @@ export class MapDetailComponent extends BaseComponent {
         const modal = document.createElement('div');
         modal.className = 'modal fade map-detail-modal';
         modal.tabIndex = -1;
-        modal.setAttribute('aria-hidden', 'true');
 
         modal.innerHTML = `
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
