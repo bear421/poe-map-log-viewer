@@ -1,4 +1,4 @@
-import { LogEvent } from './log-events';
+import { LogEvent, EventName } from './log-events';
 
 export class EventDispatcher {
 
@@ -10,7 +10,7 @@ export class EventDispatcher {
       return listener;
     }
 
-    on(name: string, listener: (event: LogEvent) => void): (event: LogEvent) => void {
+    on(name: EventName, listener: (event: LogEvent) => void): (event: LogEvent) => void {
         const listenerWrapper = (event: LogEvent) => {
             if (event.name === name) {
                 listener(event);
@@ -29,7 +29,7 @@ export class EventDispatcher {
         }
     }
 
-    once(name: string, listener: (event: LogEvent) => void): void {
+    once(name: EventName, listener: (event: LogEvent) => void): void {
         const onceWrapper = (event: LogEvent) => {
             if (event.name === name) {
                 this.off(onceWrapper);

@@ -9,7 +9,6 @@ export class FilterComponent extends BaseComponent {
     private readonly mapPresetButtonIds = ['campaignBtn', 'presetWhiteMapsBtn', 'presetYellowMapsBtn', 'presetRedMapsBtn'];
     private readonly allPresetButtonIds = [...this.datePresetButtonIds, ...this.mapPresetButtonIds];
 
-    private isInitialRenderDone: boolean = false;
     private prevCharactersSignature: string = "";
     private filter: Filter | undefined;
 
@@ -19,9 +18,8 @@ export class FilterComponent extends BaseComponent {
         this.onFilterChange = onFilterChangeCallback;
     }
 
-    protected render(): void {
-        if (!this.isInitialRenderDone) {
-            this.element.innerHTML = `
+    init(): void {
+        this.element.innerHTML = `
                 <div class="card-header">
                     <h4 class="mb-0">Filter Data</h4>
                 </div>
@@ -85,10 +83,10 @@ export class FilterComponent extends BaseComponent {
                     </div>
                 </div>
             `;
-            this.setupEventListeners();
-            this.isInitialRenderDone = true;
-        }
+        this.setupEventListeners();
+    }
 
+    protected render(): void {
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
         const characters: LevelUpEvent[] = Array.from(this.data?.characterAggregation.characterLevelIndex.values() ?? [])
             .map(levelIndex => levelIndex.findLast(e => e.name === "levelUp")!);
@@ -106,6 +104,7 @@ export class FilterComponent extends BaseComponent {
         ).join('');
 
         if (characterOptionsHTML !== this.prevCharactersSignature) {
+            console.warn("characterOptionsHTML !== this.prevCharactersSignature", characterOptionsHTML, this.prevCharactersSignature);
             const oldValue = characterSelect.value;
             characterSelect.innerHTML = `<option value="">All Characters</option>${characterOptionsHTML}`;
             
@@ -115,7 +114,7 @@ export class FilterComponent extends BaseComponent {
             } else {
                 characterSelect.value = "";
             }
-
+            
             this.prevCharactersSignature = characterOptionsHTML;
         }
     }
