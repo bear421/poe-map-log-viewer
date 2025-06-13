@@ -104,7 +104,6 @@ export class FilterComponent extends BaseComponent {
         ).join('');
 
         if (characterOptionsHTML !== this.prevCharactersSignature) {
-            console.warn("characterOptionsHTML !== this.prevCharactersSignature", characterOptionsHTML, this.prevCharactersSignature);
             const oldValue = characterSelect.value;
             characterSelect.innerHTML = `<option value="">All Characters</option>${characterOptionsHTML}`;
             
