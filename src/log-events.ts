@@ -24,7 +24,7 @@ export interface AreaPostLoadEvent extends LogEventBase {
 }
 export namespace AreaPostLoadEvent {
     export function of(ts: number, delta: number, uptimeMillis: number): AreaPostLoadEvent {
-        return { name: "areaPostLoad", ts, detail: { delta, uptimeMillis } };
+        return { name: "areaPostLoad", detail: { delta, uptimeMillis }, ts };
     }
     export const icon = 'bi-stopwatch';
     export const color = 'text-dark';
@@ -50,7 +50,7 @@ export interface DeathEvent extends CharacterEvent {
 }
 export namespace DeathEvent {
     export function of(ts: number, character: string, areaLevel: number): DeathEvent {
-        return { name: "death", ts, detail: { character, areaLevel } };
+        return { name: "death", detail: { character, areaLevel }, ts };
     }
     export const icon = 'bi-heartbreak-fill';
     export const color = 'text-danger';
@@ -64,7 +64,7 @@ export interface JoinedAreaEvent extends CharacterEvent {
 }
 export namespace JoinedAreaEvent {
     export function of(ts: number, character: string): JoinedAreaEvent {
-        return { name: "joinedArea", ts, detail: { character } };
+        return { name: "joinedArea", detail: { character }, ts };
     }
     export const icon = 'bi-person-fill-add';
     export const color = 'text-secondary';
@@ -78,7 +78,7 @@ export interface LeftAreaEvent extends CharacterEvent {
 }
 export namespace LeftAreaEvent {
     export function of(ts: number, character: string): LeftAreaEvent {
-        return { name: "leftArea", ts, detail: { character } };
+        return { name: "leftArea", detail: { character }, ts };
     }
     export const icon = 'bi-person-fill-dash';
     export const color = 'text-secondary';
@@ -97,7 +97,7 @@ export interface LevelUpEvent extends LogEventBase {
 }
 export namespace LevelUpEvent {
     export function of(ts: number, character: string, ascendancy: string, level: number): LevelUpEvent {
-        return { name: "levelUp", ts, detail: { character, ascendancy, level } };
+        return { name: "levelUp", detail: { character, ascendancy, level }, ts };
     }
     export const icon = 'bi-arrow-up-square-fill';
     export const color = 'text-success';
@@ -115,12 +115,12 @@ export interface SetCharacterEvent extends CharacterEvent, VirtualEvent {
 }
 export namespace SetCharacterEvent {
     export function of(ts: number, character: string, level: number): SetCharacterEvent {
-        return { name: "setCharacter", ts, detail: { character, level } };
+        return { name: "setCharacter", detail: { character, level }, ts };
     }
     export const icon = 'bi-person-fill';
     export const color = 'text-secondary';
     export function label(event: SetCharacterEvent): string {
-        return `${event.detail.character} set as current (internal)`;
+        return `${event.detail.character} set to level ${event.detail.level} (internal)`;
     }
 }
 
@@ -138,7 +138,7 @@ export interface MsgFromEvent extends MsgEvent {
 }
 export namespace MsgFromEvent {
     export function of(ts: number, character: string, msg: string): MsgFromEvent {
-        return { name: "msgFrom", ts, detail: { character, msg } };
+        return { name: "msgFrom", detail: { character, msg }, ts };
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
@@ -152,7 +152,7 @@ export interface MsgToEvent extends MsgEvent {
 }
 export namespace MsgToEvent {
     export function of(ts: number, character: string, msg: string): MsgToEvent {
-        return { name: "msgTo", ts, detail: { character, msg } };
+        return { name: "msgTo", detail: { character, msg }, ts };
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
@@ -166,7 +166,7 @@ export interface MsgPartyEvent extends MsgEvent {
 }
 export namespace MsgPartyEvent {
     export function of(ts: number, character: string, msg: string): MsgPartyEvent {
-        return { name: "msgParty", ts, detail: { character, msg } };
+        return { name: "msgParty", detail: { character, msg }, ts };
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
@@ -180,7 +180,7 @@ export interface MsgGuildEvent extends MsgEvent {
 }
 export namespace MsgGuildEvent {
     export function of(ts: number, character: string, msg: string): MsgGuildEvent {
-        return { name: "msgGuild", ts, detail: { character, msg } };
+        return { name: "msgGuild", detail: { character, msg }, ts };
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
@@ -194,7 +194,7 @@ export interface MsgLocalEvent extends MsgEvent {
 }
 export namespace MsgLocalEvent {
     export function of(ts: number, character: string, msg: string): MsgLocalEvent {
-        return { name: "msgLocal", ts, detail: { character, msg } };
+        return { name: "msgLocal", detail: { character, msg }, ts };
     }
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
@@ -213,7 +213,7 @@ export interface BossKillEvent extends LogEventBase {
 }
 export namespace BossKillEvent {
     export function of(ts: number, bossName: string, msg: string, areaLevel: number): BossKillEvent {
-        return { name: "bossKill", ts, detail: { bossName, msg, areaLevel } };
+        return { name: "bossKill", detail: { bossName, msg, areaLevel }, ts };
     }
     export const icon = 'bi-trophy-fill';
     export const color = 'text-warning';
@@ -230,7 +230,7 @@ export interface PassiveGainedEvent extends LogEventBase {
 }
 export namespace PassiveGainedEvent {
     export function of(ts: number, count: number): PassiveGainedEvent {
-        return { name: "passiveGained", ts, detail: { count } };
+        return { name: "passiveGained", detail: { count }, ts };
     }
     export const icon = 'bi-plus-circle-fill';
     export const color = 'text-success';
@@ -248,7 +248,7 @@ export interface PassiveAllocatedEvent extends LogEventBase {
 }
 export namespace PassiveAllocatedEvent {
     export function of(ts: number, id: string, name: string): PassiveAllocatedEvent {
-        return { name: "passiveAllocated", ts, detail: { id, name } };
+        return { name: "passiveAllocated", detail: { id, name }, ts };
     }
     export const icon = 'bi-node-plus-fill';
     export const color = 'text-success';
@@ -268,7 +268,7 @@ export interface BonusGainedEvent extends LogEventBase {
 export namespace BonusGainedEvent {
     export function of(ts: number, bonus: string, character?: string): BonusGainedEvent {
         const effectiveCharacter = character === 'You' ? undefined : character;
-        return { name: "bonusGained", ts, detail: { character: effectiveCharacter, bonus } };
+        return { name: "bonusGained", detail: { character: effectiveCharacter, bonus }, ts };
     }
     export const icon = 'bi-patch-plus-fill';
     export const color = 'text-success';
@@ -286,7 +286,7 @@ export interface PassiveUnallocatedEvent extends LogEventBase {
 }
 export namespace PassiveUnallocatedEvent {
     export function of(ts: number, id: string, name: string): PassiveUnallocatedEvent {
-        return { name: "passiveUnallocated", ts, detail: { id, name } };
+        return { name: "passiveUnallocated", detail: { id, name }, ts };
     }
     export const icon = 'bi-node-minus-fill';
     export const color = 'text-danger';
@@ -318,7 +318,7 @@ export interface ItemsIdentifiedEvent extends LogEventBase {
 }
 export namespace ItemsIdentifiedEvent {
     export function of(ts: number, count: number): ItemsIdentifiedEvent {
-        return { name: "itemsIdentified", ts, detail: { count } };
+        return { name: "itemsIdentified", detail: { count }, ts };
     }
     export const icon = 'bi-magic';
     export const color = 'text-dark';
@@ -335,7 +335,7 @@ export interface HideoutEnteredEvent extends LogEventBase {
 }
 export namespace HideoutEnteredEvent {
     export function of(ts: number, areaName: string): HideoutEnteredEvent {
-        return { name: "hideoutEntered", ts, detail: { areaName } };
+        return { name: "hideoutEntered", detail: { areaName }, ts };
     }
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
@@ -398,7 +398,7 @@ export interface MapCompletedEvent extends LogEventBase {
 }
 export namespace MapCompletedEvent {
     export function of(ts: number, map: MapInstance): MapCompletedEvent {
-        return { name: "mapCompleted", ts, detail: { map } };
+        return { name: "mapCompleted", detail: { map }, ts };
     }
     export const icon = "bi-box-arrow-in-right";
     export const color = "text-success";
@@ -415,7 +415,7 @@ export interface XPSnapshotEvent extends LogEventBase {
 }
 export namespace XPSnapshotEvent {
     export function of(ts: number, snapshot: XPSnapshot): XPSnapshotEvent {
-        return { name: "xpSnapshot", ts, detail: { snapshot } };
+        return { name: "xpSnapshot", detail: { snapshot }, ts };
     }
     export const icon = 'bi-camera-fill';
     export const color = 'text-info';
