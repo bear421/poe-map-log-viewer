@@ -187,7 +187,7 @@ body {
 @media (max-width: 2000px) {
     .speech-bubble {
         right: auto;
-        left: calc(100% + 0.625rem);
+        left: 8.5rem;
     }
     
     .speech-bubble:after {
