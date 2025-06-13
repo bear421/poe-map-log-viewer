@@ -60,7 +60,7 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
                 if (!!this.data) {
                     this.speak('Heeeey stop that!!', [], 3_000, Emotion.LAUGHING);
                 } else {
-                    this.speak('Grrr...', ['text-danger'], 3_000, Emotion.HMM2);
+                    this.speak('Grrr...', ['border-danger'], 3_000, Emotion.HMM2);
                 }
             }
         });
@@ -69,17 +69,29 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
     protected init(): void {
         this.setDefaultEmotion(Emotion.HAPPY);
         const data = this.data!;
-        if (data.totalBossKills > 10) { 
-            let baseMsg = "Wow! You've killed so many bosses!";
-            if (data.totalDeaths <= 0) {
-                baseMsg += " You must be an expert!";
-            } else if (data.totalDeaths < data.totalBossKills) {
-                baseMsg += " Very impressive!";
+        for (const levelIndex of data.characterAggregation.characterLevelIndex.values()) {
+            if (levelIndex[levelIndex.length - 1].detail.level >= 100) {
+                let msg = "Wow! You've reached level 100!";
+                if (data.totalDeaths <= 0) {
+                    msg += " You must be some kind of mechanical god!";
+                } else if (data.totalDeaths < 10) {
+                    msg += " Very impressive!";
+                }
+                this.speak(msg, ['border-success'], 5_000, Emotion.SURPRISED);
+                return;
             }
-            this.speak(`${baseMsg}`, ['border-success'], 5_000, Emotion.SURPRISED);
-        } else {
-            this.setEmotion(Emotion.HAPPY);
         }
+        if (data.totalBossKills > 10) { 
+            let msg = "Wow! You've killed so many bosses!";
+            if (data.totalDeaths <= 0) {
+                msg += " You must be an expert!";
+            } else if (data.totalDeaths < data.totalBossKills) {
+                msg += " Very impressive!";
+            }
+            this.speak(`${msg}`, ['border-success'], 5_000, Emotion.SURPRISED);
+            return;
+        }
+        this.setEmotion(Emotion.HAPPY);
     }
 
     public setDefaultEmotion(emotion: string): void {
