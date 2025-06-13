@@ -6,17 +6,19 @@ export enum Feature {
 
 // months are 0-indexed; 0 = January
 export const VERSIONS: LogVersion[] = [{
-    ts: Date.UTC(2022, 1, 1), // TODO not entirely accurate
+    ts: Date.UTC(2022, 1, 8),
     logSupport: {
         [Feature.ZoneGeneration]: true
-    }
+    },
+    patchURL: "https://www.pathofexile.com/forum/view-thread/3232434" // might be a different patch
 }];
 
 export interface LogVersion {
     logSupport: {
-        [Feature.ZoneGeneration]: boolean;
+        [key in Feature]?: boolean;
     }
     ts: number;
+    patchURL?: string;
 }
 
 /**
