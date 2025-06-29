@@ -4,7 +4,7 @@ import { MapInstance, XPSnapshot } from "./log-tracker";
 export interface LogEventBase {
     name: string;
     ts: number;
-    detail?: any;
+    detail?: any; // FIXME should be of type object, but annoying to use with eventMeta
 }
 
 interface VirtualEvent {}
@@ -110,12 +110,16 @@ export interface SetCharacterEvent extends CharacterEvent, VirtualEvent {
     name: "setCharacter";
     detail: {
         character: string;
+        ascendancy: string;
         level: number;
     };
 }
 export namespace SetCharacterEvent {
-    export function of(ts: number, character: string, level: number): SetCharacterEvent {
-        return { name: "setCharacter", detail: { character, level }, ts };
+    export function of(ts: number, character: string, ascendancy: string, level: number): SetCharacterEvent {
+        return { name: "setCharacter", detail: { character, ascendancy, level }, ts };
+    }
+    export function ofEvent(ts: number, event: LevelUpEvent | SetCharacterEvent): SetCharacterEvent {
+        return of(ts, event.detail.character, event.detail.ascendancy, event.detail.level);
     }
     export const icon = 'bi-person-fill';
     export const color = 'text-secondary';

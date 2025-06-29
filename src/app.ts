@@ -6,10 +6,11 @@ import { FilterComponent } from './components/filter';
 import { SearchComponent } from './components/search';
 import { MapStatsComponent } from './components/map-stats';
 import { OverviewComponent } from './components/overview';
+import { AnalysisComponent } from './components/analysis';
 import { FileSelectorComponent } from './components/file-selector';
 import { JourneyComponent } from './components/journey';
 import { MessagesComponent } from './components/messages';
-import { LogAggregation, aggregate } from './aggregation';
+import { LogAggregation, aggregateCached, clearAggregationCache } from './aggregation';
 import { logWorkerService } from './log-worker-service';
 
 import './assets/css/styles.css';
@@ -21,6 +22,7 @@ export class App {
     private overviewTabPane!: HTMLDivElement;
     private mapsTabPane!: HTMLDivElement;
     private searchLogTabPane!: HTMLDivElement;
+    private analysisTabPane!: HTMLDivElement;
     private currentMaps: MapInstance[] = [];
     private currentEvents: LogEvent[] = [];
     private currentAggregation: LogAggregation | undefined = undefined;
@@ -30,6 +32,7 @@ export class App {
     private searchComponent!: SearchComponent;
     private mapStatsComponent!: MapStatsComponent;
     private overviewComponent!: OverviewComponent;
+    private analysisComponent!: AnalysisComponent;
     private fileSelectorComponent!: FileSelectorComponent;
     private selectedFile: File | null = null;
     private journeyComponent!: JourneyComponent;
@@ -99,7 +102,7 @@ export class App {
                 this.showError('No map data available to filter');
                 return;
             }
-            const aggregation = aggregate(this.currentMaps, this.currentEvents, filter, this.currentAggregation);
+            const aggregation = aggregateCached(this.currentMaps, this.currentEvents, filter, this.currentAggregation);
             this.currentAggregation = aggregation;
             this.displayResults(aggregation);
         }, container);
@@ -156,10 +159,13 @@ export class App {
                 <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview-tab-pane" type="button" role="tab" aria-controls="overview-tab-pane" aria-selected="true">Overview</button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis-tab-pane" type="button" role="tab" aria-controls="analysis-tab-pane" aria-selected="false">Analysis</button>
+            </li>
+            <li class="nav-item" role="presentation">
                 <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Map stats</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="journey-tab" data-bs-toggle="tab" data-bs-target="#journey-tab-pane" type="button" role="tab" aria-controls="journey-tab-pane" aria-selected="false">Journey</button>
+                <button class="nav-link" id="journey-tab" data-bs-toggle="tab" data-bs-target="#journey-tab-pane" type="button" role="tab" aria-controls="journey-tab-pane" aria-selected="false">Campaign</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-tab-pane" type="button" role="tab" aria-controls="messages-tab-pane" aria-selected="false">Messages</button>
@@ -194,6 +200,13 @@ export class App {
         this.mapsTabPane.setAttribute('aria-labelledby', 'maps-tab');
         this.mapsTabPane.setAttribute('tabindex', '0');
 
+        this.analysisTabPane = document.createElement('div');
+        this.analysisTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.analysisTabPane.id = 'analysis-tab-pane';
+        this.analysisTabPane.setAttribute('role', 'tabpanel');
+        this.analysisTabPane.setAttribute('aria-labelledby', 'analysis-tab');
+        this.analysisTabPane.setAttribute('tabindex', '0');
+
         this.journeyTabPane = document.createElement('div');
         this.journeyTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
         this.journeyTabPane.id = 'journey-tab-pane';
@@ -218,6 +231,7 @@ export class App {
 
         this.tabContentElement.appendChild(this.overviewTabPane);
         this.tabContentElement.appendChild(this.mapsTabPane);
+        this.tabContentElement.appendChild(this.analysisTabPane);
         this.tabContentElement.appendChild(this.journeyTabPane);
         this.tabContentElement.appendChild(this.messagesTabPane);
         this.tabContentElement.appendChild(this.searchLogTabPane);
@@ -225,9 +239,10 @@ export class App {
         
         this.overviewComponent = new OverviewComponent(this.overviewTabPane);
         this.mapStatsComponent = new MapStatsComponent(this.mapsTabPane);
+        this.analysisComponent = new AnalysisComponent(this.analysisTabPane);
         this.journeyComponent = new JourneyComponent(this.journeyTabPane);
         this.messagesComponent = new MessagesComponent(this.messagesTabPane);
-        this.components = [this.overviewComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent];  
+        this.components = [this.overviewComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
         this.components.forEach(component => component.setApp(this));
 
         const importJsonInput = document.createElement('input');
@@ -296,7 +311,7 @@ export class App {
                 component.setVisible(true);
                 this.currentComponent = component;
                 if (tabId === 'journey-tab' && !this.filterComponent.getFilter()?.character) {
-                    this.mascot.speak('Please select a character to use the Journey tab', ['border-warning']);
+                    this.mascot.speak('Please select a character to use the Campaign tab', ['border-warning']);
                 }
             });
             tabButton.addEventListener('hide.bs.tab', () => {
@@ -306,6 +321,7 @@ export class App {
 
         informComponentOnTabChange('overview-tab', this.overviewComponent);
         informComponentOnTabChange('maps-tab', this.mapStatsComponent);
+        informComponentOnTabChange('analysis-tab', this.analysisComponent);
         informComponentOnTabChange('journey-tab', this.journeyComponent);
         informComponentOnTabChange('messages-tab', this.messagesComponent);
     }
@@ -313,7 +329,7 @@ export class App {
     private handleData(maps: MapInstance[], events: LogEvent[]) {
         this.currentMaps = maps;
         this.currentEvents = events;
-        const agg = aggregate(this.currentMaps, this.currentEvents, new Filter());
+        const agg = aggregateCached(this.currentMaps, this.currentEvents, new Filter());
         this.currentAggregation = agg;
         this.displayResults(agg);
     }
@@ -323,6 +339,7 @@ export class App {
             this.showError('Please select a client.txt file');
             return;
         }
+        clearAggregationCache();
         this.showProgress("Processing Log File...");
 
         this.filterComponent.setVisible(false);
@@ -462,6 +479,7 @@ export class App {
             this.mascot.speak('Please select a file to import.', ['border-danger'], 30_000);
             return;
         }
+        clearAggregationCache();
 
         this.showProgress("Importing Data...");
         try {

@@ -3,6 +3,8 @@ import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEve
 import { binarySearch, binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx, BinarySearchMode } from "./binary-search";
 import { Feature, isFeatureSupportedAt } from "./data/log-versions";
 import { freezeIntermediate, logTook } from "./util";
+import { SplitCache } from "./split-cache";
+import { getZoneInfo } from "./data/zone_table";
 
 export type LogAggregation = Readonly<MutableLogAggregation>;
 
@@ -55,17 +57,81 @@ export interface MutableLogAggregation {
     totalBossKills: number;
     totalSessions: number;
     characterAggregation: CharacterAggregation;
+    filter: Filter;
+}
+
+export enum Dimension {
+    character,
+    characterLevel,
+    areaLevel,
+    date,
+    none,
+}
+
+export enum Metric {
+    deaths,
+    witnessedDeaths,
+    totalBuysAttempted,
+    salesAttempted,
+    bossKills,
+    sessions,
+    maps,
+    totalTime, 
+    mapTime,
+    hideoutTime,
+    campaignTime,
+    loadTime,
+}
+
+interface MetricMeta {
+    type: "event" | "map"; 
+    discrete: boolean;
+}
+
+export const metricMeta: Record<Metric, MetricMeta> = {
+    [Metric.deaths]: {type: "event", discrete: true},
+    [Metric.witnessedDeaths]: {type: "event", discrete: true},
+    [Metric.totalBuysAttempted]: {type: "event", discrete: true},
+    [Metric.salesAttempted]: {type: "event", discrete: true},
+    [Metric.bossKills]: {type: "event", discrete: true},
+    [Metric.sessions]: {type: "event", discrete: true},
+    [Metric.maps]: {type: "map", discrete: true},
+    [Metric.totalTime]: {type: "map", discrete: false},
+    [Metric.mapTime]: {type: "map", discrete: false},
+    [Metric.hideoutTime]: {type: "map", discrete: false},
+    [Metric.campaignTime]: {type: "map", discrete: false},
+    [Metric.loadTime]: {type: "map", discrete: false},
+}
+
+export enum Aggregation {
+    total,
+    average,
+    median,
+    exactMedian,
+}
+
+export interface CharacterInfo {
+    name: string;
+    level: number;
+    ascendancy: string;
+    createdTs: number;
+    lastPlayedTs: number;
 }
 
 export class CharacterAggregation {
     readonly characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>;
     readonly characterTsIndex: AnyCharacterEvent[];
     readonly characterLevelSegmentation: Map<string, Segmentation[]>;
+    readonly characters: CharacterInfo[];
+    readonly filteredCharacters: CharacterInfo[];
 
-    constructor(characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>, characterTsIndex: AnyCharacterEvent[], characterLevelSegmentation: Map<string, Segmentation[]>) {
+    constructor(characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>, characterTsIndex: AnyCharacterEvent[], characterLevelSegmentation: Map<string, Segmentation[]>, 
+            characters: CharacterInfo[], filteredCharacters: CharacterInfo[]) {
         this.characterLevelIndex = characterLevelIndex;
         this.characterTsIndex = characterTsIndex;
         this.characterLevelSegmentation = characterLevelSegmentation;
+        this.characters = characters;
+        this.filteredCharacters = filteredCharacters;
     }
 
     /**
@@ -137,87 +203,64 @@ export class CharacterAggregation {
         return segmentation.length ? Segmentation.mergeContiguousConnected(segmentation) : undefined;
     }
 
-    guessSegmentationOld(levelFrom?: number, levelTo?: number, character?: string): Segmentation | undefined {
-        if (character) {
-            const levelIndex = this.characterLevelIndex.get(character);
-            if (!levelIndex) throw new Error("illegal state: no level index found for character " + character);
-
-            return this.guessSegmentationForOld(levelIndex, levelFrom, levelTo);
-        } else if (levelFrom || levelTo) {
-            const segmentation: Segmentation = [];
-            for (const levelIndex of this.characterLevelIndex.values()) {
-                const characterSegmentation = this.guessSegmentationForOld(levelIndex, levelFrom, levelTo);
-                if (characterSegmentation) {
-                    segmentation.push(...characterSegmentation);
-                }
+    guessSegmentations(levelFrom?: number, levelTo?: number, characters?: string[]): Map<string, Segmentation> {
+        if (!characters) {
+            characters = Array.from(this.characterLevelSegmentation.keys());
+        }
+        const segmentations = new Map<string, Segmentation>();
+        for (const character of characters) {
+            const segmentation = this.guessSegmentation(levelFrom, levelTo, character);
+            if (segmentation) {
+                segmentations.set(character, segmentation);
             }
-            if (!segmentation.length) return undefined;
-
-            segmentation.sort((a, b) => a.lo - b.lo);
-            return Segmentation.mergeContiguousConnected(segmentation);
         }
-        return [];
-    }
-
-
-    private guessSegmentationForOld(levelIndex: (LevelUpEvent|SetCharacterEvent)[], levelFrom?: number, levelTo?: number): Segmentation | undefined {
-        const segmentation: Segmentation = [];
-        const loIx = levelFrom ? binarySearchFindFirstIx(levelIndex, (e) => levelFrom <= e.detail.level) : 0;
-        if (loIx === -1) return undefined; // levelFrom exceeds highest level reached by character
-
-        let hiIx;
-        if (levelTo) {
-            // find FIRST character event that is above levelTo to correctly include time spent at that level
-            // this event is always a levelUp event, except for level 1
-            hiIx = binarySearchFindFirstIx(levelIndex, (e) => levelTo + 1 <= e.detail.level);
-            if (hiIx === -1) {
-                hiIx = levelIndex.length - 1;
-            }
-        } else {
-            hiIx = levelIndex.length - 1;
-        }
-        for (let i = loIx; i < hiIx; i++) {
-            segmentation.push({lo: levelIndex[i].ts, hi: levelIndex[i + 1].ts});
-        }
-        return Segmentation.mergeContiguousConnected(segmentation);
+        return segmentations;
     }
 }
 
-export interface CharacterInfo {
-    level: number;
-    ascendancy: string;
-    extraPassives: number;
+const aggregationCache = new SplitCache<string, LogAggregation>(16);
+
+export function clearAggregationCache() {
+    aggregationCache.clear();
 }
 
-const maxSaleOffsetMillis = 1000 * 60 * 10;
+export function aggregateCached(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
+    const cacheKey = JSON.stringify(filter);
+    const cachedResult = aggregationCache.get(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const then = performance.now();
+    const res = aggregate(maps, events, filter, prevAgg);
+    const took = logTook("aggregate", then);
+    aggregationCache.set(cacheKey, res, took < 5 && !Filter.isEmpty(filter));
+    return res;
+}
 
 export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
-    const then = performance.now();
-    const optFilter = reassembleFilter(filter, prevAgg);
-    if (optFilter) {
-        maps = Filter.filterMaps(maps, optFilter);
-        events = Filter.filterEvents(events, optFilter);
+    const reassembledFilter = reassembleFilter(filter, prevAgg);
+    if (reassembledFilter) {
+        maps = Filter.filterMaps(maps, reassembledFilter);
+        events = Filter.filterEvents(events, reassembledFilter);
     } else {
+        // selected filter combination excludes all data
         maps = [];
         events = [];
     }
     let characterAggregation;
     try {
-        characterAggregation = prevAgg ? prevAgg.characterAggregation : buildCharacterAggregation(maps, events);
+        if (prevAgg) {
+            characterAggregation = prevAgg.characterAggregation;
+        } else {
+            characterAggregation = buildCharacterAggregation(maps, events);
+        }
+        characterAggregation = withFilteredCharacters(characterAggregation, filter);
     } catch (e) {
         console.error("failed to build character aggregation, limited functionality available", e);
-        characterAggregation = new CharacterAggregation(new Map(), [], new Map());
+        characterAggregation = new CharacterAggregation(new Map(), [], new Map(), [], []);
     }
-    const agg = aggregate0(maps, events, filter, characterAggregation);
-    if (prevAgg) {
-        return freezeIntermediate({
-            ...agg,
-            characterAggregation: prevAgg.characterAggregation
-        });
-    }
-    const frozen = freezeIntermediate(agg);
-    logTook("aggregate", then);
-    return frozen;
+    // FIXME don't default to filter if all data is excluded
+    const agg = aggregate0(maps, events, reassembledFilter ?? filter, characterAggregation);
+    return freezeIntermediate(agg);
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter | undefined {
@@ -227,17 +270,44 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter | un
     const characterSegmentation = prevAgg.characterAggregation.guessSegmentation(filter.fromCharacterLevel, filter.toCharacterLevel, filter.character);
     if (!characterSegmentation) return undefined;
 
-    segmentations.push(characterSegmentation);
+    if (characterSegmentation.length) {
+        segmentations.push(characterSegmentation);
+    }
     if (filter.tsBounds && filter.tsBounds.length) {
         segmentations.push(filter.tsBounds);
     }
     if (segmentations.length) {
         const newBounds = Segmentation.intersectAll(segmentations);
+        if (newBounds.length === 0) return undefined;
+
         return filter.withBounds(newBounds);
     }
     return filter;
 }
 
+const staleThreshold = Date.now() - 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
+
+function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): CharacterAggregation {
+    const filteredCharacters = ca.characters.filter(char => {
+        if (filter?.fromCharacterLevel && char.level < filter.fromCharacterLevel) {
+            return false;
+        }
+        // don't filter by toCharacterLevel, this is generally undesired and uninteresting
+        if (filter?.tsBounds && filter.tsBounds.length > 0) {
+            if (char.createdTs < filter.tsBounds[0].lo || char.lastPlayedTs > filter.tsBounds[0].hi) {
+                return false;
+            }
+        } else if (char.name.startsWith("AAA") && char.level < 90 && char.lastPlayedTs < staleThreshold) {
+            // discard practice characters unless explicitly included by tsBounds
+            return false;
+        }
+        return true;
+    });
+    return new CharacterAggregation(ca.characterLevelIndex, ca.characterTsIndex, ca.characterLevelSegmentation, ca.characters, filteredCharacters);
+}
+
+const MAX_SALE_OFFSET_MILLIS = 1000 * 60 * 10;
+const SESSION_THRESHOLD_MILLIS = 1000 * 60 * 60;
 const TRADE_PATTERN = /^(Hi, I would like to buy your|你好，我想購買|안녕하세요, |こんにちは、 |Здравствуйте, хочу купить у вас |Hi, ich möchte |Bonjour, je souhaiterais t'acheter )/;
 
 function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): MutableLogAggregation {
@@ -254,7 +324,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
         const event = events[i];
         if (prevEvent) {
             const tsDelta = event.ts - prevEvent.ts;
-            if (tsDelta > 1000 * 60 * 60) {
+            if (tsDelta > SESSION_THRESHOLD_MILLIS) {
                 totalSessions++;
             }
         }
@@ -284,7 +354,7 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
                     - it is impossible to accurately track characters in the current instance;
                         when joining an instance with character(s) already present, the client doesn't generate a log of the present character(s) for the joiner
                 */
-                const thresholdTs = event.ts - maxSaleOffsetMillis;
+                const thresholdTs = event.ts - MAX_SALE_OFFSET_MILLIS;
                 const discardStaleEvents = (events: AnyCharacterEvent[]) => {
                     const index = binarySearch(events, thresholdTs, (e) => e.ts, BinarySearchMode.LAST);
                     if (index !== -1) {
@@ -390,7 +460,8 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
         totalHideoutTime,
         totalBossKills,
         totalSessions,
-        characterAggregation
+        characterAggregation,
+        filter
     };
 }
 
@@ -495,7 +566,7 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
     const characterLevelIndex = new Map<string, ContiguousArray<LevelUpEvent|SetCharacterEvent>>();
     const characterTsIndex = new ContiguousArray<AnyCharacterEvent>();
     // expands the supplied and prior's character's adjacent character level range by appending a setCharacter event to both
-    const handleCharacterSwitch = (ts: number, character: string, level: number, eventLoopIndex: number) => {
+    const handleCharacterSwitch = (ts: number, character: string, ascendancy: string, level: number, eventLoopIndex: number) => {
         // expand the range of the prior character, unless this is the first character
         for (let i = characterTsIndex.length - 1; i >= 0; i--) {
             const prev = characterTsIndex[i];
@@ -519,9 +590,8 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
             if (prevTs < levelLikePrev.ts) {
                 throw new Error(`illegal state: prevTs < levelLikePrev.ts for character ${character} at ts ${ts}`);
             }
-            const prevCharacter = levelLikePrev.detail.character;
-            if (prevCharacter === character) {
-                throw new Error(`illegal state: prevCharacter === character: ${prevCharacter} === ${character} at ts ${ts}`);
+            if (levelLikePrev.detail.character === character) {
+                throw new Error(`illegal state: prevCharacter === character: ${levelLikePrev.detail.character} === ${character} at ts ${ts}`);
             }
             if (prev.ts > prevTs) {
                 // prior character event is after supplied threshold ts, should only be possible for a fresh character after it's levelUp(2) event
@@ -529,10 +599,10 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
                 const ix = binarySearchFindLastIx(characterTsIndex, (e) => e.ts < prevTs);
                 if (ix === -1) throw new Error(`illegal state: no prior event found for character ${character} at ts ${prevTs}`);
 
-                const prevCharacterEvent = SetCharacterEvent.of(prevTs, prevCharacter, levelLikePrev.detail.level);
+                const prevCharacterEvent = SetCharacterEvent.ofEvent(prevTs, levelLikePrev);
                 index.push(prevCharacterEvent);
                 // also handle next character with special offset 
-                const nextCharacterEvent = SetCharacterEvent.of(ts, character, level);
+                const nextCharacterEvent = SetCharacterEvent.of(ts, character, ascendancy, level);
                 characterTsIndex.splice(ix, 0, prevCharacterEvent, nextCharacterEvent);
                 // const nextIndex = characterLevelIndex.get(character);
                 computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(nextCharacterEvent);
@@ -548,13 +618,13 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
                 nextIndex.splice(nextCharacterIx, 0, nextCharacter);*/
                 return;
             } else {
-                const prevCharacterEvent = SetCharacterEvent.of(prevTs, prevCharacter, levelLikePrev.detail.level);
+                const prevCharacterEvent = SetCharacterEvent.ofEvent(prevTs, levelLikePrev);
                 index.push(prevCharacterEvent);
                 characterTsIndex.push(prevCharacterEvent);
             }
             break;
         }
-        const nextCharacter = SetCharacterEvent.of(ts, character, level);
+        const nextCharacter = SetCharacterEvent.of(ts, character, ascendancy, level);
         characterTsIndex.push(nextCharacter);
         computeIfAbsent(characterLevelIndex, character, () => new ContiguousArray()).push(nextCharacter);
     };
@@ -592,7 +662,7 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
             }
             const index = new ContiguousArray<LevelUpEvent|SetCharacterEvent>();
             characterLevelIndex.set(character, index);
-            handleCharacterSwitch(ts, character, 1, eventLoopIndex);
+            handleCharacterSwitch(ts, character, event.detail.ascendancy, 1, eventLoopIndex);
             characterTsIndex.push(event);
             index.push(event);
         } else if (characterTsIndex.length > 0 && characterTsIndex[characterTsIndex.length - 1].detail.character === character) {
@@ -637,15 +707,16 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
                 }
                 if (originCandidate) {  
                     const levelIndex = characterLevelIndex.get(character);
-                    let level;
                     if (levelIndex) {
-                        level = levelIndex[levelIndex.length - 1].detail.level;
+                        const lastLevelEvent = levelIndex[levelIndex.length - 1];
+                        const ascendancy = lastLevelEvent.detail.ascendancy;
+                        const level = lastLevelEvent.detail.level;
+                        handleCharacterSwitch(originCandidate.ts, character, ascendancy, level, eventLoopIndex);
                     } else if (event.name === 'levelUp') {
                         // TODO check if this is fully correct?
-                        level = event.detail.level - 1;
-                    }
-                    if (level !== undefined) {
-                        handleCharacterSwitch(originCandidate.ts, character, level, eventLoopIndex);
+                        const ascendancy = event.detail.ascendancy;
+                        const level = event.detail.level - 1;
+                        handleCharacterSwitch(originCandidate.ts, character, ascendancy, level, eventLoopIndex);
                     }
                 } else {
                     if (isFeatureSupportedAt(Feature.ZoneGeneration, event.ts)) {
@@ -679,10 +750,9 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
     const lastCharacterEvent = characterTsIndex[characterTsIndex.length - 1];
     if (lastCharacterEvent) {
         const levelIndex = characterLevelIndex.get(lastCharacterEvent.detail.character)!;
-        const level = levelIndex[levelIndex.length - 1].detail.level;
-        const tailCharacterEvent = SetCharacterEvent.of(events[events.length - 1].ts, lastCharacterEvent.detail.character, level);
+        const lastLevelEvent = levelIndex[levelIndex.length - 1];
+        const tailCharacterEvent = SetCharacterEvent.ofEvent(events[events.length - 1].ts, lastLevelEvent);
         characterTsIndex.push(tailCharacterEvent);
-        levelIndex.push(tailCharacterEvent);
     }
 
     foreignCharacters.forEach(character => {
@@ -734,7 +804,7 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
             const nextNextLevel = (nextNextEvent.detail as {level?: number}).level;
             const characterMismatch = nextNextEvent.detail.character !== character;
             const levelMismatch = typeof nextNextLevel === "number" && nextNextLevel !== level;
-            if (characterMismatch || levelMismatch || i + 1 === ownedCharacterTsIndex.length) {
+            if (characterMismatch || levelMismatch || i + 2 === ownedCharacterTsIndex.length) {
                 let segmentation = levelIndex[level - 1];
                 if (!segmentation) {
                     segmentation = levelIndex[level - 1] = [];
@@ -780,7 +850,7 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
                 const levelIndex = characterLevelSegmentation.get(event.detail.character);
                 const s = levelIndex![event.detail.level - 1];
                 if (!s) {
-                    console.error(`invariant, level index is missing for character ${event.detail.character} at level ${event.detail.level}`, event);
+                    console.error(`invariant, level index is missing for character ${event.detail.character} at level ${event.detail.level}`, event, levelIndex);
                 }
                 let found = false;
                 for (const range of s) {
@@ -795,10 +865,29 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
             }
         }
     }
-    return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex, characterLevelSegmentation);
+    const characters: CharacterInfo[] = [];
+    for (const charName of characterLevelIndex.keys()) {
+        const levelIndex = characterLevelIndex.get(charName)!;
+        if (levelIndex.length === 0) continue;
+    
+        const lastLevelEvent = levelIndex[levelIndex.length - 1];
+        const level = lastLevelEvent.detail.level;
+        const ascendancy = lastLevelEvent.detail.ascendancy;
+        const lastPlayedTs = characterTsIndex.findLast(e => e.detail.character === charName)!.ts;
+        characters.push({
+            name: charName,
+            level,
+            ascendancy,
+            createdTs: levelIndex[0].ts,
+            lastPlayedTs,
+        });
+    }
+    const sortedCharacters = characters.sort((a, b) => b.lastPlayedTs - a.lastPlayedTs);
+    return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex, characterLevelSegmentation, sortedCharacters, sortedCharacters);
 }
 
 /**
+ * @events must be sorted by ts, ascending
  * @returns all characters contained in events that are not owned by the owner of the log
  */
 function determineForeignCharacters(events: LogEvent[]): Set<string> {
@@ -807,13 +896,39 @@ function determineForeignCharacters(events: LogEvent[]): Set<string> {
     const maybeForeignCharacters = new Set<string>();
     const foreignCharacters = new Set<string>();
     // use this double-pass approach for now, because unapplying foreign characters gets really complicated
-    for (const e of events) {
+    for (let i = 0; i < events.length; i++) {
+        const e = events[i];
         switch (e.name) {
             case "levelUp":
+                const character = e.detail.character;
                 if (isFeatureSupportedAt(Feature.ZoneGeneration, e.ts)) {
-                    maybeOwnedCharacters.add(e.detail.character);
+                    if (!maybeOwnedCharacters.has(character) && !foreignCharacters.has(character)) {
+                        const level = e.detail.level;
+                        if (level <= 2) {
+                            maybeOwnedCharacters.add(character);
+                        } else {
+                            let currentLevel = level;
+                            for (let y = i; y < events.length; y++) {
+                                const nextEvent = events[y];
+                                if (nextEvent.detail.character === character) {
+                                    if (nextEvent.name === "levelUp") {
+                                        if (nextEvent.detail.level !== currentLevel + 1) {
+                                            // found non-contiguous levelUp event, it is likely that this character is foreign. 
+                                            // note that this is already uncommon, because it requires the foreign character to never trigger a joinedArea event
+                                            foreignCharacters.add(character);
+                                            break;
+                                        } else if (currentLevel - level >= 2) {
+                                            // found two subsequent levelUp events, it is likely that this character is owned and the log is incomplete (i.e. missing the creation of the character)
+                                            maybeOwnedCharacters.add(character);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 } else {
-                    legacyCharacters.add(e.detail.character);
+                    legacyCharacters.add(character);
                 }
                 break;
             case "msgLocal":
@@ -843,6 +958,292 @@ function determineForeignCharacters(events: LogEvent[]): Set<string> {
         }
     }
     return foreignCharacters;
+}
+
+interface MetricsAggregator {
+    walkEvents(fn: (event: LogEvent, key: string | number) => number): void;
+    walkMaps(fn: (map: MapInstance, key: string | number) => number): void;
+}
+
+export function aggregateBy(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Map<string | number, number> {
+    const then = performance.now();
+    const res = aggregateBy0(agg, dimension, metric, aggregation);
+    logTook("aggregateBy", then, 10);
+    return res;
+}
+
+function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Map<string | number, number> {
+    const filter = agg.filter;
+    const fromCharacterLevel = agg.filter.fromCharacterLevel;
+    const toCharacterLevel = agg.filter.toCharacterLevel;
+    const characters = agg.characterAggregation.filteredCharacters.map(c => c.name);
+    const events = agg.events;
+    let eventDimensionSegmentation: Map<string | number, Segmentation> | undefined;
+    let metricAggregator: MetricsAggregator;
+    const dataMap = new Map<string | number, number[]>();
+    const eventSegmentationMetricsAggregator = (eventDimensionSegmentation: Map<string | number, Segmentation>) => {
+        return {
+            walkEvents: (fn: (event: LogEvent, key: string | number) => number) => {
+                for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
+                    const values: number[] = [];
+                    for (const range of segmentation) {
+                        const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= range.lo);
+                        if (loIx === -1) continue;
+        
+                        const end = range.hi;
+                        const hiIx = end ? binarySearchFindLastIx(events, (e) => e.ts <= end) : events.length - 1;
+                        if (hiIx === -1) continue;
+        
+                        for (let i = loIx; i <= hiIx; i++) {
+                            const event = events[i];
+                            values.push(fn(event, key));
+                        }
+                    }
+                    dataMap.set(key, values);
+                }
+            },
+            walkMaps: (fn: (map: MapInstance, key: string | number) => number) => {
+                for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
+                    const values: number[] = [];
+                    for (const range of segmentation) {
+                        const loIx = binarySearchFindFirstIx(agg.maps, (m) => m.span.start >= range.lo);
+                        if (loIx === -1) continue;
+        
+                        const end = range.hi;
+                        const hiIx = end ? binarySearchFindLastIx(agg.maps, (m) => !m.span.end || m.span.end <= end) : agg.maps.length - 1;
+                        if (hiIx === -1) continue;
+        
+                        for (let i = loIx; i <= hiIx; i++) {
+                            const map = agg.maps[i];
+                            values.push(fn(map, key));
+                        }
+                    }
+                    dataMap.set(key, values);
+                }
+            }
+        }
+    }
+    switch (dimension) {
+        case Dimension.character:
+            eventDimensionSegmentation = agg.characterAggregation.guessSegmentations(fromCharacterLevel, toCharacterLevel, characters);
+            metricAggregator = eventSegmentationMetricsAggregator(eventDimensionSegmentation);
+            break;
+        case Dimension.characterLevel:
+            eventDimensionSegmentation = new Map<string, Segmentation>();
+            const lo = (fromCharacterLevel ?? 1) - 1;
+            const hi = (toCharacterLevel ?? 100);
+            for (let i = lo; i < hi; i++) {
+                const segmentations: Segmentation[] = [];
+                for (const levelIndex of agg.characterAggregation.characterLevelSegmentation.values()) {
+                    const segmentation = levelIndex[i];
+                    if (segmentation) {
+                        segmentations.push(segmentation);
+                    }
+                }
+                const merged = Segmentation.mergeContiguousConnected(segmentations.flat().sort((a, b) => a.lo - b.lo));
+                eventDimensionSegmentation.set(i + 1, merged);
+            }
+            metricAggregator = eventSegmentationMetricsAggregator(eventDimensionSegmentation);
+            break;
+        case Dimension.date:
+            eventDimensionSegmentation = new Map<string, Segmentation>();
+            const start = events[0].ts;
+            const end = events[events.length - 1].ts;
+            let date = new Date(start);
+            while (date.getTime() < end) {
+                date.setHours(0, 0, 0, 0);
+                const key = date.toLocaleDateString();
+                const lo = date.getTime();
+                date.setHours(23, 59, 59, 999);
+                const hi = date.getTime();
+                eventDimensionSegmentation.set(key, [{lo, hi}]);
+                date.setDate(date.getDate() + 1);
+            }
+            metricAggregator = eventSegmentationMetricsAggregator(eventDimensionSegmentation);
+            break;
+        case Dimension.areaLevel:
+            metricAggregator = {
+                walkEvents: (fn: (event: LogEvent, key: string | number) => number) => {
+                    for (const map of agg.maps) {
+                        const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= map.span.start);
+                        if (loIx === -1) continue;
+
+                        const end = map.span.end;
+                        const hiIx = end ? binarySearchFindLastIx(events, (e) => e.ts <= end) : events.length - 1;
+                        if (hiIx === -1) continue;
+
+                        const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
+                        for (let i = loIx; i <= hiIx; i++) {
+                            values.push(fn(events[i], map.areaLevel));
+                        }
+                    }
+                },
+                walkMaps: (fn: (map: MapInstance, key: string | number) => number) => {
+                    for (const map of agg.maps) {
+                        const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
+                        values.push(fn(map, map.areaLevel));
+                    }
+                }
+            };
+            break;
+        case Dimension.none:
+            throw new Error("not yet supported");
+            break;
+    }
+    if (metricMeta[metric].type === "event") {
+        let lastEventTs = 0;
+        metricAggregator.walkEvents((event, _) => {
+            let found = false;
+            switch (metric) {
+                case Metric.deaths:
+                    if (event.name !== 'death') break;
+
+                    if (filter.fromAreaLevel && event.detail.areaLevel < filter.fromAreaLevel) break;
+
+                    if (filter.toAreaLevel && event.detail.areaLevel > filter.toAreaLevel) break;
+
+                    found = agg.characterAggregation.isOwned(event.detail.character);
+                    break;
+                case Metric.witnessedDeaths:
+                    if (event.name !== 'death') break;
+
+                    if (filter.fromAreaLevel && event.detail.areaLevel < filter.fromAreaLevel) break;
+
+                    if (filter.toAreaLevel && event.detail.areaLevel > filter.toAreaLevel) break;
+
+                    found = !agg.characterAggregation.isOwned(event.detail.character);
+                    break;
+                case Metric.bossKills:
+                    found = event.name === 'bossKill' && event.detail.areaLevel >= 75;
+                    break;
+                case Metric.sessions:
+                    found = lastEventTs !== 0 && event.ts - lastEventTs > SESSION_THRESHOLD_MILLIS;
+                    lastEventTs = event.ts;
+                    break;
+                case Metric.totalBuysAttempted:
+                    found = event.name === 'msgTo' && TRADE_PATTERN.test(event.detail.msg);
+                    break;
+                case Metric.salesAttempted:
+                    found = event.name === 'msgFrom' && TRADE_PATTERN.test(event.detail.msg);
+                    break;
+                default: throw new Error(`unsupported metric: ${metric}`);
+            }
+            return found ? 1 : 0;
+        });
+    } else {
+        metricAggregator.walkMaps((map, _) => {
+            switch (metric) {
+                case Metric.maps:
+                    return 1;
+                case Metric.totalTime:
+                    return MapSpan.mapTimePlusIdle(map.span);
+                case Metric.mapTime:
+                    return MapSpan.mapTime(map.span);
+                case Metric.hideoutTime:
+                    return map.span.hideoutTime;
+                case Metric.loadTime:
+                    return map.span.loadTime;
+                case Metric.campaignTime:
+                    // FIXME should only count time until campaign is completed (per character), e.g. once the final zone is reached, stop counting campaign zones towards campaign time
+                    const zoneInfo = getZoneInfo(map.name, map.areaLevel);
+                    return zoneInfo ? MapSpan.mapTimePlusIdle(map.span) : 0;
+                default: throw new Error(`unsupported metric: ${metric}`);
+            }
+        });
+    }
+    const aggregatedData = new Map<string | number, number>();
+    for (const [key, values] of dataMap.entries()) {
+        switch(aggregation) {
+            case Aggregation.average:
+                aggregatedData.set(key, average(values));
+                break;
+            case Aggregation.median:
+                aggregatedData.set(key, values.length === 0 ? 0 : medianQuickSelect(values));
+                break;
+            case Aggregation.exactMedian:
+                aggregatedData.set(key, values.length === 0 ? 0 : medianExact(values));
+                break;
+            case Aggregation.total:
+                aggregatedData.set(key, total(values));
+                break;
+        }
+    }
+    return aggregatedData;
+}
+
+export function medianExact(arr: number[]): number {
+    if (arr.length === 0) throw new Error('empty array');
+
+    const sorted = [...arr].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+/**
+ * The array is mutated for maximum speed; pass a copy if you need the original order.
+ * @param a – unsorted numeric values
+ * @returns median (average of two middles if n even)
+ */
+export function medianQuickSelect(a: number[] | Float64Array | Uint32Array) {
+    const n = a.length;
+    if (n === 0) throw new Error('empty array');
+  
+    // The k-th smallest element we need
+    const k1 = (n - 1) >> 1;          // lower median index
+    const k2 = n >> 1;                // upper median (same as k1 if n odd)
+  
+    // iterative Hoare Quickselect with median-of-three pivots
+    let lo = 0, hi = n - 1;
+    while (true) {
+        // Median-of-three to cut worst-case probability
+        const mid = (lo + hi) >>> 1;
+        const pivot = median3(a, lo, mid, hi);
+
+        // 3-way partition (Lomuto)
+        let i = lo, j = hi;
+        while (i <= j) {
+            while (a[i] < pivot) ++i;
+            while (a[j] > pivot) --j;
+            if (i <= j) {
+                const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+                ++i; --j;
+            }
+        }
+
+        if (k2 <= j)       hi = j;           // target(s) in the left part
+        else if (k1 >= i)  lo = i;           // in the right part
+        else break;                          // both medians are inside [j+1 .. i-1]
+    }
+  
+    // We now know elements [0..k1] ≤ medians ≤ elements [k2..n-1].
+    // If even length, we still need the upper median (a[k2]).
+    // One pass through the narrowed window is enough (≤ 3n/4 items worst-case).
+    let m1 = -Infinity, m2 = Infinity;
+    for (let t = lo; t <= hi; ++t) {
+        const v = a[t];
+        if (v < m1 && v > m2) continue; // fast path
+        if (v <= m1 || t === k1) m1 = Math.max(m1, v);
+        if (v >= m2 || t === k2) m2 = Math.min(m2, v);
+    }
+    return n & 1 ? m2 /* same as m1 */ : 0.5 * (m1 + m2);
+  }
+
+function median3(a: number[] | Float64Array | Uint32Array, i: number, j: number, k: number): number {
+    const A = a[i], B = a[j], C = a[k];
+    return (A < B)
+        ? (B < C ? B : (A < C ? C : A))
+        : (A < C ? A : (B < C ? C : B));
+}
+
+export function average(arr: number[]): number {
+    if (arr.length === 0) return 0;
+
+    const sum = arr.reduce((acc, val) => acc + val, 0);
+    return sum / arr.length;
+}
+
+export function total(arr: number[]): number {
+    return arr.reduce((acc, val) => acc + val, 0);
 }
 
 function computeIfAbsent<K, V>(map: Map<K, V>, key: K, compute: () => V): V {

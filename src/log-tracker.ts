@@ -212,6 +212,7 @@ export enum AreaType {
     Campaign,
     Town,
     Sanctum,
+    Labyrinth,
     Logbook,
     Tower,
     Delve,
@@ -232,7 +233,7 @@ class MapInstance {
     areaLevel: number;
     seed: number;
     areaType: AreaType;
-    hasBoss: boolean;
+    hasBoss: boolean = false;
     isUnique: boolean;
     state: MapState;
 
@@ -264,12 +265,18 @@ class MapInstance {
         if (seed > 1) {
             if (towerMaps.includes(lowerName)) {
                 this.areaType = AreaType.Tower;
+            } else if (lowerName.startsWith("mapworlds")) {
+                this.areaType = AreaType.Map;
+                // although every map has a boss in poe1, we don't want to specifically highlight this
             } else if (lowerName.startsWith("map")) {
                 this.areaType = AreaType.Map;
+                this.hasBoss = !lowerName.endsWith("noboss") && !lowerName.endsWith("_claimable");
             } else if (lowerName.startsWith("sanctum")) {
                 this.areaType = AreaType.Sanctum;
             } else if (lowerName.startsWith("expeditionlogbook")) {
                 this.areaType = AreaType.Logbook;
+            } else if (MAP_NAME_LABYRINTH.test(lowerName)) {
+                this.areaType = AreaType.Labyrinth;
             } else if (MAP_NAME_CAMPAIGN.test(lowerName)) {
                 this.areaType = AreaType.Campaign;
             } else if (lowerName.startsWith("delve")) {
@@ -284,7 +291,6 @@ class MapInstance {
                 this.areaType = AreaType.Hideout;
             }
         }
-        this.hasBoss = this.areaType === AreaType.Map && !lowerName.endsWith("noboss") && !lowerName.endsWith("_claimable");
         this.isUnique = lowerName.startsWith("mapunique");
         this.state = MapState.LOADING;
     }
@@ -342,8 +348,10 @@ class MapInstance {
                 return getZoneInfo(map.name, map.areaLevel)?.label ?? "Campaign " + map.name;
             case AreaType.Town:
                 return getZoneInfo(map.name, map.areaLevel)?.label ?? "Town " + map.name;
+            case AreaType.Labyrinth:
+                return "Labyrinth " + map.name.substring(0, 1);
         }
-        const name = map.name.replace(/(^MapUnique)|(^Map)|(_NoBoss$)/gi, '');
+        const name = map.name.replace(/(^MapUnique)|(^MapWorlds)|(^Map)|(_NoBoss$)/gi, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
         if (words.length === 0) {
             return name;
@@ -479,7 +487,7 @@ export namespace Segmentation {
 }
 
 class Filter {
-    tsBounds?: Segmentation;
+    tsBounds: Segmentation;
     fromAreaLevel?: number;
     toAreaLevel?: number;
     fromCharacterLevel?: number;
@@ -494,7 +502,7 @@ class Filter {
         toCharacterLevel?: number,
         character?: string
     ) {
-        this.tsBounds = tsBounds;
+        this.tsBounds = tsBounds ?? [];
         this.fromAreaLevel = fromAreaLevel;
         this.toAreaLevel = toAreaLevel;
         this.fromCharacterLevel = fromCharacterLevel;
@@ -536,7 +544,7 @@ class Filter {
         if (Filter.isEmpty(filter)) return maps; 
 
         const tsBounds = filter.tsBounds;
-        if (!filter.fromAreaLevel && !filter.toAreaLevel && tsBounds) {
+        if (!filter.fromAreaLevel && !filter.toAreaLevel && tsBounds.length > 0) {
             let ix = 0;
             const res = [];
             for (const {lo, hi} of tsBounds) {
@@ -556,7 +564,7 @@ class Filter {
             return res;
         }
         const res = [];
-        if (tsBounds) {
+        if (tsBounds.length > 0) {
             let ix = 0, hiIx = maps.length - 1;
             for (const {lo, hi} of tsBounds) {
                 const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
@@ -587,7 +595,7 @@ class Filter {
 
     static filterEvents(events: LogEvent[], filter: Filter): LogEvent[] {
         const tsBounds = filter.tsBounds;
-        if (!tsBounds) return events;
+        if (tsBounds.length === 0) return events;
 
         let ix = 0, hiIx = events.length - 1;
         let res: LogEvent[] = [];
@@ -702,6 +710,7 @@ const COMPOSITE_PATTERN_OFFSETS: number[] = [];
 }
 
 const MAP_NAME_CAMPAIGN = /^(?:g\d+_|c_g|g_|\d+_)/;
+const MAP_NAME_LABYRINTH = /^\d+_labyrinth|endgame_labyrinth/;
 const MAP_NAME_TOWN = /^(g([a-z0-9]+)_town)$/;
 const STALE_MAP_THRESHOLD = 6 * 60 * 60 * 1000; // 6 hours in milliseconds
 

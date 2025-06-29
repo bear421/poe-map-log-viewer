@@ -13,6 +13,7 @@ import {
     ChartConfiguration
 } from 'chart.js';
 import { BaseComponent } from './base-component';
+import { medianQuickSelect } from '../aggregation';
 
 Chart.register(
     ArcElement, 
@@ -28,19 +29,11 @@ Chart.register(
 export class OverviewComponent extends BaseComponent {
     private chartInstance: Chart | null = null;
     private timeDistributionChartInstance: Chart | null = null;
-    private mapsByLevelChartInstance: Chart | null = null;
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
         this.element.className = 'overview-component-container';
     }
-
-    private getMedian(arr: number[]): number {
-        if (arr.length === 0) return 0;
-        const sorted = [...arr].sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-    };
 
     protected render(): void {
         this.element.innerHTML = '';
@@ -53,10 +46,6 @@ export class OverviewComponent extends BaseComponent {
         if (this.timeDistributionChartInstance) {
             this.timeDistributionChartInstance.destroy();
             this.timeDistributionChartInstance = null;
-        }
-        if (this.mapsByLevelChartInstance) {
-            this.mapsByLevelChartInstance.destroy();
-            this.mapsByLevelChartInstance = null;
         }
 
         const times = agg.maps.map(map => {
@@ -71,9 +60,9 @@ export class OverviewComponent extends BaseComponent {
             }
         });
 
-        const medianMapTime = this.getMedian(times.map(t => t.mapTime));
-        const medianLoadTime = this.getMedian(times.map(t => t.loadTime));
-        const medianIdleTime = this.getMedian(times.map(t => t.hideoutTime));
+        const medianMapTime = times.length > 0 ? medianQuickSelect(times.map(t => t.mapTime)) : 0;
+        const medianLoadTime = times.length > 0 ? medianQuickSelect(times.map(t => t.loadTime)) : 0;
+        const medianIdleTime = times.length > 0 ? medianQuickSelect(times.map(t => t.hideoutTime)) : 0;
 
         const overviewRow = document.createElement('div');
         overviewRow.className = 'row';
@@ -198,84 +187,6 @@ export class OverviewComponent extends BaseComponent {
                 canvasCtx.textAlign = "center";
                 canvasCtx.fillText("No map data for chart", (timeDistCtx as HTMLCanvasElement).width / 2, (timeDistCtx as HTMLCanvasElement).height / 2);
              }
-        }
-
-        const mapsByLevelCard = document.createElement('div');
-        mapsByLevelCard.className = 'col-md-12 mb-4';
-        mapsByLevelCard.innerHTML = `
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title border-bottom border-fade-secondary">Maps by Character Level</h5>
-                    <canvas id="mapsByLevelChartOverview"></canvas>
-                </div>
-            </div>
-        `;
-        // Prepend to keep totals and pie chart visible, or append if preferred
-        overviewRow.insertAdjacentElement('afterend', mapsByLevelCard); 
-
-        const mapsByLevelCtx = (this.element.querySelector('#mapsByLevelChartOverview') as ChartItem);
-        if (mapsByLevelCtx && agg.maps.length > 0) {
-            const mapsByLevelData = new Map<number, number>();
-            for (const map of agg.maps) {
-                const level = agg.characterAggregation.guessLevel(map.span.start);
-                mapsByLevelData.set(level, (mapsByLevelData.get(level) || 0) + 1);
-            }
-
-            const sortedLevels = Array.from(mapsByLevelData.keys()).sort((a, b) => a - b);
-            const levelLabels = sortedLevels.map(level => `Lvl ${level}`);
-            const levelCounts = sortedLevels.map(level => mapsByLevelData.get(level)!);
-
-            const mapsByLevelChartConfig: ChartConfiguration = {
-                type: 'bar',
-                data: {
-                    labels: levelLabels,
-                    datasets: [{
-                        label: 'Maps Played',
-                        data: levelCounts,
-                        backgroundColor: 'rgba(13,110,253,1)',
-                    }]
-                },
-                options: {
-                    animation: { duration: 0 },
-                    responsive: true,
-                    maintainAspectRatio: true, // Adjust as needed, false can allow more flexible sizing
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Maps'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Character Level'
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false // For a single dataset, legend might be redundant
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => {
-                                    return `Level ${sortedLevels[context.dataIndex]}: ${context.raw as number} maps`;
-                                }
-                            }
-                        }
-                    }
-                }
-            };
-            this.mapsByLevelChartInstance = new Chart(mapsByLevelCtx, mapsByLevelChartConfig);
-        } else if (mapsByLevelCtx) {
-            const canvasCtx = (mapsByLevelCtx as HTMLCanvasElement).getContext('2d');
-            if (canvasCtx) {
-                canvasCtx.font = "16px Arial";
-                canvasCtx.textAlign = "center";
-                canvasCtx.fillText("No map data for chart", (mapsByLevelCtx as HTMLCanvasElement).width / 2, (mapsByLevelCtx as HTMLCanvasElement).height / 2);
-            }
         }
     }
 } 

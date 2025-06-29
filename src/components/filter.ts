@@ -1,6 +1,5 @@
 import { Filter } from '../log-tracker';
 import { BaseComponent } from './base-component';
-import { LevelUpEvent } from '../log-events';
 
 export class FilterComponent extends BaseComponent {
     private onFilterChange: (filter: Filter) => void;
@@ -88,32 +87,14 @@ export class FilterComponent extends BaseComponent {
 
     protected render(): void {
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
-        const characters: LevelUpEvent[] = Array.from(this.data?.characterAggregation.characterLevelIndex.values() ?? [])
-            .map(levelIndex => levelIndex.findLast(e => e.name === "levelUp")!);
-        characters.sort((a, b) => {
-            if (!b.detail) {
-                console.warn("b.detail is undefined", b, a);
-            }
-            if (b.detail.level !== a.detail.level) {
-                return b.detail.level - a.detail.level;
-            }
-            return a.detail.character.localeCompare(b.detail.character);
-        });
-        const characterOptionsHTML = characters.map(char => 
-            `<option value="${char.detail.character}">${char.detail.character} (${char.detail.level} ${char.detail.ascendancy})</option>`
-        ).join('');
+        const characterOptionsHTML = this.data!.characterAggregation.filteredCharacters
+            .map(char => `<option value="${char.name}">${char.name} (${char.level} ${char.ascendancy})</option>`)
+            .join('');
 
         if (characterOptionsHTML !== this.prevCharactersSignature) {
-            const oldValue = characterSelect.value;
+            const oldValue = this.filter?.character ?? "";
             characterSelect.innerHTML = `<option value="">All Characters</option>${characterOptionsHTML}`;
-            
-            const newOptionsArray = Array.from(characterSelect.options);
-            if (newOptionsArray.some(opt => opt.value === oldValue)) {
-                characterSelect.value = oldValue;
-            } else {
-                characterSelect.value = "";
-            }
-            
+            characterSelect.value = oldValue;
             this.prevCharactersSignature = characterOptionsHTML;
         }
     }

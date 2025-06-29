@@ -35,9 +35,9 @@ export class MapDetailComponent extends BaseComponent {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title map-detail-title">Map Details</h5>
-                        <div class="form-check form-switch ms-auto">
+                        <div class="form-check form-switch ms-auto user-select-none">
                             <input class="form-check-input" type="checkbox" role="switch" id="timelineSwitch">
-                            <label class="form-check-label" for="timelineSwitch">View Raw Log</label>
+                            <label class="form-check-label" for="timelineSwitch">View raw data</label>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -210,11 +210,31 @@ export class MapDetailComponent extends BaseComponent {
                 `);
                 listGroup.appendChild(listItem);
             }
+            let characterEvent = this.data!.characterAggregation.guessAnyEvent(map.span.start) as any;
+            if (characterEvent && !characterEvent.detail.level) {
+                const levelEvent = this.data!.characterAggregation.guessLevelEvent(map.span.start);
+                if (levelEvent) {
+                    characterEvent = Object.assign({}, characterEvent);
+                    characterEvent.detail.level = levelEvent.detail.level;
+                    if ('ascendancy' in levelEvent.detail) {
+                        characterEvent.detail.ascendancy = levelEvent.detail.ascendancy;
+                    }
+                }
+            }
             this.modalBodyElement.appendChild(createElementFromHTML(`
-                <div class="card">
+                <div class="card mb-2">
+                    <div class="card-header">
+                        <h5 class="mb-0">Data</h5>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title">Map</h5>
-                        <pre class="card-text">${JSON.stringify(map, null, 2)}</pre>
+                        <div class="card-text row">
+                            <div class="col">
+                                <pre>Map: ${JSON.stringify(map, null, 2)}</pre>
+                            </div>
+                            <div class="col">
+                                <pre>Attributed character event: ${JSON.stringify(characterEvent, null, 2)}</pre>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `));

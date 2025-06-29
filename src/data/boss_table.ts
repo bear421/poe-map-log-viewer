@@ -1,4 +1,4 @@
-export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: string }> = {
+export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: string, greetings?: Set<string> }> = {
     "Clearfell Guard": {
         "deathCries": new Set([" Well done! Please come inside."]),
         "alias": "The Bloated Miller"
@@ -30,7 +30,37 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
     "Strange Voice": {
         "deathCries": new Set([" So be it. Keep your precious sanity, my agent of chaos. You shall serve me, whether you like it or not. I'm not going anywhere..."])
     },
+    "The Eater of Worlds": {
+        "greetings": new Set([" This is not a battle you can win, hatchling."]),
+        "deathCries": new Set([" You deny us... escape from pain..."])
+    },
+    "The Searing Exarch": {
+        "deathCries": new Set([" Improbable...!"])
+    },
+    "Zana, Master Cartographer": {
+        "deathCries": new Set([" To me, exile! Quickly!"]),
+        "alias": "The Elder"
+    },
+    "The Shaper": {
+        "deathCries": new Set([" Irrelevant!"])
+    },
+    // uber elder is unsupported - no indicator of success
+    "Venarius": {
+        "deathCries": new Set([" This isn't over. This will never be over! I will unify humanity!"])
+    },
     "Sirus, Awakener of Worlds": {
         "deathCries": new Set([" At least I felt something..."])
+    },
+    "The Maven": {
+        "deathCries": new Set([" I am being hurt!"])
+    },
+    "Incarnation of Neglect": {
+        "deathCries": new Set([" Madness... consumes..."])
+    },
+    "Incarnation of Fear": {
+        "deathCries": new Set([" Forgive me... I was not myself..."])
+    },
+    "Incarnation of Dread": {
+        "deathCries": new Set([" Her dread... shall not be erased so easily..."])
     }
 };

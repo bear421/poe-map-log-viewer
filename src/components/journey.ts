@@ -178,6 +178,8 @@ export class JourneyComponent extends BaseComponent {
                 icon = '<i class="bi bi-map text-dark"></i>';
             } else if (map.areaType === AreaType.Sanctum) {
                 icon = '<i class="bi bi-hexagon text-dark"></i>';
+            } else if (map.areaType === AreaType.Labyrinth) {
+                icon = '<i class="bi bi-compass text-dark"></i>';
             } else if (map.isUnique) {
                 icon = '<i class="bi bi-gem text-unique"></i>';
             } else if (map.hasBoss) {

@@ -34,11 +34,12 @@ export function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): 
     return frozen;
 }
 
-export function logTook(name: string, then: number, logThresholdMs: number = 20): void {
+export function logTook(name: string, then: number, logThresholdMs: number = 20): number {
     const took = performance.now() - then;
     if (took > logThresholdMs) {
         console.warn(name + " took " + (Math.ceil(took * 100) / 100) + " ms");
     }
+    return took;
 }
 
 export function checkContiguous<T>(array: T[], extractValue: (t: T) => number): void {
@@ -135,4 +136,30 @@ export class DynamicTooltip {
         this.popperInstance.destroy();
         this.tooltipElement.remove();
     }
+}
+
+export function formatDuration(milliseconds: number): string {
+    if (milliseconds < 0) {
+        return "0s";
+    }
+
+    let totalSeconds = Math.floor(milliseconds / 1000);
+
+    const hours = Math.floor(totalSeconds / 3600);
+    totalSeconds %= 3600;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+
+    const parts: string[] = [];
+    if (hours > 0) {
+        parts.push(`${hours}h`);
+    }
+    if (minutes > 0) {
+        parts.push(`${minutes}m`);
+    }
+    if (seconds > 0 || parts.length === 0) {
+        parts.push(`${seconds}s`);
+    }
+
+    return parts.join(' ');
 }
