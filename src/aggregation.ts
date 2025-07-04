@@ -1,6 +1,6 @@
-import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "./log-tracker";
-import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./log-events";
-import { binarySearch, binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx, BinarySearchMode } from "./binary-search";
+import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "./ingest/log-tracker";
+import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./ingest/events";
+import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "./binary-search";
 import { Feature, isFeatureSupportedAt } from "./data/log-versions";
 import { freezeIntermediate, logTook } from "./util";
 import { SplitCache } from "./split-cache";

@@ -1,7 +1,7 @@
-import { MapInstance, MapSpan } from '../log-tracker';
-import { LogEvent } from '../log-events';
+import { MapInstance, MapSpan } from '../ingest/log-tracker';
+import { LogEvent } from '../ingest/events';
 import { binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, EventName } from '../log-events';
+import { eventMeta, getEventMeta, EventName } from '../ingest/events';
 import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { DynamicTooltip } from '../util';

@@ -1,4 +1,4 @@
-import { MapSpan } from '../log-tracker';
+import { MapSpan } from '../ingest/log-tracker';
 import {
     Chart,
     ArcElement,

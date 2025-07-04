@@ -1,7 +1,7 @@
-import { AreaType, MapInstance, MapSpan } from '../log-tracker';
+import { AreaType, MapInstance, MapSpan } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 import { binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, EventName, LogEvent } from '../log-events';
+import { eventMeta, getEventMeta, EventName, LogEvent } from '../ingest/events';
 import { MapDetailComponent } from './map-detail';
 import { getZoneInfo } from '../data/zone_table';
 import { LogAggregation } from '../aggregation';

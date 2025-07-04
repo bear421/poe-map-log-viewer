@@ -1,6 +1,6 @@
 declare var bootstrap: any;
-import { Filter, LogLine, MapInstance, Progress } from './log-tracker';
-import { LogEvent } from './log-events';
+import { Filter, LogLine, MapInstance, Progress } from './ingest/log-tracker';
+import { LogEvent } from './ingest/events';
 import { Emotion, Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
 import { SearchComponent } from './components/search';
@@ -11,7 +11,7 @@ import { FileSelectorComponent } from './components/file-selector';
 import { JourneyComponent } from './components/journey';
 import { MessagesComponent } from './components/messages';
 import { LogAggregation, aggregateCached, clearAggregationCache } from './aggregation';
-import { logWorkerService } from './log-worker-service';
+import { logWorkerService } from './ingest/worker-service';
 
 import './assets/css/styles.css';
 import { BaseComponent } from './components/base-component';

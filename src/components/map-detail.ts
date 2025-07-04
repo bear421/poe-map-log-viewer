@@ -1,10 +1,10 @@
-import { LogLine, MapInstance } from '../log-tracker';
-import { LogEvent, eventMeta, getEventMeta } from '../log-events';
+import { LogLine, MapInstance } from '../ingest/log-tracker';
+import { LogEvent, eventMeta, getEventMeta } from '../ingest/events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregation } from '../aggregation';
 import { BaseComponent } from './base-component';
-import { Filter } from '../log-tracker';
-import { logWorkerService } from '../log-worker-service';
+import { Filter } from '../ingest/log-tracker';
+import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
 
 declare var bootstrap: any;

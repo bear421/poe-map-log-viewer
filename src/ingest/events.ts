@@ -1,4 +1,4 @@
-import { getZoneInfo } from "./data/zone_table";
+import { getZoneInfo } from "../data/zone_table";
 import { MapInstance, XPSnapshot } from "./log-tracker";
 
 export interface LogEventBase {
@@ -13,6 +13,20 @@ export interface LogEventMeta<T extends LogEvent = LogEvent, Args extends any[] 
     icon: string;
     color: string;
     of: (...args: Args) => T;
+}
+
+export interface LogFileOpenEvent extends LogEventBase {
+    name: "logFileOpen";
+}
+export namespace LogFileOpenEvent {
+    export function of(ts: number): LogFileOpenEvent {
+        return { name: "logFileOpen", ts };
+    }
+    export const icon = 'bi-file-earmark-text-fill';
+    export const color = 'text-secondary';
+    export function label(_: LogFileOpenEvent): string {
+        return `Log file opened`;
+    }
 }
 
 export interface AreaPostLoadEvent extends LogEventBase {
@@ -433,6 +447,7 @@ export function getEventMeta<E extends LogEvent>(event: E): typeof eventMeta[E["
 }
 
 export const eventMeta = {
+    logFileOpen: LogFileOpenEvent,
     areaPostLoad: AreaPostLoadEvent,
     msgFrom: MsgFromEvent,
     msgTo: MsgToEvent,

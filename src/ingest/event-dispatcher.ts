@@ -1,4 +1,4 @@
-import { LogEvent, EventName } from './log-events';
+import { LogEvent, EventName } from './events';
 
 export class EventDispatcher {
 

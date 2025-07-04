@@ -1,4 +1,4 @@
-import { MapInstance, MapSpan, AreaType } from '../log-tracker';
+import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 import { MapListComponent } from './map-list';
 

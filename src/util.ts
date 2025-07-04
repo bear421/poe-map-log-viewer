@@ -21,6 +21,12 @@ function freeze0<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
     return Object.freeze(obj) as Readonly<T>;
 }
 
+export function nextAnimationFrame(): Promise<number> {
+    return new Promise<number>(resolve =>
+        requestAnimationFrame((ts: DOMHighResTimeStamp) => resolve(ts))
+    );
+}
+
 export function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
     const then = performance.now();
     (Reflect.ownKeys(obj) as (keyof T)[]).forEach(key => {

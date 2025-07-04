@@ -1,12 +1,13 @@
-import { RingBuffer } from "./ringbuffer";
+import { RingBuffer } from "../ringbuffer";
 import { clearOffsetCache, parseTs, parseTsStrict, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
-import { binarySearchFindFirstIx, binarySearchFindLastIx, binarySearchRange } from "./binary-search";
-import { getZoneInfo } from "./data/zone_table";
-import { BOSS_TABLE } from "./data/boss_table";
-import { Feature, isFeatureSupportedAt } from "./data/log-versions";
+import { binarySearchFindFirstIx, binarySearchFindLastIx, binarySearchRange } from "../binary-search";
+import { getZoneInfo } from "../data/zone_table";
+import { BOSS_TABLE } from "../data/boss_table";
+import { Feature, isFeatureSupportedAt } from "../data/log-versions";
 import {
     LogEvent,
+    LogFileOpenEvent,
     AreaPostLoadEvent,
     MsgFromEvent,
     MsgToEvent,
@@ -29,7 +30,8 @@ import {
     PassiveUnallocatedEvent,
     PassiveAllocatedEvent,
     BonusGainedEvent
-} from "./log-events";
+} from "./events";
+import { createApproximateFileSlice } from "./file-ts-scan";
 
 class AreaInfo {
     ts: number;
@@ -616,6 +618,8 @@ class Filter {
 
 }
 
+// example 2024/12/06 18:02:40 ***** LOG FILE OPENING *****
+const LOG_FILE_OPEN_REGEX = /\*\*\*\*\* LOG FILE OPENING \*\*\*\*\*$/;
 // example 2024/12/06 21:38:54 35930140 403248f7 [INFO Client 1444] [SHADER] Delay: ON
 const POST_LOAD_REGEX = /^\[SHADER\] Delay/;
 
@@ -739,12 +743,13 @@ export class LogTracker {
         this.currentMap = null;
     }
 
-    async ingestLogFile(file: File, onProgress?: (progress: Progress) => void, checkIntegrity: boolean = false): Promise<boolean> {
+    async ingestLogFile(file: File, onProgress?: (progress: Progress) => void, checkIntegrity: boolean = false, tsFilter?: TSRange): Promise<boolean> {
+        const actualFile = tsFilter ? await createApproximateFileSlice(file, tsFilter) : file;
         const progress = {
-            totalBytes: file.size,
+            totalBytes: actualFile.size,
             bytesRead: 0
         };
-        const reader = file.stream().getReader();
+        const reader = actualFile.stream().getReader();
         try {
             const decoder = new TextDecoder();
             let tail = '';
@@ -806,13 +811,14 @@ export class LogTracker {
     }
 
     async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void, tsFilter?: TSRange): Promise<LogLine[]> {
-        const lines: LogLine[] = [];
+        const actualFile = tsFilter ? await createApproximateFileSlice(file, tsFilter) : file;
         const progress = {
-            totalBytes: file.size,
+            totalBytes: actualFile.size,
             bytesRead: 0
         };
-        const reader = file.stream().getReader();
+        const reader = actualFile.stream().getReader();
         try {
+            const lines: LogLine[] = [];
             const decoder = new TextDecoder();
             let tail = '';
             let hadTsMatch = false;
@@ -905,7 +911,15 @@ export class LogTracker {
         // could perhaps be even greedier with the indexOf start, but this is safe
         // getting the remainder is a slight boost in performance to starting the composite regex with "] "
         const rIx = line.indexOf("]", 40);
-        if (rIx === -1) return true;
+        if (rIx === -1) {
+            if (LOG_FILE_OPEN_REGEX.test(line)) {
+                ts ??= parseTs(line);
+                if (ts) {
+                    this.dispatchEvent(LogFileOpenEvent.of(ts));
+                }
+            }
+            return true;
+        }
 
         const remainder = line.substring(rIx + 2);
         const postLoadMatch = (this.currentMap && (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING)) 

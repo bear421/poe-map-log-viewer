@@ -79,9 +79,10 @@ export class AnalysisComponent extends BaseComponent {
                     <label for="aggregationSelect" class="form-label">Aggregation</label>
                     <select id="aggregationSelect" class="form-select">
                         <option value="${Aggregation.total}">Total</option>
-                        <option value="${Aggregation.average}">Average</option>
                         <option value="${Aggregation.median}">Median</option>
-                        <option value="${Aggregation.exactMedian}">Exact Median</option>
+                        <option value="${Aggregation.average}">Average</option>
+                        <option value="${Aggregation.max}">Max</option>
+                        <option value="${Aggregation.min}">Min</option>
                     </select>
                 </div>
             </div>

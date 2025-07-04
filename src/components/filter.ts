@@ -1,4 +1,4 @@
-import { Filter } from '../log-tracker';
+import { Filter } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 
 export class FilterComponent extends BaseComponent {
