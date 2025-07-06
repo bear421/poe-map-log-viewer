@@ -21,10 +21,91 @@ function freeze0<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
     return Object.freeze(obj) as Readonly<T>;
 }
 
-export function nextAnimationFrame(): Promise<number> {
-    return new Promise<number>(resolve =>
-        requestAnimationFrame((ts: DOMHighResTimeStamp) => resolve(ts))
-    );
+
+declare const scheduler: any;
+
+class FrameBarrierImpl {
+    private static readonly MIN_CHECK_FREQUENCY = 10;
+    private static readonly MAX_CHECK_FREQUENCY = 10_000_000;
+    private static rafTook: number = 0;
+    private static readonly yieldFn = async () => {
+        const then = performance.now();
+        if (typeof scheduler === "object" && typeof scheduler.yield === "function") {
+            await scheduler.yield();
+        } else {
+            await new Promise<void>(r => requestAnimationFrame(() => r()));
+        }
+        FrameBarrierImpl.rafTook += performance.now() - then;
+    };
+    private then: number;
+    private step: number;
+    private checkFrequency: number;
+    constructor(private msThreshold: number = 5, initialCheckFrequency: number = 1024 * 128) {
+        this.then = performance.now();
+        this.step = 0;
+        this.checkFrequency = initialCheckFrequency;
+    }
+
+    public shouldYield(): boolean {
+        if (++this.step < this.checkFrequency) return false;
+        
+        const took = performance.now() - this.then;
+        if (took > this.msThreshold) {
+            if (took > this.msThreshold * 3) {
+                this.checkFrequency = Math.max(this.checkFrequency / 2, FrameBarrierImpl.MIN_CHECK_FREQUENCY);
+            }
+            this.then = performance.now();
+            this.step = 0;
+            return true;
+        } else if (took < this.msThreshold / 3) {
+            this.checkFrequency = Math.min(this.checkFrequency * 2, FrameBarrierImpl.MAX_CHECK_FREQUENCY);
+        }
+        return false;
+    }
+
+    public yield(): Promise<void> {
+        return FrameBarrierImpl.yieldFn();
+    }
+
+    public static rafTotalMillis(): number {
+        return FrameBarrierImpl.rafTook;
+    }
+}
+
+class NoopFrameBarrier {
+    public shouldYield(): boolean {
+        return false;
+    }
+
+    public yield(): Promise<void> {
+        return undefined as any;
+    }
+}
+
+const HAS_RAF = typeof self !== 'undefined' && typeof (self as any).requestAnimationFrame === 'function';
+export const FrameBarrier = HAS_RAF ? FrameBarrierImpl : NoopFrameBarrier;
+
+export class Measurement {
+    private then: number;
+    private thenRafTook: number;
+    constructor() {
+        this.then = performance.now();
+        this.thenRafTook = FrameBarrierImpl.rafTotalMillis();
+    }
+
+    public logTook(name: string, logThresholdMs: number = 10): number {
+        const took = performance.now() - this.then;
+        if (took < logThresholdMs) return took;
+
+        let msg = name + " took " + (Math.ceil(took * 100) / 100) + " ms";
+        const rafTook = FrameBarrierImpl.rafTotalMillis() - this.thenRafTook;
+        const rafTookRounded = (Math.ceil(rafTook * 100) / 100);
+        if (rafTookRounded > 0) {
+            msg += ", (of which) RAF took " + rafTookRounded + " ms";
+        }
+        console.warn(msg);
+        return took;
+    }
 }
 
 export function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): Readonly<T> {
@@ -40,7 +121,7 @@ export function freezeIntermediate<T extends Record<PropertyKey, any>>(obj: T): 
     return frozen;
 }
 
-export function logTook(name: string, then: number, logThresholdMs: number = 20): number {
+export function logTook(name: string, then: number, logThresholdMs: number = 10): number {
     const took = performance.now() - then;
     if (took > logThresholdMs) {
         console.warn(name + " took " + (Math.ceil(took * 100) / 100) + " ms");
@@ -68,7 +149,7 @@ export class DynamicTooltip {
     
     constructor(tooltipBody: string) {
         this.tooltipElement = createElementFromHTML(`
-            <div class="tooltip journey-event-tooltip bs-tooltip-auto fade hide" role="tooltip">
+            <div class="tooltip map-event-tooltip bs-tooltip-auto fade hide" role="tooltip">
                 <div class="tooltip-arrow"></div>
                 <div class="tooltip-inner">${tooltipBody}</div>
             </div>

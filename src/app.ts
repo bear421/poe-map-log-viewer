@@ -15,12 +15,14 @@ import { logWorkerService } from './ingest/worker-service';
 
 import './assets/css/styles.css';
 import { BaseComponent } from './components/base-component';
+import { MapListComponent } from './components/map-list';
 
 export class App {
 
     private progressBar!: HTMLDivElement;
     private overviewTabPane!: HTMLDivElement;
     private mapsTabPane!: HTMLDivElement;
+    private mapStatsTabPane!: HTMLDivElement;
     private searchLogTabPane!: HTMLDivElement;
     private analysisTabPane!: HTMLDivElement;
     private currentMaps: MapInstance[] = [];
@@ -30,6 +32,7 @@ export class App {
     private modalMascot!: Mascot;
     private filterComponent!: FilterComponent;
     private searchComponent!: SearchComponent;
+    private mapListComponent!:  MapListComponent;
     private mapStatsComponent!: MapStatsComponent;
     private overviewComponent!: OverviewComponent;
     private analysisComponent!: AnalysisComponent;
@@ -97,12 +100,12 @@ export class App {
 
         container.prepend(headerContainer);
 
-        this.filterComponent = new FilterComponent((filter: Filter) => {
+        this.filterComponent = new FilterComponent(async (filter: Filter) => {
             if (!this.currentMaps) {
                 this.showError('No map data available to filter');
                 return;
             }
-            const aggregation = aggregateCached(this.currentMaps, this.currentEvents, filter, this.currentAggregation);
+            const aggregation = await aggregateCached(this.currentMaps, this.currentEvents, filter, this.currentAggregation);
             this.currentAggregation = aggregation;
             this.displayResults(aggregation);
         }, container);
@@ -162,7 +165,10 @@ export class App {
                 <button class="nav-link" id="analysis-tab" data-bs-toggle="tab" data-bs-target="#analysis-tab-pane" type="button" role="tab" aria-controls="analysis-tab-pane" aria-selected="false">Analysis</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Map stats</button>
+                <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">Maps</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="map-stats-tab" data-bs-toggle="tab" data-bs-target="#map-stats-tab-pane" type="button" role="tab" aria-controls="map-stats-tab-pane" aria-selected="false">Map stats</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="journey-tab" data-bs-toggle="tab" data-bs-target="#journey-tab-pane" type="button" role="tab" aria-controls="journey-tab-pane" aria-selected="false">Campaign</button>
@@ -193,6 +199,13 @@ export class App {
         this.overviewTabPane.setAttribute('aria-labelledby', 'overview-tab');
         this.overviewTabPane.setAttribute('tabindex', '0');
         
+        this.analysisTabPane = document.createElement('div');
+        this.analysisTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.analysisTabPane.id = 'analysis-tab-pane';
+        this.analysisTabPane.setAttribute('role', 'tabpanel');
+        this.analysisTabPane.setAttribute('aria-labelledby', 'analysis-tab');
+        this.analysisTabPane.setAttribute('tabindex', '0');
+        
         this.mapsTabPane = document.createElement('div');
         this.mapsTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
         this.mapsTabPane.id = 'maps-tab-pane';
@@ -200,12 +213,12 @@ export class App {
         this.mapsTabPane.setAttribute('aria-labelledby', 'maps-tab');
         this.mapsTabPane.setAttribute('tabindex', '0');
 
-        this.analysisTabPane = document.createElement('div');
-        this.analysisTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.analysisTabPane.id = 'analysis-tab-pane';
-        this.analysisTabPane.setAttribute('role', 'tabpanel');
-        this.analysisTabPane.setAttribute('aria-labelledby', 'analysis-tab');
-        this.analysisTabPane.setAttribute('tabindex', '0');
+        this.mapStatsTabPane = document.createElement('div');
+        this.mapStatsTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.mapStatsTabPane.id = 'map-stats-tab-pane';
+        this.mapStatsTabPane.setAttribute('role', 'tabpanel');
+        this.mapStatsTabPane.setAttribute('aria-labelledby', 'map-stats-tab');
+        this.mapStatsTabPane.setAttribute('tabindex', '0');
 
         this.journeyTabPane = document.createElement('div');
         this.journeyTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
@@ -231,6 +244,7 @@ export class App {
 
         this.tabContentElement.appendChild(this.overviewTabPane);
         this.tabContentElement.appendChild(this.mapsTabPane);
+        this.tabContentElement.appendChild(this.mapStatsTabPane);
         this.tabContentElement.appendChild(this.analysisTabPane);
         this.tabContentElement.appendChild(this.journeyTabPane);
         this.tabContentElement.appendChild(this.messagesTabPane);
@@ -238,11 +252,12 @@ export class App {
         container.appendChild(this.tabContentElement);
         
         this.overviewComponent = new OverviewComponent(this.overviewTabPane);
-        this.mapStatsComponent = new MapStatsComponent(this.mapsTabPane);
+        this.mapListComponent = new MapListComponent(this.mapsTabPane);
+        this.mapStatsComponent = new MapStatsComponent(this.mapStatsTabPane);
         this.analysisComponent = new AnalysisComponent(this.analysisTabPane);
         this.journeyComponent = new JourneyComponent(this.journeyTabPane);
         this.messagesComponent = new MessagesComponent(this.messagesTabPane);
-        this.components = [this.overviewComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
+        this.components = [this.overviewComponent, this.mapListComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
         this.components.forEach(component => component.setApp(this));
 
         const importJsonInput = document.createElement('input');
@@ -320,16 +335,17 @@ export class App {
         };
 
         informComponentOnTabChange('overview-tab', this.overviewComponent);
-        informComponentOnTabChange('maps-tab', this.mapStatsComponent);
+        informComponentOnTabChange('maps-tab', this.mapListComponent);
+        informComponentOnTabChange('map-stats-tab', this.mapStatsComponent);
         informComponentOnTabChange('analysis-tab', this.analysisComponent);
         informComponentOnTabChange('journey-tab', this.journeyComponent);
         informComponentOnTabChange('messages-tab', this.messagesComponent);
     }
 
-    private handleData(maps: MapInstance[], events: LogEvent[]) {
+    private async handleData(maps: MapInstance[], events: LogEvent[]) {
         this.currentMaps = maps;
         this.currentEvents = events;
-        const agg = aggregateCached(this.currentMaps, this.currentEvents, new Filter());
+        const agg = await aggregateCached(this.currentMaps, this.currentEvents, new Filter());
         this.currentAggregation = agg;
         this.displayResults(agg);
     }
@@ -358,7 +374,7 @@ export class App {
                 bootstrap.Tab.getOrCreateInstance(overviewTabButton).show();
             }
             this.currentComponent = this.overviewComponent;
-            this.handleData(result.maps, result.events);
+            await this.handleData(result.maps, result.events);
         } catch (error: any) {
             this.currentMaps = [];
             this.currentEvents = [];

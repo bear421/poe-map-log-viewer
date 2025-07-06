@@ -58,7 +58,6 @@ const RMT_SCUM_REGEX = new RegExp(atob('RGlzY29yZDogXGQrcnNnYW1lclxkKiQ='));
 
 self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
     const { type, requestId, file } = e.data;
-    const then = performance.now();
     const tracker: LogTracker = new LogTracker();
 
     try {
@@ -91,22 +90,15 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
             });
 
             await tracker.ingestLogFile(file, onProgressCallback);
-            const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
             
             self.postMessage({
                 requestId,
                 type: 'ingest',
                 payload: { maps, events }
             } as IngestResponse);
-
-            const totalMiB = file.size / 1024 / 1024;
-            console.info(`Ingested ${maps.length} maps and ${events.length} events (${(totalMiB).toFixed(1)} MiB of logs) in ${tookSeconds} seconds`);
-            console.info(`Average processing rate: ${(maps.length / parseFloat(tookSeconds)).toFixed(2)} maps/s (${(totalMiB / parseFloat(tookSeconds)).toFixed(1)} MiB/s)`);
-        
         } else if (type === 'search') {
             const { pattern, limit, filter } = e.data;
-
-            const onSearchProgress = (progress: { totalBytes: number, bytesRead: number }) => {
+            const onSearchProgress = (progress: Progress) => {
                 self.postMessage({
                     requestId,
                     type: 'progress',

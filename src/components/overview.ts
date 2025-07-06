@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { BaseComponent } from './base-component';
 import { medianQuickSelect } from '../aggregation';
+import { FrameBarrier } from '../util';
 
 Chart.register(
     ArcElement, 
@@ -28,26 +29,14 @@ Chart.register(
 
 export class OverviewComponent extends BaseComponent {
     private chartInstance: Chart | null = null;
-    private timeDistributionChartInstance: Chart | null = null;
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
         this.element.className = 'overview-component-container';
     }
 
-    protected render(): void {
-        this.element.innerHTML = '';
+    protected async render(): Promise<void> {
         const agg = this.data!;
-
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-            this.chartInstance = null;
-        }
-        if (this.timeDistributionChartInstance) {
-            this.timeDistributionChartInstance.destroy();
-            this.timeDistributionChartInstance = null;
-        }
-
         const times = agg.maps.map(map => {
             try {
                 const mapTime = MapSpan.mapTime(map.span);
@@ -60,8 +49,11 @@ export class OverviewComponent extends BaseComponent {
             }
         });
 
+        const fb = new FrameBarrier();
         const medianMapTime = times.length > 0 ? medianQuickSelect(times.map(t => t.mapTime)) : 0;
+        await fb.yield();
         const medianLoadTime = times.length > 0 ? medianQuickSelect(times.map(t => t.loadTime)) : 0;
+        await fb.yield();
         const medianIdleTime = times.length > 0 ? medianQuickSelect(times.map(t => t.hideoutTime)) : 0;
 
         const overviewRow = document.createElement('div');
@@ -130,6 +122,9 @@ export class OverviewComponent extends BaseComponent {
             </div>
         `;
         overviewRow.appendChild(chartCard);
+
+        // clear innerHTML AFTER possibly RAF yield to avoid flickering
+        this.element.innerHTML = '';
         this.element.appendChild(overviewRow);
 
         const timeDistCtx = (this.element.querySelector('#timeDistributionChartOverview') as ChartItem);
@@ -178,7 +173,11 @@ export class OverviewComponent extends BaseComponent {
                     }
                 }
             };
-            this.timeDistributionChartInstance = new Chart(timeDistCtx, chartConfig);
+            if (this.chartInstance) {
+                this.chartInstance.destroy();
+                this.chartInstance = null;
+            }
+            this.chartInstance = new Chart(timeDistCtx, chartConfig);
         } else if (timeDistCtx) {
             // Optional: Display a message if no data for chart
              const canvasCtx = (timeDistCtx as HTMLCanvasElement).getContext('2d');

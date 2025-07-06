@@ -1,15 +1,18 @@
 import { BaseComponent } from './base-component';
+import { FrameBarrier } from '../util';
 
 const DEBOUNCE_DELAY = 245;
+const INITIAL_RENDER_LIMIT = 100;
 
 export class MessagesComponent extends BaseComponent {
     private searchInput: HTMLInputElement;
     private accordionContainer: HTMLDivElement;
     private noResultsElement: HTMLParagraphElement;
+    private resultsInfoElement: HTMLParagraphElement;
 
     private characterOrder: string[] = [];
-    private characterElements: Map<string, HTMLElement> = new Map();
     private debounceTimer: number | null = null;
+    private searchInProgress = false;
 
     constructor(container: HTMLElement) {
         super(document.createElement('div'), container);
@@ -23,7 +26,7 @@ export class MessagesComponent extends BaseComponent {
                 clearTimeout(this.debounceTimer);
             }
             this.debounceTimer = window.setTimeout(() => {
-                this.applyFilter();
+                this.updateView();
             }, DEBOUNCE_DELAY);
         });
 
@@ -35,163 +38,176 @@ export class MessagesComponent extends BaseComponent {
         this.noResultsElement.className = 'text-muted mt-2';
         this.noResultsElement.style.display = 'none'; // Initially hidden
 
+        this.resultsInfoElement = document.createElement('p');
+        this.resultsInfoElement.className = 'text-muted mt-2';
+        this.resultsInfoElement.style.display = 'none';
+
         this.element.appendChild(this.searchInput);
+        this.element.appendChild(this.resultsInfoElement);
         this.element.appendChild(this.accordionContainer);
         this.element.appendChild(this.noResultsElement);
     }
 
     protected render(): void {
-        this.buildFullAccordion();
-        this.applyFilter();
+        this.prepareCharacterList();
+        this.updateView();
     }
 
-    private buildFullAccordion(): void {
-        this.accordionContainer.innerHTML = '';
-        this.characterOrder = [];
-        this.characterElements.clear();
-
-        // TODO: Performance Optimization for Large Number of Conversations (e.g., >30k)
-        // 1. Virtualization/Windowing: Only render DOM elements for conversations visible in the viewport.
-        //    As the user scrolls, recycle or re-render elements.
-        // 2. Initial Load Limit: By default, consider rendering only the most recent N (e.g., 100-200) conversations.
-        //    The full dataset (this.aggregationData.messages) would still be used for searching.
-        // 3. Search with Load Limit:
-        //    - When searching, if a match is found in a conversation not currently in the DOM (due to initial limit),
-        //      it needs to be dynamically rendered and inserted, or the virtualization window adjusted.
-        //    - Alternatively, if search is limited to the initially loaded subset, this needs to be clear to the user,
-        //      or a "search all messages" option could trigger a potentially slower full data search and render.
-        // 4. Ensure `applyFilter` correctly interacts with virtualization: it should filter the full list of characters
-        //    and then instruct the virtual rendering system which items to display within its window.
-
+    private prepareCharacterList(): void {
         if (!this.data || !this.data.messages || this.data.messages.size === 0) {
-            this.noResultsElement.textContent = 'No direct messages found.';
-            this.noResultsElement.style.display = 'block';
+            this.characterOrder = [];
             return;
         }
-        this.noResultsElement.style.display = 'none';
 
         const charactersWithMessages = Array.from(this.data.messages.entries())
             .map(([character, events]) => ({
                 character,
-                events,
                 lastMessageTs: events.length > 0 ? events[events.length - 1].ts : 0
             }))
             .sort((a, b) => b.lastMessageTs - a.lastMessageTs);
-
-        charactersWithMessages.forEach(({ character, events }, index) => {
-            if (events.length === 0) return;
-
-            this.characterOrder.push(character);
-
-            const card = document.createElement('div');
-            card.className = 'accordion-item';
-            this.characterElements.set(character, card);
-
-            const headerId = `messages-header-${index}`;
-            const collapseId = `messages-collapse-${index}`;
-
-            const header = document.createElement('h2');
-            header.className = 'accordion-header';
-            header.id = headerId;
-
-            const button = document.createElement('button');
-            button.className = 'accordion-button collapsed';
-            button.type = 'button';
-            button.dataset.bsToggle = 'collapse';
-            button.dataset.bsTarget = `#${collapseId}`;
-            button.ariaExpanded = 'false';
-            button.setAttribute('aria-controls', collapseId);
-            button.textContent = character;
-
-            header.appendChild(button);
-            card.appendChild(header);
-
-            const collapseDiv = document.createElement('div');
-            collapseDiv.id = collapseId;
-            collapseDiv.className = 'accordion-collapse collapse';
-            collapseDiv.setAttribute('aria-labelledby', headerId);
-            collapseDiv.dataset.bsParent = '#messagesAccordion';
-
-            const body = document.createElement('div');
-            body.className = 'accordion-body';
-
-            const messageList = document.createElement('ul');
-            messageList.className = 'list-group list-group-flush';
-
-            events.sort((a, b) => a.ts - b.ts).forEach(event => {
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item';
-                const messageDirection = event.name === 'msgFrom' ? 'From' : 'To';
-                const itemDate = new Date(event.ts).toLocaleString();
-                listItem.innerHTML = `
-                    <small class="text-muted">@${messageDirection} ${character} ${itemDate}</small><br>
-                    ${event.detail.msg}
-                `;
-                messageList.appendChild(listItem);
-            });
-
-            body.appendChild(messageList);
-            collapseDiv.appendChild(body);
-            card.appendChild(collapseDiv);
-            this.accordionContainer.appendChild(card);
-        });
+        
+        this.characterOrder = charactersWithMessages.map(({ character }) => character);
     }
 
-    private applyFilter(): void {
-        if (!this.data || !this.data.messages) {
+    private async updateView(): Promise<void> {
+        if (this.searchInProgress) {
             return;
         }
+        this.searchInProgress = true;
 
-        const rawSearchTerm = this.searchInput.value.trim();
-        let searchTermForRegex = rawSearchTerm;
-        let searchMessage = true;
-        const fromPrefix = "from:";
-        if (rawSearchTerm.toLowerCase().startsWith(fromPrefix)) {
-            searchMessage = false;
-            searchTermForRegex = rawSearchTerm.substring(fromPrefix.length).trim();
-        }
-
-        let searchRegex: RegExp | null = null;
-        if (searchTermForRegex) {
-            try {
-                searchRegex = new RegExp(searchTermForRegex, 'i');
-            } catch (e) {
-                // Invalid regex, treat as plain text search
-                searchRegex = new RegExp(searchTermForRegex.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i');
+        this.accordionContainer.innerHTML = '';
+        this.resultsInfoElement.style.display = 'none';
+        
+        try {
+            if (this.characterOrder.length === 0) {
+                this.noResultsElement.textContent = 'No direct messages found.';
+                this.noResultsElement.style.display = 'block';
+                return;
             }
-        }
 
-        let visibleCount = 0;
-        this.characterOrder.forEach(character => {
-            const element = this.characterElements.get(character);
-            const events = this.data!.messages.get(character) || [];
+            const rawSearchTerm = this.searchInput.value.trim();
+            let searchTermForRegex = rawSearchTerm;
+            let searchMessage = true;
+            const fromPrefix = "from:";
+            if (rawSearchTerm.toLowerCase().startsWith(fromPrefix)) {
+                searchMessage = false;
+                searchTermForRegex = rawSearchTerm.substring(fromPrefix.length).trim();
+            }
 
-            if (element) {
-                let matches = false;
-                if (!searchRegex) {
-                    matches = true;
-                } else {
+            let searchRegex: RegExp | null = null;
+            if (searchTermForRegex) {
+                try {
+                    searchRegex = new RegExp(searchTermForRegex, 'i');
+                } catch (e) {
+                    // Invalid regex, treat as plain text search
+                    searchRegex = new RegExp(searchTermForRegex.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&'), 'i');
+                }
+            }
+
+            let filteredCharacters: string[] = [];
+            if (searchRegex) {
+                this.resultsInfoElement.textContent = 'Searching...';
+                this.resultsInfoElement.style.display = 'block';
+                this.noResultsElement.style.display = 'none';
+
+                const fb = new FrameBarrier();
+                for (const character of this.characterOrder) {
+                    if (fb.shouldYield()) await fb.yield();
+                    
+                    let isMatch = false;
                     if (searchRegex.test(character)) {
-                        matches = true;
-                    } else if (searchMessage && events.some(event => searchRegex!.test(event.detail.msg))) {
-                        matches = true;
+                        isMatch = true;
+                    } else if (searchMessage) {
+                        const events = this.data!.messages.get(character);
+                        if (events && events.some(event => searchRegex!.test(event.detail.msg))) {
+                            isMatch = true;
+                        }
+                    }
+                    if (isMatch) {
+                        filteredCharacters.push(character);
                     }
                 }
-
-                if (matches) {
-                    element.style.display = '';
-                    visibleCount++;
-                } else {
-                    element.style.display = 'none';
-                }
+            } else {
+                filteredCharacters = this.characterOrder;
             }
-        });
 
-        if (visibleCount === 0 && (this.data!.messages.size > 0 || rawSearchTerm)) {
-            this.noResultsElement.textContent = rawSearchTerm ? 'No matching messages found.' : 'No direct messages found.';
-            this.noResultsElement.style.display = 'block';
-        } else {
+            this.resultsInfoElement.style.display = 'none';
+
+            if (filteredCharacters.length > INITIAL_RENDER_LIMIT) {
+                if (searchRegex) {
+                    this.resultsInfoElement.textContent = `Showing the first ${INITIAL_RENDER_LIMIT} of ${filteredCharacters.length} matches. Refine your search to see more.`;
+                } else {
+                    this.resultsInfoElement.textContent = `Showing the ${INITIAL_RENDER_LIMIT} most recent of ${filteredCharacters.length} conversations.`;
+                }
+                this.resultsInfoElement.style.display = 'block';
+            }
+
+            const charactersToRender = filteredCharacters.slice(0, INITIAL_RENDER_LIMIT);
+
+            if (charactersToRender.length === 0) {
+                this.noResultsElement.textContent = rawSearchTerm ? 'No matching messages found.' : 'No direct messages found.';
+                this.noResultsElement.style.display = 'block';
+                return;
+            }
+            
             this.noResultsElement.style.display = 'none';
+
+            charactersToRender.forEach((character, index) => {
+                const events = this.data!.messages.get(character)!;
+
+                const card = document.createElement('div');
+                card.className = 'accordion-item';
+
+                const headerId = `messages-header-${index}`;
+                const collapseId = `messages-collapse-${index}`;
+
+                const header = document.createElement('h2');
+                header.className = 'accordion-header';
+                header.id = headerId;
+
+                const button = document.createElement('button');
+                button.className = 'accordion-button collapsed';
+                button.type = 'button';
+                button.dataset.bsToggle = 'collapse';
+                button.dataset.bsTarget = `#${collapseId}`;
+                button.ariaExpanded = 'false';
+                button.setAttribute('aria-controls', collapseId);
+                button.textContent = character;
+
+                header.appendChild(button);
+                card.appendChild(header);
+
+                const collapseDiv = document.createElement('div');
+                collapseDiv.id = collapseId;
+                collapseDiv.className = 'accordion-collapse collapse';
+                collapseDiv.setAttribute('aria-labelledby', headerId);
+                collapseDiv.dataset.bsParent = '#messagesAccordion';
+
+                const body = document.createElement('div');
+                body.className = 'accordion-body';
+
+                const messageList = document.createElement('ul');
+                messageList.className = 'list-group list-group-flush';
+
+                events.sort((a, b) => a.ts - b.ts).forEach(event => {
+                    const listItem = document.createElement('li');
+                    listItem.className = 'list-group-item';
+                    const messageDirection = event.name === 'msgFrom' ? 'From' : 'To';
+                    const itemDate = new Date(event.ts).toLocaleString();
+                    listItem.innerHTML = `
+                        <small class="text-muted">@${messageDirection} ${character} ${itemDate}</small><br>
+                        ${event.detail.msg}
+                    `;
+                    messageList.appendChild(listItem);
+                });
+
+                body.appendChild(messageList);
+                collapseDiv.appendChild(body);
+                card.appendChild(collapseDiv);
+                this.accordionContainer.appendChild(card);
+            });
+        } finally {
+            this.searchInProgress = false;
         }
     }
 } 

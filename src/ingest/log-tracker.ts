@@ -744,6 +744,7 @@ export class LogTracker {
     }
 
     async ingestLogFile(file: File, onProgress?: (progress: Progress) => void, checkIntegrity: boolean = false, tsFilter?: TSRange): Promise<boolean> {
+        const then = performance.now();
         const actualFile = tsFilter ? await createApproximateFileSlice(file, tsFilter) : file;
         const progress = {
             totalBytes: actualFile.size,
@@ -807,16 +808,21 @@ export class LogTracker {
         } finally {
             reader.releaseLock();
             clearOffsetCache();
+            const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
+            const totalMiB = progress.totalBytes / 1024 / 1024;
+            console.info(`Ingested ${(totalMiB).toFixed(1)} MiB of logs in ${tookSeconds} seconds`);
         }
     }
 
     async searchLogFile(pattern: RegExp, limit: number, file: File, onProgress?: (progress: { totalBytes: number, bytesRead: number }) => void, tsFilter?: TSRange): Promise<LogLine[]> {
+        const then = performance.now();
         const actualFile = tsFilter ? await createApproximateFileSlice(file, tsFilter) : file;
         const progress = {
             totalBytes: actualFile.size,
             bytesRead: 0
         };
         const reader = actualFile.stream().getReader();
+        let skipHead = !!tsFilter; // skip first line which may be malformed (sliced) - this line should be outside of the ts range anyways
         try {
             const lines: LogLine[] = [];
             const decoder = new TextDecoder();
@@ -825,9 +831,13 @@ export class LogTracker {
             for (;;) {
                 const { done, value } = await reader.read();
                 const handleLine = (line: string) => {
-                    // cannot use fast parseTs here, because lines may be malformed due to file offset or non-timestamped logs
-                    const ts = parseTsStrict(line);
+                    if (skipHead) {
+                        skipHead = false;
+                        return true;
+                    }
+                    let ts: number | null = null;
                     if (tsFilter) {
+                        ts = parseTs(line);
                         if (ts) {
                             if (ts < tsFilter.lo) return true;
 
@@ -840,6 +850,7 @@ export class LogTracker {
                         }
                     }
                     if (pattern.test(line)) {
+                        ts ??= parseTs(line);
                         const rIx = ts && line.indexOf("]", 40);
                         if (ts && rIx) {
                             const remainder = line.substring(rIx + 2);
@@ -887,6 +898,9 @@ export class LogTracker {
         } finally {
             reader.releaseLock();
             clearOffsetCache();
+            const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
+            const totalMiB = progress.totalBytes / 1024 / 1024;
+            console.info(`Search tested ${(totalMiB).toFixed(1)} MiB of logs in ${tookSeconds} seconds`);
         }
     }
 

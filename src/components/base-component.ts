@@ -1,5 +1,6 @@
 import { App } from "../app";
 import { LogAggregation } from "../aggregation";
+import { Measurement } from "../util";
 
 export abstract class BaseComponent<
     TElement extends HTMLElement = HTMLElement,
@@ -20,10 +21,10 @@ export abstract class BaseComponent<
         this.containerElement.appendChild(this.element);
     }
 
-    public updateData(newData: TData): void {
+    public updateData(newData: TData): Promise<void> | void {
         this.data = newData;
         this.isDataChanged = true;
-        this.tryRender();
+        return this.tryRender();
     }
 
     public setVisible(visible: boolean): this {
@@ -40,23 +41,21 @@ export abstract class BaseComponent<
         this.app = app;
     }
 
-    private tryRender(): void {
+    private async tryRender(): Promise<void> {
         if (!this.isVisible || !this.isDataChanged) return;
 
         if (!this.isInitialized) {
             this.init();
             this.isInitialized = true;
         }
-        const then = performance.now();
-        this.render();
-        const took = performance.now() - then;
-        if (took > 20) {
-            console.warn(this.constructor.name + ".render took " + (Math.ceil(took * 100) / 100) + " ms");
-        }
+        const m = new Measurement();
+        const promise = this.render();
+        await promise;
+        m.logTook(this.constructor.name + ".render " + (promise instanceof Promise ? "(async)" : ""));
         this.isDataChanged = false;
     }
 
     protected init() {}
 
-    protected abstract render(): void;
+    protected abstract render(): Promise<void> | void;
 } 

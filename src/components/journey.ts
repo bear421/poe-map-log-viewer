@@ -116,7 +116,7 @@ export class JourneyComponent extends BaseComponent {
 
     private createScaffolding(rowCount: number): { table: HTMLTableElement, tbody: HTMLTableSectionElement } {
         const table = createElementFromHTML(`
-            <table class="table table-sm table-striped table-fixed caption-top journey-campaign-table">
+            <table class="table table-sm table-striped table-fixed caption-top map-list-table">
                 <thead>
                     <tr>
                         <th class="th-area">Area</th>

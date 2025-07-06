@@ -2,7 +2,7 @@ import { Filter } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 
 export class FilterComponent extends BaseComponent {
-    private onFilterChange: (filter: Filter) => void;
+    private onFilterChange: (filter: Filter) => Promise<void>;
 
     private readonly datePresetButtonIds = ['presetLastHourBtn', 'presetLast24HoursBtn', 'presetLast7DaysBtn', 'presetLast30DaysBtn'];
     private readonly mapPresetButtonIds = ['campaignBtn', 'presetWhiteMapsBtn', 'presetYellowMapsBtn', 'presetRedMapsBtn'];
@@ -11,7 +11,7 @@ export class FilterComponent extends BaseComponent {
     private prevCharactersSignature: string = "";
     private filter: Filter | undefined;
 
-    constructor(onFilterChangeCallback: (filter: Filter) => void, container: HTMLDivElement) {
+    constructor(onFilterChangeCallback: (filter: Filter) => Promise<void>, container: HTMLDivElement) {
         super(document.createElement('div'), container);
         this.element.className = 'card mb-3 d-none';
         this.onFilterChange = onFilterChangeCallback;
@@ -88,6 +88,7 @@ export class FilterComponent extends BaseComponent {
     protected render(): void {
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
         const characterOptionsHTML = this.data!.characterAggregation.filteredCharacters
+            .toReversed() // most recent character at the top of the select
             .map(char => `<option value="${char.name}">${char.name} (${char.level} ${char.ascendancy})</option>`)
             .join('');
 
@@ -172,7 +173,7 @@ export class FilterComponent extends BaseComponent {
         });
     }
 
-    private applyFilters(): void {
+    private async applyFilters(): Promise<void> {
         const minAreaLevelInput = (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value;
         const maxAreaLevelInput = (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value;
         const minCharLevelInput = (this.element.querySelector('#minCharacterLevelFilter') as HTMLInputElement).value;
@@ -214,7 +215,7 @@ export class FilterComponent extends BaseComponent {
             filter.character = characterInput;
         }
         this.filter = filter;
-        this.onFilterChange(filter);
+        await this.onFilterChange(filter);
     }
 
     getFilter(): Filter | undefined {

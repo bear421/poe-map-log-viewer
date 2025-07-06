@@ -9,8 +9,8 @@ import {
     LeftAreaEvent,
     TradeAcceptedEvent,
     ItemsIdentifiedEvent
-} from "../src/log-events";
-import { LogTracker } from "../src/log-tracker";
+} from "../src/ingest/events";
+import { LogTracker } from "../src/ingest/log-tracker";
 
 describe('LogTracker', () => {
     let tracker: LogTracker;

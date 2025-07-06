@@ -36,14 +36,14 @@ export class AnalysisComponent extends BaseComponent {
         this.updateChart();
     }
 
-    protected render(): void {
+    protected async render(): Promise<void> {
         const characterOption = this.xAxisSelect.querySelector('.character-dimension') as HTMLOptionElement;
         const filterCharacter = !!this.data!.filter.character;
         if (characterOption.selected && filterCharacter) {
             this.xAxisSelect.value = filterCharacter ? Dimension.characterLevel.toString() : Dimension.character.toString();
         }
         characterOption.disabled = filterCharacter;
-        this.updateChart();
+        return this.updateChart();
     }
 
     private createControls(): void {
@@ -98,12 +98,7 @@ export class AnalysisComponent extends BaseComponent {
         this.aggregationSelect.addEventListener('change', () => this.updateChart());
     }
 
-    private updateChart(): void {
-        if (this.chartInstance) {
-            this.chartInstance.destroy();
-            this.chartInstance = null;
-        }
-
+    private async updateChart(): Promise<void> {
         let chartCanvas = this.element.querySelector('#analysisChart') as HTMLCanvasElement;
         if (!chartCanvas) {
             const chartCard = document.createElement('div');
@@ -131,7 +126,7 @@ export class AnalysisComponent extends BaseComponent {
             this.aggregationSelect.value = Aggregation.total.toString();
         }
         const aggregation = parseInt(this.aggregationSelect.value) as Aggregation;
-        const chartData = this.getChartData(agg, dimension, metric, aggregation);
+        const chartData = await this.getChartData(agg, dimension, metric, aggregation);
 
         if (chartData.labels.length === 0) {
             chartCtx.font = "16px Arial";
@@ -190,11 +185,16 @@ export class AnalysisComponent extends BaseComponent {
                 }
             }
         };
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+        }
         this.chartInstance = new Chart(chartCtx, chartConfig);
     }
 
-    private getChartData(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): { labels: string[], data: number[] } {
-        const aggregatedData = aggregateBy(agg, dimension, metric, aggregation);
+    private async getChartData(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<{ labels: string[], data: number[] }> {
+        const aggregatedData = await aggregateBy(agg, dimension, metric, aggregation);
+        /*
         const sortedKeys = Array.from(aggregatedData.keys()).sort((a, b) => {
             if (typeof a === 'number' && typeof b === 'number') {
                 return a - b;
@@ -210,6 +210,9 @@ export class AnalysisComponent extends BaseComponent {
         });
 
         const data = sortedKeys.map(key => aggregatedData.get(key)!);
+        */
+        const labels = Array.from(aggregatedData.keys()).map(key => String(key));
+        const data = Array.from(aggregatedData.values());
         return { labels, data };
     }
 } 

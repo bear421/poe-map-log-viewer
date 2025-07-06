@@ -2,7 +2,7 @@ import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "./ingest/l
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./ingest/events";
 import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "./binary-search";
 import { Feature, isFeatureSupportedAt } from "./data/log-versions";
-import { freezeIntermediate, logTook } from "./util";
+import { FrameBarrier, freezeIntermediate, logTook, Measurement } from "./util";
 import { SplitCache } from "./split-cache";
 import { getZoneInfo } from "./data/zone_table";
 
@@ -218,19 +218,19 @@ export function clearAggregationCache() {
     aggregationCache.clear();
 }
 
-export function aggregateCached(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
+export async function aggregateCached(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): Promise<LogAggregation> {
     const cacheKey = JSON.stringify(filter);
     const cachedResult = aggregationCache.get(cacheKey);
     if (cachedResult) return cachedResult;
 
-    const then = performance.now();
-    const res = aggregate(maps, events, filter, prevAgg);
-    const took = logTook("aggregate", then);
+    const m = new Measurement();
+    const res = await aggregate(maps, events, filter, prevAgg);
+    const took = m.logTook("aggregate");
     aggregationCache.set(cacheKey, res, took < 5 && !Filter.isEmpty(filter));
     return res;
 }
 
-export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): LogAggregation {
+export async function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): Promise<LogAggregation> {
     const reassembledFilter = reassembleFilter(filter, prevAgg);
     if (reassembledFilter) {
         maps = Filter.filterMaps(maps, reassembledFilter);
@@ -245,7 +245,7 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
         if (prevAgg) {
             characterAggregation = prevAgg.characterAggregation;
         } else {
-            characterAggregation = buildCharacterAggregation(maps, events);
+            characterAggregation = await buildCharacterAggregation(maps, events);
         }
         characterAggregation = withFilteredCharacters(characterAggregation, filter);
     } catch (e) {
@@ -253,7 +253,7 @@ export function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filte
         characterAggregation = new CharacterAggregation(new Map(), [], new Map(), [], []);
     }
     // FIXME don't default to filter if all data is excluded
-    const agg = aggregate0(maps, events, reassembledFilter ?? filter, characterAggregation);
+    const agg = await aggregate0(maps, events, reassembledFilter ?? filter, characterAggregation);
     return freezeIntermediate(agg);
 }
 
@@ -279,7 +279,9 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter | un
     return filter;
 }
 
-const staleThreshold = Date.now() - 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
+const staleCharacterThreshold = Date.now() - 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
+
+const PRACTICE_CHARACTER_REGEX = /^AAA/i;
 
 function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): CharacterAggregation {
     const filteredCharacters = ca.characters.filter(char => {
@@ -291,7 +293,7 @@ function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): Chara
             if (char.createdTs < filter.tsBounds[0].lo || char.lastPlayedTs > filter.tsBounds[0].hi) {
                 return false;
             }
-        } else if (char.name.startsWith("AAA") && char.level < 90 && char.lastPlayedTs < staleThreshold) {
+        } else if (PRACTICE_CHARACTER_REGEX.test(char.name) && char.level < 90 && char.lastPlayedTs < staleCharacterThreshold) {
             // discard practice characters unless explicitly included by tsBounds
             return false;
         }
@@ -301,16 +303,30 @@ function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): Chara
 }
 
 const SESSION_THRESHOLD_MILLIS = 1000 * 60 * 60;
-const TRADE_PATTERN = /^(Hi, I would like to buy your|你好，我想購買|안녕하세요, |こんにちは、 |Здравствуйте, хочу купить у вас |Hi, ich möchte |Bonjour, je souhaiterais t'acheter )/;
+const TRADE_PATTERNS = [
+    'Hi, I would like to buy your',         // english
+    '你好，我想購買',                        // chinese (traditional)
+    '안녕하세요, ',                          // korean
+    'こんにちは、 ',                         // japanese
+    'Здравствуйте, хочу купить у вас ',     // russian
+    'Hi, ich möchte ',                      // german
+    "Bonjour, je souhaiterais t'acheter ",  // french
+    'Olá, eu gostaria de comprar o seu ',   // portuguese
+    'Hola, quisiera comprar tu ',           // spanish
+    'สวัสดี เราต้องการชื้อ ',                    // thai
+];
+const TRADE_REGEX = new RegExp(`^(${TRADE_PATTERNS.join('|')})`);
 
-function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): MutableLogAggregation {
+async function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): Promise<MutableLogAggregation> {
     let totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
     let totalDeaths = 0, totalWitnessedDeaths = 0;
     const messages = new Map<string, AnyMsgEvent[]>();
     let totalBossKills = 0;
     let totalSessions = 1;
     let prevEvent: LogEvent | null = null;
-    for (let i = 0; i < events.length; i++) {
+    for (let i = 0, fb = new FrameBarrier(); i < events.length; i++) {
+        if (fb.shouldYield()) await fb.yield();
+
         const event = events[i];
         if (prevEvent) {
             const tsDelta = event.ts - prevEvent.ts;
@@ -321,13 +337,13 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
         prevEvent = event;
         switch (event.name) {
             case "msgFrom":
-                if (TRADE_PATTERN.test(event.detail.msg)) {
+                if (TRADE_REGEX.test(event.detail.msg)) {
                     totalSalesAttempted++;
                 }
                 computeIfAbsent(messages, event.detail.character, () => []).push(event);
                 break;
             case "msgTo":
-                if (TRADE_PATTERN.test(event.detail.msg)) {
+                if (TRADE_REGEX.test(event.detail.msg)) {
                     totalBuysAttempted++;
                 }
                 computeIfAbsent(messages, event.detail.character, () => []).push(event);
@@ -358,7 +374,10 @@ function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, cha
     let totalMapTime = 0, totalLoadTime = 0, totalHideoutTime = 0
     const mapsUnique: MapInstance[] = [];
     const mapsDelve: MapInstance[] = [];
+    const fb = new FrameBarrier();
     for (const map of maps) {
+        if (fb.shouldYield()) await fb.yield();
+
         totalMapTime += MapSpan.mapTime(map.span);
         totalLoadTime += map.span.loadTime;
         totalHideoutTime += map.span.hideoutTime;
@@ -485,7 +504,8 @@ function checkContiguous<T extends {ts: number}>(items: T[]) {
 }
 
 // corner-case city
-function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): CharacterAggregation {
+async function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Promise<CharacterAggregation> {
+    const fb = new FrameBarrier();
     checkContiguous(events);
     const foreignCharacters = determineForeignCharacters(events);
     const characterLevelIndex = new Map<string, ContiguousArray<LevelUpEvent|SetCharacterEvent>>();
@@ -656,6 +676,8 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
         }
     }
     for (let i = 0; i < events.length; i++) {
+        if (fb.shouldYield()) await fb.yield();
+
         const event = events[i];
         switch (event.name) {
             case "msgLocal":
@@ -807,7 +829,7 @@ function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): Charac
             lastPlayedTs,
         });
     }
-    const sortedCharacters = characters.sort((a, b) => b.lastPlayedTs - a.lastPlayedTs);
+    const sortedCharacters = characters.sort((a, b) => a.lastPlayedTs - b.lastPlayedTs);
     return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex, characterLevelSegmentation, sortedCharacters, sortedCharacters);
 }
 
@@ -886,18 +908,18 @@ function determineForeignCharacters(events: LogEvent[]): Set<string> {
 }
 
 interface MetricsAggregator {
-    walkEvents(fn: (event: LogEvent, key: string | number) => number): void;
-    walkMaps(fn: (map: MapInstance, key: string | number) => number): void;
+    walkEvents(fn: (event: LogEvent, key: string | number) => number): Promise<void>;
+    walkMaps(fn: (map: MapInstance, key: string | number) => number): Promise<void>;
 }
 
-export function aggregateBy(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Map<string | number, number> {
-    const then = performance.now();
-    const res = aggregateBy0(agg, dimension, metric, aggregation);
-    logTook("aggregateBy", then, 10);
+export async function aggregateBy(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
+    const m = new Measurement();
+    const res = await aggregateBy0(agg, dimension, metric, aggregation);
+    m.logTook("aggregateBy");
     return res;
 }
 
-function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Map<string | number, number> {
+async function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
     const filter = agg.filter;
     const fromCharacterLevel = agg.filter.fromCharacterLevel;
     const toCharacterLevel = agg.filter.toCharacterLevel;
@@ -906,9 +928,10 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
     let eventDimensionSegmentation: Map<string | number, Segmentation> | undefined;
     let metricAggregator: MetricsAggregator;
     const dataMap = new Map<string | number, number[]>();
+    const fb = new FrameBarrier();
     const eventSegmentationMetricsAggregator = (eventDimensionSegmentation: Map<string | number, Segmentation>) => {
         return {
-            walkEvents: (fn: (event: LogEvent, key: string | number) => number) => {
+            walkEvents: async (fn: (event: LogEvent, key: string | number) => number) => {
                 for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
                     const values: number[] = [];
                     for (const range of segmentation) {
@@ -920,6 +943,8 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
                         if (hiIx === -1) continue;
         
                         for (let i = loIx; i <= hiIx; i++) {
+                            if (fb.shouldYield()) await fb.yield();
+                            
                             const event = events[i];
                             values.push(fn(event, key));
                         }
@@ -927,7 +952,7 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
                     dataMap.set(key, values);
                 }
             },
-            walkMaps: (fn: (map: MapInstance, key: string | number) => number) => {
+            walkMaps: async (fn: (map: MapInstance, key: string | number) => number) => {
                 for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
                     const values: number[] = [];
                     for (const range of segmentation) {
@@ -939,6 +964,8 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
                         if (hiIx === -1) continue;
         
                         for (let i = loIx; i <= hiIx; i++) {
+                            if (fb.shouldYield()) await fb.yield();
+
                             const map = agg.maps[i];
                             values.push(fn(map, key));
                         }
@@ -988,7 +1015,7 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
             break;
         case Dimension.areaLevel:
             metricAggregator = {
-                walkEvents: (fn: (event: LogEvent, key: string | number) => number) => {
+                walkEvents: async (fn: (event: LogEvent, key: string | number) => number) => {
                     for (const map of agg.maps) {
                         const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= map.span.start);
                         if (loIx === -1) continue;
@@ -999,12 +1026,16 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
 
                         const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
                         for (let i = loIx; i <= hiIx; i++) {
+                            if (fb.shouldYield()) await fb.yield();
+
                             values.push(fn(events[i], map.areaLevel));
                         }
                     }
                 },
-                walkMaps: (fn: (map: MapInstance, key: string | number) => number) => {
+                walkMaps: async (fn: (map: MapInstance, key: string | number) => number) => {
                     for (const map of agg.maps) {
+                        if (fb.shouldYield()) await fb.yield();
+
                         const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
                         values.push(fn(map, map.areaLevel));
                     }
@@ -1017,7 +1048,7 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
     }
     if (metricMeta[metric].type === "event") {
         let lastEventTs = 0;
-        metricAggregator.walkEvents((event, _) => {
+        await metricAggregator.walkEvents((event, _) => {
             let found = false;
             switch (metric) {
                 case Metric.deaths:
@@ -1046,17 +1077,17 @@ function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric,
                     lastEventTs = event.ts;
                     break;
                 case Metric.totalBuysAttempted:
-                    found = event.name === 'msgTo' && TRADE_PATTERN.test(event.detail.msg);
+                    found = event.name === 'msgTo' && TRADE_REGEX.test(event.detail.msg);
                     break;
                 case Metric.salesAttempted:
-                    found = event.name === 'msgFrom' && TRADE_PATTERN.test(event.detail.msg);
+                    found = event.name === 'msgFrom' && TRADE_REGEX.test(event.detail.msg);
                     break;
                 default: throw new Error(`unsupported metric: ${metric}`);
             }
             return found ? 1 : 0;
         });
     } else {
-        metricAggregator.walkMaps((map, _) => {
+        await metricAggregator.walkMaps((map, _) => {
             switch (metric) {
                 case Metric.maps:
                     return 1;

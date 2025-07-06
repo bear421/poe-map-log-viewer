@@ -228,37 +228,37 @@ body {
     user-select: none;
 }
 
-.journey-campaign-table {
+.map-list-table {
     table-layout: fixed;
 }
 
-.journey-campaign-table .th-area {
+.map-list-table .th-area {
     width: 22%;
 }
-.journey-campaign-table .th-events {}
+.map-list-table .th-events {}
 
-.journey-campaign-table .th-entered-at {
+.map-list-table .th-entered-at {
     width: 9.5rem;
 }
 
-.journey-campaign-table .th-time-spent {
+.map-list-table .th-time-spent, .map-list-table .th-time-spent {
     width: 4rem;
 }
 
-.journey-campaign-table .th-area-level,
-.journey-campaign-table .th-char-level {
+.map-list-table .th-area-level,
+.map-list-table .th-char-level {
     width: 7%;
 }
 
-.journey-campaign-table td:nth-of-type(n+3):nth-of-type(-n+6) { /* time spent, entered at, area level, char level */
+.map-list-table td:nth-of-type(n+3):nth-of-type(-n+6) { /* time spent, entered at, area level, char level */
     text-align: right;
 }
 
-.journey-campaign-table td {
+.map-list-table td {
     vertical-align: top;
 }
 
-.journey-campaign-table td:nth-of-type(2) { /* events */
+.map-list-table td:nth-of-type(2) { /* events */
     vertical-align: middle;
     padding-top: 0;
     padding-bottom: 0;
@@ -267,12 +267,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.journey-campaign-table a {
+.map-list-table a {
     text-decoration: none;
     color: var(--bs-primary);
 }
 
-.journey-event-tooltip .tooltip-inner {
+.map-event-tooltip .tooltip-inner {
     max-width: 100%;
 }
 
