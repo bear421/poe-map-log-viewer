@@ -33,7 +33,7 @@ export function buildBitsetIndex(maps: MapInstance[], events: LogEvent[]): Map<E
 
 export function shrinkBitsets(bitSetIndex: Map<EventName, BitSet>, maps: MapInstance[]): Map<EventName, BitSet> {
     const res = new Map<EventName, BitSet>();
-    const maxId = maps[maps.length - 1].id;
+    const maxId = maps.length > 0 ? maps[maps.length - 1].id : 0;
     for (const eventName of relevantEventNames) {
         res.set(eventName, new BitSet(maxId + 1));
     }

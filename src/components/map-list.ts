@@ -64,7 +64,7 @@ export class MapListComponent extends BaseComponent {
         }
     };
 
-    protected render(): void {
+    protected async render(): Promise<void> {
         if (!this.data) return;
 
         this.allMaps = this.data.reversedMaps;
@@ -80,7 +80,7 @@ export class MapListComponent extends BaseComponent {
         const controlsRow = createElementFromHTML('<div class="row map-list-controls mb-3"></div>');
 
         const mapCountContainer = createElementFromHTML(`
-            <div class="col-md-3">
+            <div class="col-md-4 fs-5">
                 Showing <span class="map-count"></span> maps
             </div>
         `) as HTMLDivElement;
@@ -88,12 +88,12 @@ export class MapListComponent extends BaseComponent {
         controlsRow.appendChild(mapCountContainer);
 
         const areaTypeContainer = createElementFromHTML(`
-            <div class="col-md-5"></div>
+            <div class="col-md-4"></div>
         `) as HTMLDivElement;
         controlsRow.appendChild(areaTypeContainer);
 
         this.filterContainer = createElementFromHTML(`
-            <div class="facet-filter-container col-md-4 m-s-2">
+            <div class="facet-filter-container col-md-4 m-s-2 fs-5">
                 <div class="position-relative">
                     <button class="btn btn-outline-primary facet-filter-toggle d-flex justify-content-between align-items-center">
                         <span>Events</span>
@@ -157,22 +157,21 @@ export class MapListComponent extends BaseComponent {
     }
     
     private applyFilters(): void {
-        const eventBitSets = this.data!.eventBitSetIndex;
-        let resultBitset: BitSet;
+        const eventBitSetIndex = this.data!.eventBitSetIndex;
+        let resultBitSet: BitSet | undefined;
         if (this.selectedEvents.size === 0) {
             this.maps = this.allMaps;
-            resultBitset = new BitSet(this.allMaps[0].id + 1); // maps is reversed
-            resultBitset.fill(1);
+            resultBitSet = undefined;
         } else {
             const selectedEventNames = Array.from(this.selectedEvents);
-            resultBitset = eventBitSets.get(selectedEventNames[0])!.clone();
+            resultBitSet = eventBitSetIndex.get(selectedEventNames[0])!.clone();
     
             for (let i = 1; i < selectedEventNames.length; i++) {
-                const nextBitset = eventBitSets.get(selectedEventNames[i])!;
-                resultBitset = resultBitset.and(nextBitset);
+                const nextBitset = eventBitSetIndex.get(selectedEventNames[i])!;
+                resultBitSet = resultBitSet.and(nextBitset);
             }
     
-            this.maps = this.allMaps.filter((m) => resultBitset.get(m.id));
+            this.maps = this.allMaps.filter((m) => resultBitSet!.get(m.id));
         }
     
         if (this.maps.length === this.allMaps.length) {
@@ -182,8 +181,9 @@ export class MapListComponent extends BaseComponent {
         }
 
         for (const eventName of relevantEventNames) {
-            const eventBitset = eventBitSets.get(eventName)!;
-            const count = resultBitset.and(eventBitset).cardinality();
+            const eventBitSet = eventBitSetIndex.get(eventName)!;
+            const next = resultBitSet ? resultBitSet.and(eventBitSet) : eventBitSet;
+            const count = next.cardinality();
             
             const countSpan = this.filterContainer!.querySelector(`#filter-${eventName}`)?.nextElementSibling?.querySelector('.facet-count');
             if (countSpan) {
