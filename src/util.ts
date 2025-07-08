@@ -140,6 +140,16 @@ export function checkContiguous<T>(array: T[], extractValue: (t: T) => number): 
     }
 }
 
+export function computeIfAbsent<K, V>(map: Map<K, V>, key: K, compute: () => V): V {
+    const value = map.get(key);
+    if (value === undefined) {
+        const computed = compute();
+        map.set(key, computed);
+        return computed;
+    }
+    return value;
+}
+
 declare const Popper: any;
 export class DynamicTooltip {
     private tooltipElement: HTMLElement;

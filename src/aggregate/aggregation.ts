@@ -1,26 +1,86 @@
-import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "./ingest/log-tracker";
-import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent } from "./ingest/events";
-import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "./binary-search";
-import { Feature, isFeatureSupportedAt } from "./data/log-versions";
-import { FrameBarrier, freezeIntermediate, logTook, Measurement } from "./util";
-import { SplitCache } from "./split-cache";
-import { getZoneInfo } from "./data/zone_table";
+import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "../ingest/log-tracker";
+import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent, EventName } from "../ingest/events";
+import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "../binary-search";
+import { Feature, isFeatureSupportedAt } from "../data/log-versions";
+import { computeIfAbsent, FrameBarrier, Measurement } from "../util";
+import { SplitCache } from "../split-cache";
+import { getGameVersion, getZoneInfo } from "../data/zone_table";
+import { BitSet } from "../bitset";
+import { buildBitsetIndex as buildEventBitsetIndex, shrinkBitsets as shrinkEventBitSetIndex } from "./event";
+import { buildOverviewAggregation } from "./overview";
 
-export type LogAggregation = Readonly<MutableLogAggregation>;
+export const relevantEventNames = new Set<EventName>([
+    "death",
+    "levelUp",
+    "bossKill",
+    "passiveGained",
+    "passiveAllocated",
+    "passiveUnallocated",
+    "bonusGained",
+    "mapReentered",
+    "joinedArea",
+    "leftArea",
+    "tradeAccepted",
+    "msgParty",
+    "hideoutEntered"
+]);
 
-export interface MutableLogAggregation {
+export class LogAggregationCube {
+    private _reversedMaps?: MapInstance[];
+    private _eventBitSetIndex?: Map<EventName, BitSet>;
+    private _overview?: OverviewAggregation;
+    private _messages?: Map<string, AnyMsgEvent[]>;
+    private _characterAggregation?: CharacterAggregation;
+    constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter) {}
+
+    get reversedMaps(): MapInstance[] {
+        return this._reversedMaps ??= this.maps.toReversed();
+    }
+
     /**
-     * all maps, including unique and campaign
+     * a map of event names to bitsets, where a bit is set for each map's id that contains at least one event of that name
      */
-    maps: MapInstance[];
-    /**
-     * all events
-     */
-    events: LogEvent[];
-    /**
-     * all messages
-     */
-    messages: Map<string, AnyMsgEvent[]>;
+    get eventBitSetIndex(): Map<EventName, BitSet> {
+        return this._eventBitSetIndex ??= shrinkEventBitSetIndex(this.base.eventBitSets, this.maps);
+    }
+
+    async getOverviewAggregation(): Promise<OverviewAggregation> {
+        return this._overview ??= await buildOverviewAggregation(this);
+    }
+
+    get messages(): Map<string, AnyMsgEvent[]> {
+        if (this._messages) return this._messages;
+
+        const messages = new Map<string, AnyMsgEvent[]>();
+        for (const event of this.events) {
+            switch (event.name) {
+                case "msgFrom":
+                    computeIfAbsent(messages, event.detail.character, () => []).push(event);
+                    break;
+                case "msgTo":
+                    computeIfAbsent(messages, event.detail.character, () => []).push(event);
+                    break;
+            }
+        }
+        return this._messages = messages;
+    }
+
+    get characterAggregation(): CharacterAggregation {
+        return this._characterAggregation ??= withFilteredCharacters(this.base.characterAggregation, this.filter);
+    }
+
+}
+
+// could probably make eventBitSets lazy here, but then async proliferates everywhere and we can't use property getters
+export interface BaseLogAggregation {
+    readonly gameVersion: 1 | 2;
+    readonly maps: MapInstance[];
+    readonly events: LogEvent[];
+    readonly characterAggregation: CharacterAggregation;
+    readonly eventBitSets: Map<EventName, BitSet>;
+}
+
+export interface OverviewAggregation {
     /**
      * all unique maps
      */
@@ -48,8 +108,6 @@ export interface MutableLogAggregation {
     totalHideoutTime: number;
     totalBossKills: number;
     totalSessions: number;
-    characterAggregation: CharacterAggregation;
-    filter: Filter;
 }
 
 export enum Dimension {
@@ -68,6 +126,7 @@ export enum Metric {
     bossKills,
     sessions,
     maps,
+    delveNodes,
     totalTime, 
     mapTime,
     hideoutTime,
@@ -88,6 +147,7 @@ export const metricMeta: Record<Metric, MetricMeta> = {
     [Metric.bossKills]: {type: "event", discrete: true},
     [Metric.sessions]: {type: "event", discrete: true},
     [Metric.maps]: {type: "map", discrete: true},
+    [Metric.delveNodes]: {type: "map", discrete: true},
     [Metric.totalTime]: {type: "map", discrete: false},
     [Metric.mapTime]: {type: "map", discrete: false},
     [Metric.hideoutTime]: {type: "map", discrete: false},
@@ -212,13 +272,13 @@ export class CharacterAggregation {
     }
 }
 
-const aggregationCache = new SplitCache<string, LogAggregation>(16);
+const aggregationCache = new SplitCache<string, LogAggregationCube>(16);
 
 export function clearAggregationCache() {
     aggregationCache.clear();
 }
 
-export async function aggregateCached(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): Promise<LogAggregation> {
+export async function aggregateCached(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregationCube): Promise<LogAggregationCube> {
     const cacheKey = JSON.stringify(filter);
     const cachedResult = aggregationCache.get(cacheKey);
     if (cachedResult) return cachedResult;
@@ -230,7 +290,7 @@ export async function aggregateCached(maps: MapInstance[], events: LogEvent[], f
     return res;
 }
 
-export async function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregation): Promise<LogAggregation> {
+export async function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregationCube): Promise<LogAggregationCube> {
     const reassembledFilter = reassembleFilter(filter, prevAgg);
     if (reassembledFilter) {
         maps = Filter.filterMaps(maps, reassembledFilter);
@@ -240,24 +300,43 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
         maps = [];
         events = [];
     }
-    let characterAggregation;
-    try {
-        if (prevAgg) {
-            characterAggregation = prevAgg.characterAggregation;
-        } else {
-            characterAggregation = await buildCharacterAggregation(maps, events);
+    let base: BaseLogAggregation;
+    if (prevAgg) {
+        base = prevAgg.base;
+    } else {
+        try {
+            let gameVersion: 1 | 2 = 1;
+            for (const map of maps) {
+                const version = getGameVersion(map.name);
+                if (version !== undefined) {
+                    gameVersion = version;
+                    break;
+                }
+            }
+            const characterAggregation = await buildCharacterAggregation(maps, events);
+            const eventBitSets = buildEventBitsetIndex(maps, events);
+            base = {
+                gameVersion,
+                maps,
+                events,
+                characterAggregation,
+                eventBitSets,
+            };
+        } catch (e) {
+            console.error("failed to build base aggregation, limited functionality available", e);
+            base = {
+                gameVersion: 1,
+                maps,
+                events,
+                characterAggregation: new CharacterAggregation(new Map(), [], new Map(), [], []),
+                eventBitSets: new Map(),
+            };
         }
-        characterAggregation = withFilteredCharacters(characterAggregation, filter);
-    } catch (e) {
-        console.error("failed to build character aggregation, limited functionality available", e);
-        characterAggregation = new CharacterAggregation(new Map(), [], new Map(), [], []);
     }
-    // FIXME don't default to filter if all data is excluded
-    const agg = await aggregate0(maps, events, reassembledFilter ?? filter, characterAggregation);
-    return freezeIntermediate(agg);
+    return new LogAggregationCube(maps, events, base, reassembledFilter ?? filter);
 }
 
-function reassembleFilter(filter: Filter, prevAgg?: LogAggregation): Filter | undefined {
+function reassembleFilter(filter: Filter, prevAgg?: LogAggregationCube): Filter | undefined {
     if (!prevAgg) return filter; 
   
     const segmentations: Segmentation[] = [];
@@ -302,7 +381,7 @@ function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): Chara
     return new CharacterAggregation(ca.characterLevelIndex, ca.characterTsIndex, ca.characterLevelSegmentation, ca.characters, filteredCharacters);
 }
 
-const SESSION_THRESHOLD_MILLIS = 1000 * 60 * 60;
+export const SESSION_THRESHOLD_MILLIS = 1000 * 60 * 60;
 const TRADE_PATTERNS = [
     'Hi, I would like to buy your',         // english
     '你好，我想購買',                        // chinese (traditional)
@@ -315,99 +394,7 @@ const TRADE_PATTERNS = [
     'Hola, quisiera comprar tu ',           // spanish
     'สวัสดี เราต้องการชื้อ ',                    // thai
 ];
-const TRADE_REGEX = new RegExp(`^(${TRADE_PATTERNS.join('|')})`);
-
-async function aggregate0(maps: MapInstance[], events: LogEvent[], filter: Filter, characterAggregation: CharacterAggregation): Promise<MutableLogAggregation> {
-    let totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
-    let totalDeaths = 0, totalWitnessedDeaths = 0;
-    const messages = new Map<string, AnyMsgEvent[]>();
-    let totalBossKills = 0;
-    let totalSessions = 1;
-    let prevEvent: LogEvent | null = null;
-    for (let i = 0, fb = new FrameBarrier(); i < events.length; i++) {
-        if (fb.shouldYield()) await fb.yield();
-
-        const event = events[i];
-        if (prevEvent) {
-            const tsDelta = event.ts - prevEvent.ts;
-            if (tsDelta > SESSION_THRESHOLD_MILLIS) {
-                totalSessions++;
-            }
-        }
-        prevEvent = event;
-        switch (event.name) {
-            case "msgFrom":
-                if (TRADE_REGEX.test(event.detail.msg)) {
-                    totalSalesAttempted++;
-                }
-                computeIfAbsent(messages, event.detail.character, () => []).push(event);
-                break;
-            case "msgTo":
-                if (TRADE_REGEX.test(event.detail.msg)) {
-                    totalBuysAttempted++;
-                }
-                computeIfAbsent(messages, event.detail.character, () => []).push(event);
-                break;
-            case "tradeAccepted":
-                totalTrades++;
-                break;
-            case "death":
-                if (filter.fromAreaLevel && event.detail.areaLevel < filter.fromAreaLevel) break;
-
-                if (filter.toAreaLevel && event.detail.areaLevel > filter.toAreaLevel) break;
-
-                if (characterAggregation.isOwned(event.detail.character)) {
-                    totalDeaths++;
-                } else {
-                    totalWitnessedDeaths++;
-                }
-                break;
-            case "bossKill":
-                // assume pinacle bosses are at least i75+ otherwise this matches campaign bosses such as King in the Mists
-                if (event.detail.areaLevel >= 75) {
-                    totalBossKills++;
-                }
-                break;
-        }
-    }
-
-    let totalMapTime = 0, totalLoadTime = 0, totalHideoutTime = 0
-    const mapsUnique: MapInstance[] = [];
-    const mapsDelve: MapInstance[] = [];
-    const fb = new FrameBarrier();
-    for (const map of maps) {
-        if (fb.shouldYield()) await fb.yield();
-
-        totalMapTime += MapSpan.mapTime(map.span);
-        totalLoadTime += map.span.loadTime;
-        totalHideoutTime += map.span.hideoutTime;
-        if (map.isUnique) {
-            mapsUnique.push(map);
-        }
-        if (map.areaType === AreaType.Delve) {
-            mapsDelve.push(map);
-        }
-    }
-    return {
-        maps,
-        mapsUnique,
-        mapsDelve,
-        events,
-        messages,
-        totalTrades,
-        totalBuysAttempted,
-        totalSalesAttempted,
-        totalDeaths,
-        totalWitnessedDeaths,
-        totalMapTime,
-        totalLoadTime,
-        totalHideoutTime,
-        totalBossKills,
-        totalSessions,
-        characterAggregation,
-        filter
-    };
-}
+export const TRADE_REGEX = new RegExp(`^(${TRADE_PATTERNS.join('|')})`);
 
 class ContiguousArray<T extends {ts: number}> extends Array<T> {
     push(...items: T[]) {
@@ -912,14 +899,14 @@ interface MetricsAggregator {
     walkMaps(fn: (map: MapInstance, key: string | number) => number): Promise<void>;
 }
 
-export async function aggregateBy(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
+export async function aggregateBy(agg: LogAggregationCube, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
     const m = new Measurement();
     const res = await aggregateBy0(agg, dimension, metric, aggregation);
     m.logTook("aggregateBy");
     return res;
 }
 
-async function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
+async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
     const filter = agg.filter;
     const fromCharacterLevel = agg.filter.fromCharacterLevel;
     const toCharacterLevel = agg.filter.toCharacterLevel;
@@ -1091,6 +1078,8 @@ async function aggregateBy0(agg: LogAggregation, dimension: Dimension, metric: M
             switch (metric) {
                 case Metric.maps:
                     return 1;
+                case Metric.delveNodes:
+                    return map.areaType === AreaType.Delve ? 1 : 0;
                 case Metric.totalTime:
                     return MapSpan.mapTimePlusIdle(map.span);
                 case Metric.mapTime:
@@ -1214,14 +1203,4 @@ export function max(arr: number[]): number {
 
 export function min(arr: number[]): number {
     return arr.reduce((acc, val) => Math.min(acc, val), Infinity);
-}
-
-function computeIfAbsent<K, V>(map: Map<K, V>, key: K, compute: () => V): V {
-    const value = map.get(key);
-    if (value === undefined) {
-        const computed = compute();
-        map.set(key, computed);
-        return computed;
-    }
-    return value;
 }

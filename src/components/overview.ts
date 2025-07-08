@@ -13,7 +13,7 @@ import {
     ChartConfiguration
 } from 'chart.js';
 import { BaseComponent } from './base-component';
-import { medianQuickSelect } from '../aggregation';
+import { medianQuickSelect } from '../aggregate/aggregation';
 import { FrameBarrier } from '../util';
 
 Chart.register(
@@ -67,21 +67,22 @@ export class OverviewComponent extends BaseComponent {
             optional: boolean;
         }
         const totalItemsIdentified = agg.events.reduce((acc, event) => acc + (event.name === "itemsIdentified" ? event.detail.count : 0), 0);
+        const oagg = await agg.getOverviewAggregation();
         const totals: TotalStat[] = [
             { label: 'Maps', value: agg.maps.length, iconClass: 'bi-globe text-dark', optional: false},
-            { label: 'Sessions', value: agg.totalSessions, iconClass: 'bi-power text-dark', optional: false },
-            { label: 'Unique maps', value: agg.mapsUnique.length, iconClass: 'bi-gem text-unique', optional: true },
-            { label: 'Delve Nodes', value: agg.mapsDelve.length, iconClass: 'bi-diamond-half text-primary', optional: true },
-            { label: 'Pinnacle Boss kills', value: agg.totalBossKills, iconClass: 'bi-trophy-fill text-warning', optional: true },
-            { label: `Map time`, value: `${(agg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-clock text-dark', optional: false },
-            { label: `Hideout time`, value: `${(agg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-house-fill text-primary', optional: false },
-            { label: `Load time`, value: `${(agg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-stopwatch text-dark', optional: false },
-            { label: 'Deaths', value: agg.totalDeaths, iconClass: 'bi-heartbreak-fill text-danger', optional: false },
-            { label: 'Witnessed deaths', value: agg.totalWitnessedDeaths, iconClass: 'bi-heartbreak-fill text-secondary', optional: false },
+            { label: 'Sessions', value: oagg.totalSessions, iconClass: 'bi-power text-dark', optional: false },
+            { label: 'Unique maps', value: oagg.mapsUnique.length, iconClass: 'bi-gem text-unique', optional: true },
+            { label: 'Delve Nodes', value: oagg.mapsDelve.length, iconClass: 'bi-diamond-half text-primary', optional: true },
+            { label: 'Pinnacle Boss kills', value: oagg.totalBossKills, iconClass: 'bi-trophy-fill text-warning', optional: true },
+            { label: `Map time`, value: `${(oagg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-clock text-dark', optional: false },
+            { label: `Hideout time`, value: `${(oagg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-house-fill text-primary', optional: false },
+            { label: `Load time`, value: `${(oagg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-stopwatch text-dark', optional: false },
+            { label: 'Deaths', value: oagg.totalDeaths, iconClass: 'bi-heartbreak-fill text-danger', optional: false },
+            { label: 'Witnessed deaths', value: oagg.totalWitnessedDeaths, iconClass: 'bi-heartbreak-fill text-secondary', optional: false },
             { label: 'Items identified (bulk)', value: totalItemsIdentified, iconClass: 'bi-magic text-dark', optional: true },
-            { label: 'Trades (NPCs and Players)', value: agg.totalTrades, iconClass: 'bi-currency-exchange text-warning', optional: false },
-            { label: 'Item purchases attempted', value: agg.totalBuysAttempted, iconClass: 'bi-cart-fill text-dark', optional: true },
-            { label: 'Item sales attempted', value: agg.totalSalesAttempted, iconClass: 'bi-tags-fill text-dark', optional: true }
+            { label: 'Trades (NPCs and Players)', value: oagg.totalTrades, iconClass: 'bi-currency-exchange text-warning', optional: false },
+            { label: 'Item purchases attempted', value: oagg.totalBuysAttempted, iconClass: 'bi-cart-fill text-dark', optional: true },
+            { label: 'Item sales attempted', value: oagg.totalSalesAttempted, iconClass: 'bi-tags-fill text-dark', optional: true }
         ];
         const totalsHtml = totals.filter(t => !t.optional || typeof t.value !== 'number' || t.value !== 0).map(t => 
             `

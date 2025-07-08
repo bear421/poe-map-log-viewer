@@ -322,3 +322,10 @@ export function getZoneInfo(areaName: string, areaLevel?: number): ZoneInfo | un
     return undefined;
 }
 
+export function getGameVersion(areaName: string): 1 | 2 | undefined {
+    if (ZONE_TABLE_POE2[areaName]) return 2;
+
+    if (ZONE_TABLE_POE1[areaName]) return 1;
+
+    return undefined;
+}

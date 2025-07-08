@@ -22,6 +22,7 @@ export namespace LogFileOpenEvent {
     export function of(ts: number): LogFileOpenEvent {
         return { name: "logFileOpen", ts };
     }
+    export const name = 'Log file opened';
     export const icon = 'bi-file-earmark-text-fill';
     export const color = 'text-secondary';
     export function label(_: LogFileOpenEvent): string {
@@ -40,6 +41,7 @@ export namespace AreaPostLoadEvent {
     export function of(ts: number, delta: number, uptimeMillis: number): AreaPostLoadEvent {
         return { name: "areaPostLoad", detail: { delta, uptimeMillis }, ts };
     }
+    export const name = 'Area loaded';
     export const icon = 'bi-stopwatch';
     export const color = 'text-dark';
     export function label(event: AreaPostLoadEvent): string {
@@ -66,6 +68,7 @@ export namespace DeathEvent {
     export function of(ts: number, character: string, areaLevel: number): DeathEvent {
         return { name: "death", detail: { character, areaLevel }, ts };
     }
+    export const name = 'Death';
     export const icon = 'bi-heartbreak-fill';
     export const color = 'text-danger';
     export function label(event: DeathEvent): string {
@@ -80,6 +83,7 @@ export namespace JoinedAreaEvent {
     export function of(ts: number, character: string): JoinedAreaEvent {
         return { name: "joinedArea", detail: { character }, ts };
     }
+    export const name = 'Area joined';
     export const icon = 'bi-person-fill-add';
     export const color = 'text-secondary';
     export function label(event: JoinedAreaEvent): string {
@@ -94,6 +98,7 @@ export namespace LeftAreaEvent {
     export function of(ts: number, character: string): LeftAreaEvent {
         return { name: "leftArea", detail: { character }, ts };
     }
+    export const name = 'Area left';
     export const icon = 'bi-person-fill-dash';
     export const color = 'text-secondary';
     export function label(event: LeftAreaEvent): string {
@@ -113,6 +118,7 @@ export namespace LevelUpEvent {
     export function of(ts: number, character: string, ascendancy: string, level: number): LevelUpEvent {
         return { name: "levelUp", detail: { character, ascendancy, level }, ts };
     }
+    export const name = 'Level up';
     export const icon = 'bi-arrow-up-square-fill';
     export const color = 'text-success';
     export function label(event: LevelUpEvent): string {
@@ -135,6 +141,7 @@ export namespace SetCharacterEvent {
     export function ofEvent(ts: number, event: LevelUpEvent | SetCharacterEvent): SetCharacterEvent {
         return of(ts, event.detail.character, event.detail.ascendancy, event.detail.level);
     }
+    export const name = 'Set character (internal)';
     export const icon = 'bi-person-fill';
     export const color = 'text-secondary';
     export function label(event: SetCharacterEvent): string {
@@ -158,6 +165,7 @@ export namespace MsgFromEvent {
     export function of(ts: number, character: string, msg: string): MsgFromEvent {
         return { name: "msgFrom", detail: { character, msg }, ts };
     }
+    export const name = 'Whisper sent';
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
     export function label(event: MsgFromEvent): string {
@@ -172,6 +180,7 @@ export namespace MsgToEvent {
     export function of(ts: number, character: string, msg: string): MsgToEvent {
         return { name: "msgTo", detail: { character, msg }, ts };
     }
+    export const name = 'Whisper received';
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
     export function label(event: MsgToEvent): string {
@@ -186,6 +195,7 @@ export namespace MsgPartyEvent {
     export function of(ts: number, character: string, msg: string): MsgPartyEvent {
         return { name: "msgParty", detail: { character, msg }, ts };
     }
+    export const name = 'Party message';
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
     export function label(event: MsgPartyEvent): string {
@@ -200,6 +210,7 @@ export namespace MsgGuildEvent {
     export function of(ts: number, character: string, msg: string): MsgGuildEvent {
         return { name: "msgGuild", detail: { character, msg }, ts };
     }
+    export const name = 'Guild message';
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
     export function label(event: MsgGuildEvent): string {
@@ -214,6 +225,7 @@ export namespace MsgLocalEvent {
     export function of(ts: number, character: string, msg: string): MsgLocalEvent {
         return { name: "msgLocal", detail: { character, msg }, ts };
     }
+    export const name = 'Local message';
     export const icon = 'bi-chat-fill';
     export const color = 'text-secondary';
     export function label(event: MsgLocalEvent): string {
@@ -233,6 +245,7 @@ export namespace BossKillEvent {
     export function of(ts: number, bossName: string, msg: string, areaLevel: number): BossKillEvent {
         return { name: "bossKill", detail: { bossName, msg, areaLevel }, ts };
     }
+    export const name = 'Boss kill';
     export const icon = 'bi-trophy-fill';
     export const color = 'text-warning';
     export function label(event: BossKillEvent): string {
@@ -250,6 +263,7 @@ export namespace PassiveGainedEvent {
     export function of(ts: number, count: number): PassiveGainedEvent {
         return { name: "passiveGained", detail: { count }, ts };
     }
+    export const name = 'Passive gained';
     export const icon = 'bi-plus-circle-fill';
     export const color = 'text-success';
     export function label(event: PassiveGainedEvent): string {
@@ -268,6 +282,7 @@ export namespace PassiveAllocatedEvent {
     export function of(ts: number, id: string, name: string): PassiveAllocatedEvent {
         return { name: "passiveAllocated", detail: { id, name }, ts };
     }
+    export const name = 'Passive allocated';
     export const icon = 'bi-node-plus-fill';
     export const color = 'text-success';
     export function label(event: PassiveAllocatedEvent): string {
@@ -288,6 +303,7 @@ export namespace BonusGainedEvent {
         const effectiveCharacter = character === 'You' ? undefined : character;
         return { name: "bonusGained", detail: { character: effectiveCharacter, bonus }, ts };
     }
+    export const name = 'Bonus gained';
     export const icon = 'bi-patch-plus-fill';
     export const color = 'text-success';
     export function label(event: BonusGainedEvent): string {
@@ -306,6 +322,7 @@ export namespace PassiveUnallocatedEvent {
     export function of(ts: number, id: string, name: string): PassiveUnallocatedEvent {
         return { name: "passiveUnallocated", detail: { id, name }, ts };
     }
+    export const name = 'Passive unallocated';
     export const icon = 'bi-node-minus-fill';
     export const color = 'text-danger';
     export function label(event: PassiveUnallocatedEvent): string {
@@ -321,6 +338,7 @@ export namespace TradeAcceptedEvent {
     export function of(ts: number): TradeAcceptedEvent {
         return { name: "tradeAccepted", ts };
     }
+    export const name = 'Trade accepted';
     export const icon = 'bi-currency-exchange';
     export const color = 'text-warning';
     export function label(): string {
@@ -338,6 +356,7 @@ export namespace ItemsIdentifiedEvent {
     export function of(ts: number, count: number): ItemsIdentifiedEvent {
         return { name: "itemsIdentified", detail: { count }, ts };
     }
+    export const name = 'Items identified';
     export const icon = 'bi-magic';
     export const color = 'text-dark';
     export function label(event: ItemsIdentifiedEvent): string {
@@ -355,6 +374,7 @@ export namespace HideoutEnteredEvent {
     export function of(ts: number, areaName: string): HideoutEnteredEvent {
         return { name: "hideoutEntered", detail: { areaName }, ts };
     }
+    export const name = 'Hideout entered';
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
     export function label(event: HideoutEnteredEvent): string {
@@ -373,6 +393,7 @@ export namespace HideoutExitedEvent {
     export function of(ts: number): HideoutExitedEvent {
         return { name: "hideoutExited", ts };
     }
+    export const name = 'Hideout exited';
     export const icon = 'bi-house-fill';
     export const color = 'text-primary';
     export function label(): string {
@@ -387,6 +408,7 @@ export namespace MapReenteredEvent {
     export function of(ts: number): MapReenteredEvent {
         return { name: "mapReentered", ts };
     }
+    export const name = 'Map reentered';
     export const icon = 'bi-repeat';
     export const color = 'text-primary';
     export function label(): string {
@@ -401,6 +423,7 @@ export namespace MapEnteredEvent {
     export function of(ts: number): MapEnteredEvent {
         return { name: "mapEntered", ts };
     }
+    export const name = 'Map entered';
     export const icon = 'bi-box-arrow-in-right';
     export const color = 'text-muted';
     export function label(): string {
@@ -418,6 +441,7 @@ export namespace MapCompletedEvent {
     export function of(ts: number, map: MapInstance): MapCompletedEvent {
         return { name: "mapCompleted", detail: { map }, ts };
     }
+    export const name = 'Map completed';
     export const icon = "bi-box-arrow-in-right";
     export const color = "text-success";
     export function label(): string {
@@ -435,6 +459,7 @@ export namespace XPSnapshotEvent {
     export function of(ts: number, snapshot: XPSnapshot): XPSnapshotEvent {
         return { name: "xpSnapshot", detail: { snapshot }, ts };
     }
+    export const name = 'XP snapshot';
     export const icon = 'bi-camera-fill';
     export const color = 'text-info';
     export function label(): string {

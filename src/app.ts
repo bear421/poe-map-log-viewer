@@ -8,9 +8,9 @@ import { MapStatsComponent } from './components/map-stats';
 import { OverviewComponent } from './components/overview';
 import { AnalysisComponent } from './components/analysis';
 import { FileSelectorComponent } from './components/file-selector';
-import { JourneyComponent } from './components/journey';
+import { CampaignComponent } from './components/campaign';
 import { MessagesComponent } from './components/messages';
-import { LogAggregation, aggregateCached, clearAggregationCache } from './aggregation';
+import { LogAggregationCube, aggregateCached, clearAggregationCache } from './aggregate/aggregation';
 import { logWorkerService } from './ingest/worker-service';
 
 import './assets/css/styles.css';
@@ -27,7 +27,7 @@ export class App {
     private analysisTabPane!: HTMLDivElement;
     private currentMaps: MapInstance[] = [];
     private currentEvents: LogEvent[] = [];
-    private currentAggregation: LogAggregation | undefined = undefined;
+    private currentAggregation: LogAggregationCube | undefined = undefined;
     private mascot!: Mascot;
     private modalMascot!: Mascot;
     private filterComponent!: FilterComponent;
@@ -38,8 +38,8 @@ export class App {
     private analysisComponent!: AnalysisComponent;
     private fileSelectorComponent!: FileSelectorComponent;
     private selectedFile: File | null = null;
-    private journeyComponent!: JourneyComponent;
-    private journeyTabPane!: HTMLDivElement;
+    private campaignComponent!: CampaignComponent;
+    private campaignTabPane!: HTMLDivElement;
     private messagesComponent!: MessagesComponent;
     private messagesTabPane!: HTMLDivElement;
     private components: BaseComponent<any>[] = [];
@@ -171,7 +171,7 @@ export class App {
                 <button class="nav-link" id="map-stats-tab" data-bs-toggle="tab" data-bs-target="#map-stats-tab-pane" type="button" role="tab" aria-controls="map-stats-tab-pane" aria-selected="false">Map stats</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="journey-tab" data-bs-toggle="tab" data-bs-target="#journey-tab-pane" type="button" role="tab" aria-controls="journey-tab-pane" aria-selected="false">Campaign</button>
+                <button class="nav-link" id="campaign-tab" data-bs-toggle="tab" data-bs-target="#campaign-tab-pane" type="button" role="tab" aria-controls="campaign-tab-pane" aria-selected="false">Campaign</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages-tab-pane" type="button" role="tab" aria-controls="messages-tab-pane" aria-selected="false">Messages</button>
@@ -220,12 +220,12 @@ export class App {
         this.mapStatsTabPane.setAttribute('aria-labelledby', 'map-stats-tab');
         this.mapStatsTabPane.setAttribute('tabindex', '0');
 
-        this.journeyTabPane = document.createElement('div');
-        this.journeyTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.journeyTabPane.id = 'journey-tab-pane';
-        this.journeyTabPane.setAttribute('role', 'tabpanel');
-        this.journeyTabPane.setAttribute('aria-labelledby', 'journey-tab');
-        this.journeyTabPane.setAttribute('tabindex', '0');
+        this.campaignTabPane = document.createElement('div');
+        this.campaignTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
+        this.campaignTabPane.id = 'campaign-tab-pane';
+        this.campaignTabPane.setAttribute('role', 'tabpanel');
+        this.campaignTabPane.setAttribute('aria-labelledby', 'campaign-tab');
+        this.campaignTabPane.setAttribute('tabindex', '0');
 
         this.messagesTabPane = document.createElement('div');
         this.messagesTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
@@ -246,7 +246,7 @@ export class App {
         this.tabContentElement.appendChild(this.mapsTabPane);
         this.tabContentElement.appendChild(this.mapStatsTabPane);
         this.tabContentElement.appendChild(this.analysisTabPane);
-        this.tabContentElement.appendChild(this.journeyTabPane);
+        this.tabContentElement.appendChild(this.campaignTabPane);
         this.tabContentElement.appendChild(this.messagesTabPane);
         this.tabContentElement.appendChild(this.searchLogTabPane);
         container.appendChild(this.tabContentElement);
@@ -255,9 +255,9 @@ export class App {
         this.mapListComponent = new MapListComponent(this.mapsTabPane);
         this.mapStatsComponent = new MapStatsComponent(this.mapStatsTabPane);
         this.analysisComponent = new AnalysisComponent(this.analysisTabPane);
-        this.journeyComponent = new JourneyComponent(this.journeyTabPane);
+        this.campaignComponent = new CampaignComponent(this.campaignTabPane);
         this.messagesComponent = new MessagesComponent(this.messagesTabPane);
-        this.components = [this.overviewComponent, this.mapListComponent, this.mapStatsComponent, this.journeyComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
+        this.components = [this.overviewComponent, this.mapListComponent, this.mapStatsComponent, this.campaignComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
         this.components.forEach(component => component.setApp(this));
 
         const importJsonInput = document.createElement('input');
@@ -325,7 +325,7 @@ export class App {
             tabButton.addEventListener('shown.bs.tab', () => {
                 component.setVisible(true);
                 this.currentComponent = component;
-                if (tabId === 'journey-tab' && !this.filterComponent.getFilter()?.character) {
+                if (tabId === 'campaign-tab' && !this.filterComponent.getFilter()?.character) {
                     this.mascot.speak('Please select a character to use the Campaign tab', ['border-warning']);
                 }
             });
@@ -338,7 +338,7 @@ export class App {
         informComponentOnTabChange('maps-tab', this.mapListComponent);
         informComponentOnTabChange('map-stats-tab', this.mapStatsComponent);
         informComponentOnTabChange('analysis-tab', this.analysisComponent);
-        informComponentOnTabChange('journey-tab', this.journeyComponent);
+        informComponentOnTabChange('campaign-tab', this.campaignComponent);
         informComponentOnTabChange('messages-tab', this.messagesComponent);
     }
 
@@ -386,7 +386,7 @@ export class App {
         }
     }
 
-    private displayResults(agg: LogAggregation) {
+    private displayResults(agg: LogAggregationCube) {
         for (const component of this.components) {
             component.updateData(agg);
         }
@@ -517,7 +517,7 @@ export class App {
 
             if (!result) throw new Error("File content is empty or could not be decompressed.");
 
-            const data: LogAggregation = JSON.parse(result);
+            const data: LogAggregationCube = JSON.parse(result);
 
             if (data && data.maps && data.events) {
                 this.hideProgress();

@@ -1,7 +1,7 @@
 import { LogLine, MapInstance } from '../ingest/log-tracker';
 import { LogEvent, eventMeta, getEventMeta } from '../ingest/events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
-import { LogAggregation } from '../aggregation';
+import { LogAggregationCube } from '../aggregate/aggregation';
 import { BaseComponent } from './base-component';
 import { Filter } from '../ingest/log-tracker';
 import { logWorkerService } from '../ingest/worker-service';
@@ -18,7 +18,7 @@ export class MapDetailComponent extends BaseComponent {
     private showTimeline: boolean = true;
 
     private currentMap: MapInstance | null = null;
-    private currentAggregation: LogAggregation | null = null;
+    private currentAggregation: LogAggregationCube | null = null;
 
     constructor(container?: HTMLElement) {
         super(document.createElement('div'), container || document.body);
@@ -81,7 +81,7 @@ export class MapDetailComponent extends BaseComponent {
         });
     }
 
-    public show(map: MapInstance, aggregation: LogAggregation): void {
+    public show(map: MapInstance, aggregation: LogAggregationCube): void {
         this.currentMap = map;
         this.currentAggregation = aggregation;
         this.logSearchResults = null; 
@@ -122,7 +122,7 @@ export class MapDetailComponent extends BaseComponent {
         }
     }
 
-    private renderTimelineContent(map: MapInstance, agg: LogAggregation): void {
+    private renderTimelineContent(map: MapInstance, agg: LogAggregationCube): void {
         if (!this.modalBodyElement) return;
 
         this.modalBodyElement.innerHTML = '';

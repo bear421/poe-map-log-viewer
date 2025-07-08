@@ -1,10 +1,10 @@
 import { App } from "../app";
-import { LogAggregation } from "../aggregation";
+import { LogAggregationCube } from "../aggregate/aggregation";
 import { Measurement } from "../util";
 
 export abstract class BaseComponent<
     TElement extends HTMLElement = HTMLElement,
-    TData = LogAggregation,
+    TData = LogAggregationCube,
     TContainerElement extends HTMLElement = HTMLElement
 > {
     protected readonly element: TElement;

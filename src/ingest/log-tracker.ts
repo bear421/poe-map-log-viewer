@@ -1,5 +1,5 @@
 import { RingBuffer } from "../ringbuffer";
-import { clearOffsetCache, parseTs, parseTsStrict, parseUptimeMillis } from "./ts-parser";
+import { clearOffsetCache, parseTs, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
 import { binarySearchFindFirstIx, binarySearchFindLastIx, binarySearchRange } from "../binary-search";
 import { getZoneInfo } from "../data/zone_table";
@@ -230,6 +230,7 @@ enum MapState {
 }
 
 class MapInstance {
+    id: number;
     span: MapSpan;
     name: string;
     areaLevel: number;
@@ -240,6 +241,7 @@ class MapInstance {
     state: MapState;
 
     constructor(
+        id: number,
         span: MapSpan,
         name: string,
         areaLevel: number,
@@ -252,6 +254,7 @@ class MapInstance {
             throw new Error("areaLevel must be a positive integer");
         }
 
+        this.id = id;
         this.span = span;
         this.name = name;
         this.areaLevel = areaLevel;
@@ -734,6 +737,7 @@ export interface LogLine {
 
 export class LogTracker {
     
+    private mapId: number = 0;
     public eventDispatcher = new EventDispatcher();
     private recentMaps: RingBuffer<MapInstance>;
     private currentMap: MapInstance | null;
@@ -1138,6 +1142,7 @@ export class LogTracker {
         }
 
         this.currentMap = new MapInstance(
+            this.mapId++,
             new MapSpan(areaInfo.ts),
             areaInfo.name,
             areaInfo.level,

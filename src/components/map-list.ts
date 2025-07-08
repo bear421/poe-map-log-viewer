@@ -1,27 +1,12 @@
 import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
-import { LogEvent } from '../ingest/events';
 import { binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, EventName } from '../ingest/events';
+import { eventMeta, getEventMeta, EventName, LogEvent } from '../ingest/events';
 import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
-
-const relevantEventNames = new Set<EventName>([
-    "death",
-    "levelUp",
-    "bossKill",
-    "passiveGained",
-    "passiveAllocated",
-    "passiveUnallocated",
-    "bonusGained",
-    "mapReentered",
-    "joinedArea",
-    "leftArea",
-    "tradeAccepted",
-    "msgParty",
-    "hideoutEntered"
-]);
+import { BitSet } from '../bitset';
+import { relevantEventNames } from '../aggregate/aggregation';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -29,6 +14,8 @@ const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible ar
 export class MapListComponent extends BaseComponent {
     private mapDetailModal: MapDetailComponent;
     private tooltip: DynamicTooltip = new DynamicTooltip(`<span class="event-offset"></span> <span class="event-label"></span>`);
+    
+    private allMaps: MapInstance[] = [];
     private maps: MapInstance[] = [];
 
     private virtualScrollContainer: HTMLDivElement | null = null;
@@ -39,6 +26,11 @@ export class MapListComponent extends BaseComponent {
 
     private isVirtualScrollEnabled: boolean = false;
     private virtualScroller: VirtualScroll;
+
+    // Filtering properties
+    private mapCountSpan: HTMLSpanElement | null = null;
+    private filterContainer: HTMLDivElement | null = null;
+    private selectedEvents: Set<EventName> = new Set();
 
     constructor(container: HTMLElement) {
         super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
@@ -53,9 +45,11 @@ export class MapListComponent extends BaseComponent {
     private renderVirtualScrollRows(startIndex: number, endIndex: number): void {
         if (!this.tbodyElement) return;
 
+        console.log('renderVirtualScrollRows', startIndex, endIndex);
         const maps = this.maps;
         if (maps.length === 0) {
-            this.tbodyElement. innerHTML = '';
+            console.log('maps is empty for range', startIndex, endIndex);
+            this.tbodyElement.innerHTML = '';
             return;
         }
 
@@ -73,70 +67,185 @@ export class MapListComponent extends BaseComponent {
     protected render(): void {
         if (!this.data) return;
 
+        this.allMaps = this.data.reversedMaps;
+        this.renderFilterUI();
         this.mapDetailModal.updateData(this.data);
         this.mapDetailModal.setApp(this.app!);
+        this.applyFilters();
+    }
 
+    private renderFilterUI(): void {
+        this.element.querySelector('.map-list-controls')?.remove();
+
+        const controlsRow = createElementFromHTML('<div class="row map-list-controls mb-3"></div>');
+
+        const mapCountContainer = createElementFromHTML(`
+            <div class="col-md-3">
+                Showing <span class="map-count"></span> maps
+            </div>
+        `) as HTMLDivElement;
+        this.mapCountSpan = mapCountContainer.querySelector('.map-count');
+        controlsRow.appendChild(mapCountContainer);
+
+        const areaTypeContainer = createElementFromHTML(`
+            <div class="col-md-5"></div>
+        `) as HTMLDivElement;
+        controlsRow.appendChild(areaTypeContainer);
+
+        this.filterContainer = createElementFromHTML(`
+            <div class="facet-filter-container col-md-4 m-s-2">
+                <div class="position-relative">
+                    <button class="btn btn-outline-primary facet-filter-toggle d-flex justify-content-between align-items-center">
+                        <span>Events</span>
+                        <i class="bi bi-chevron-down"></i>
+                    </button>
+                    <div class="facet-filter-options shadow-sm mt-1"></div>
+                </div>
+            </div>
+        `) as HTMLDivElement;
+        
+        const optionsContainer = this.filterContainer.querySelector('.facet-filter-options') as HTMLDivElement;
+
+        for (const eventName of relevantEventNames) {
+            const filterId = `filter-${eventName}`;
+            const meta = eventMeta[eventName];
+            const isChecked = this.selectedEvents.has(eventName);
+            const element = createElementFromHTML(`
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="${filterId}" value="${eventName}" ${isChecked ? 'checked' : ''}>
+                    <label class="form-check-label" for="${filterId}">
+                        <span class="facet-label-content">
+                            <i class="${meta.icon} ${meta.color}"></i>
+                            ${meta.name}
+                        </span>
+                        <span class="facet-count-container"><span class="facet-count">0</span></span>
+                    </label>
+                </div>
+            `);
+            optionsContainer.appendChild(element);
+        }
+
+        const toggleButton = this.filterContainer.querySelector('.facet-filter-toggle') as HTMLButtonElement;
+        
+        toggleButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            optionsContainer.classList.toggle('active');
+        });
+
+        document.addEventListener('click', () => {
+            optionsContainer.classList.remove('active');
+        });
+
+        optionsContainer.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+
+        optionsContainer.addEventListener('change', (e) => {
+            const target = e.target as HTMLInputElement;
+            if (target.type === 'checkbox') {
+                if (target.checked) {
+                    this.selectedEvents.add(target.value as EventName);
+                } else {
+                    this.selectedEvents.delete(target.value as EventName);
+                }
+                this.applyFilters();
+            }
+        });
+
+        controlsRow.appendChild(this.filterContainer);
+        this.element.appendChild(controlsRow);
+    }
+    
+    private applyFilters(): void {
+        const eventBitSets = this.data!.eventBitSetIndex;
+        let resultBitset: BitSet;
+        if (this.selectedEvents.size === 0) {
+            this.maps = this.allMaps;
+            resultBitset = new BitSet(this.allMaps[0].id + 1); // maps is reversed
+            resultBitset.fill(1);
+        } else {
+            const selectedEventNames = Array.from(this.selectedEvents);
+            resultBitset = eventBitSets.get(selectedEventNames[0])!.clone();
+    
+            for (let i = 1; i < selectedEventNames.length; i++) {
+                const nextBitset = eventBitSets.get(selectedEventNames[i])!;
+                resultBitset = resultBitset.and(nextBitset);
+            }
+    
+            this.maps = this.allMaps.filter((m) => resultBitset.get(m.id));
+        }
+    
+        if (this.maps.length === this.allMaps.length) {
+            this.mapCountSpan!.textContent = `${this.allMaps.length}`;
+        } else {
+            this.mapCountSpan!.textContent = `${this.maps.length} / ${this.allMaps.length}`;
+        }
+
+        for (const eventName of relevantEventNames) {
+            const eventBitset = eventBitSets.get(eventName)!;
+            const count = resultBitset.and(eventBitset).cardinality();
+            
+            const countSpan = this.filterContainer!.querySelector(`#filter-${eventName}`)?.nextElementSibling?.querySelector('.facet-count');
+            if (countSpan) {
+                countSpan.textContent = count.toString();
+            }
+        }
+        this.updateMapView();
+    }
+
+    private updateMapView(): void {
         const contentContainer = this.element;
-        contentContainer.innerHTML = '';
-        // TODO add other orders + event filtering
-        const maps = this.maps = this.data!.maps.toReversed();
+        
+        // Detach listener and remove old elements
+        this.virtualScroller.detach();
+        this.virtualScrollContainer?.remove();
+        this.tableElement?.remove();
+
+        const maps = this.maps;
         this.isVirtualScrollEnabled = maps.length >= 500;
 
+        const handleRowClick = (e: MouseEvent) => {
+            e.preventDefault();
+            const target = e.target as HTMLElement;
+            if (target.tagName === 'A') {
+                const mIx = target.closest('tr')?.dataset.mIx;
+                if (mIx) {
+                    const map = this.maps[parseInt(mIx, 10)];
+                    if (map) this.mapDetailModal.show(map, this.data!);
+                }
+            }
+        };
+
         if (this.isVirtualScrollEnabled) {
-            if (!this.virtualScrollContainer) {
-                this.virtualScrollContainer = createElementFromHTML(`
-                    <div class="virtual-scroll-container">
-                        <div class="virtual-scroll-spacer"></div>
-                        <div class="virtual-scroll-content"></div>
-                    </div>`
-                ) as HTMLDivElement;
-                this.virtualScrollSpacer = this.virtualScrollContainer.querySelector('.virtual-scroll-spacer') as HTMLDivElement;
-                this.virtualScrollContent = this.virtualScrollContainer.querySelector('.virtual-scroll-content') as HTMLDivElement;
-                const {table, tbody} = this.createScaffolding(100 + BUFFER_ROWS * 2);
-                this.tableElement = table;
-                this.tbodyElement = tbody;
-                tbody.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const target = e.target as HTMLElement;
-                    if (target.tagName === 'A') {
-                        const mapIx = parseInt(target.closest('tr')?.dataset.mIx!);
-                        this.mapDetailModal.show(maps[mapIx], this.data!);
-                    }
-                });
-                this.virtualScrollContent.appendChild(this.tableElement);
-            }
-
-            if (!this.virtualScrollContainer.isConnected) {
-                contentContainer.appendChild(this.virtualScrollContainer);
-            }
+            this.virtualScrollContainer = createElementFromHTML(
+                `<div class="virtual-scroll-container">
+                    <div class="virtual-scroll-spacer"></div>
+                    <div class="virtual-scroll-content"></div>
+                </div>`
+            ) as HTMLDivElement;
+            this.virtualScrollSpacer = this.virtualScrollContainer.querySelector('.virtual-scroll-spacer') as HTMLDivElement;
+            this.virtualScrollContent = this.virtualScrollContainer.querySelector('.virtual-scroll-content') as HTMLDivElement;
             
-            this.virtualScroller.initialize(
-                this.virtualScrollContainer!,
-                this.virtualScrollContent!,
-                this.virtualScrollSpacer!
-            );
-            // reset scroll position to the top BEFORE updating data
-            if (this.virtualScrollContainer) { 
-                this.virtualScrollContainer.scrollTop = 0;
-            }
-            this.virtualScroller.attach();
-            this.virtualScroller.updateData(maps.length, ROW_HEIGHT);
-        } else {
-            this.virtualScroller.detach();
-            this.isVirtualScrollEnabled = false;
+            const { table, tbody } = this.createScaffolding(100 + BUFFER_ROWS * 2);
+            this.tableElement = table;
+            this.tbodyElement = tbody;
+            tbody.addEventListener('click', handleRowClick);
 
+            this.virtualScrollContent.appendChild(this.tableElement);
+            contentContainer.appendChild(this.virtualScrollContainer);
+
+            this.virtualScroller.initialize(
+                this.virtualScrollContainer,
+                this.virtualScrollContent,
+                this.virtualScrollSpacer
+            );
+            this.virtualScroller.attach();
+            this.virtualScroller.updateData(maps.length);
+        } else {
             const { table, tbody } = this.createScaffolding(maps.length);
             this.tableElement = table;
             this.tbodyElement = tbody;
-            tbody.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = e.target as HTMLElement;
-                if (target.tagName === 'A') {
-                    const mapIx = parseInt(target.closest('tr')?.dataset.mIx!);
-                    this.mapDetailModal.show(maps[mapIx], this.data!);
-                }
-            });
-
+            tbody.addEventListener('click', handleRowClick);
             this.renderMapRange(0, maps.length, maps, this.tbodyElement, 0);
             contentContainer.appendChild(this.tableElement);
         }
@@ -163,7 +272,11 @@ export class MapListComponent extends BaseComponent {
             </table>
         `) as HTMLTableElement;
         const tbody = table.tBodies[0];
-        tbody.innerHTML = `<tr><td><a href="#"></a></td>${"<td></td>".repeat(5)}</tr>`.repeat(rowCount);
+        if (rowCount > 0) {
+            tbody.innerHTML = `<tr><td><a href="#"></a></td>${"<td></td>".repeat(5)}</tr>`.repeat(rowCount);
+        } else {
+            tbody.innerHTML = '';
+        }
         return { table, tbody };
     }
 
@@ -175,14 +288,15 @@ export class MapListComponent extends BaseComponent {
         targetRowStartIndexInTbody: number = 0 
     ): void {
         for (let i = 0; i < count; i++) {
-            const mapIndexInSource = startIx + i;
-            const map = maps[mapIndexInSource];
+            const mapIndexInFiltered = startIx + i;
+            const map = maps[mapIndexInFiltered];
     
             const rowIndexInTarget = targetRowStartIndexInTbody + i;
             
             // Ensure the target row exists. This is crucial for the virtual viewport.
             if (rowIndexInTarget >= targetTbody.rows.length) {
                 console.warn(`MapListComponent: renderMapRange trying to access row ${rowIndexInTarget} but tbody only has ${targetTbody.rows.length} rows. Skipping further rendering for this call.`);
+                throw new Error("REMOVE ME?");
                 break; 
             }
             const row = targetTbody.rows[rowIndexInTarget] as HTMLTableRowElement;
@@ -193,7 +307,7 @@ export class MapListComponent extends BaseComponent {
             }
             row.style.display = ''; // Ensure row is visible if map data exists
     
-            row.dataset.mIx = mapIndexInSource.toString(); 
+            row.dataset.mIx = mapIndexInFiltered.toString(); 
     
             const mapNameCell = row.cells[0];
             const mapNameLink = mapNameCell.childNodes[0] as HTMLAnchorElement;

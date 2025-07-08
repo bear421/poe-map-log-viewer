@@ -9,7 +9,7 @@ import {
     Legend
 } from 'chart.js';
 import { BaseComponent } from './base-component';
-import { LogAggregation, aggregateBy, Dimension, Metric, Aggregation, metricMeta } from '../aggregation';
+import { LogAggregationCube, aggregateBy, Dimension, Metric, Aggregation, metricMeta } from '../aggregate/aggregation';
 import { createElementFromHTML, formatDuration } from '../util';
 
 Chart.register(
@@ -47,6 +47,7 @@ export class AnalysisComponent extends BaseComponent {
     }
 
     private createControls(): void {
+        const delveOption = ''; // ${this.data!.mapsDelve.length > 0 ? `<option value="${Metric.delveNodes}">Delve Nodes</option>` : ''}
         const controlsContainer = createElementFromHTML(`
             <div class="row mb-3">
                 <div class="col-md-4">
@@ -62,6 +63,7 @@ export class AnalysisComponent extends BaseComponent {
                     <label for="yAxisSelect" class="form-label">Value (Y-Axis)</label>
                     <select id="yAxisSelect" class="form-select">
                         <option value="${Metric.maps}">Maps</option>
+                        ${delveOption}
                         <option value="${Metric.deaths}">Deaths</option>
                         <option value="${Metric.witnessedDeaths}">Witnessed Deaths</option>
                         <option value="${Metric.mapTime}">Map Time</option>
@@ -192,7 +194,7 @@ export class AnalysisComponent extends BaseComponent {
         this.chartInstance = new Chart(chartCtx, chartConfig);
     }
 
-    private async getChartData(agg: LogAggregation, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<{ labels: string[], data: number[] }> {
+    private async getChartData(agg: LogAggregationCube, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<{ labels: string[], data: number[] }> {
         const aggregatedData = await aggregateBy(agg, dimension, metric, aggregation);
         /*
         const sortedKeys = Array.from(aggregatedData.keys()).sort((a, b) => {

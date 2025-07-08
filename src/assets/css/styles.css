@@ -315,11 +315,52 @@ body {
 }
 
 .virtual-scroll-content {
-    background: var(--bs-body-bg);
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
 }
 
 .virtual-scroll-spacer {
     pointer-events: none;
+}
+
+.facet-filter-toggle {
+    width: 100%;
+}
+
+.facet-filter-options {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
+    border-radius: var(--bs-border-radius);
+    z-index: 1000;
+    padding: 0.5rem;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+
+.facet-filter-options.active {
+    display: block;
+}
+
+.facet-filter-options .form-check {
+    padding-left: 2em;
+    margin-bottom: 0.25rem;
+}
+
+.facet-filter-options .form-check-label {
+    display: flex;
+    justify-content: space-between;
+}
+
+.facet-filter-options .form-check {
+    user-select: none;
+    label, input {
+        cursor: pointer;
+    }
 }

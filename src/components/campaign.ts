@@ -4,7 +4,7 @@ import { binarySearchRange } from '../binary-search';
 import { eventMeta, getEventMeta, EventName, LogEvent } from '../ingest/events';
 import { MapDetailComponent } from './map-detail';
 import { getZoneInfo } from '../data/zone_table';
-import { LogAggregation } from '../aggregation';
+import { LogAggregationCube } from '../aggregate/aggregation';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll, VirtualScrollRenderCallback } from '../virtual-scroll';
 
@@ -36,7 +36,7 @@ const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
 const VIRTUAL_SCROLL_THRESHOLD = 250; // Number of maps after which virtual scroll is enabled
 
-export class JourneyComponent extends BaseComponent {
+export class CampaignComponent extends BaseComponent {
 
     private actDefinitions: ActDefinition[] = [
         { name: 'Act 1', maps: [], duration: 0 },
@@ -45,14 +45,12 @@ export class JourneyComponent extends BaseComponent {
         { name: 'Act 4', maps: [], duration: 0 },
         { name: 'Act 5', maps: [], duration: 0 },
         { name: 'Act 6', maps: [], duration: 0 },
-        { name: 'Endgame', maps: [], duration: 0 }
     ];
 
     private currentActIndex: number = 0;
     private mapDetailModal: MapDetailComponent;
     private tooltip: DynamicTooltip = new DynamicTooltip(`<span class="event-offset"></span> <span class="event-label"></span>`);
     
-    // Virtual Scroll related DOM elements managed by JourneyComponent
     private virtualScrollContainer: HTMLDivElement | null = null;
     private virtualScrollContent: HTMLDivElement | null = null;
     private virtualScrollSpacer: HTMLDivElement | null = null;
@@ -135,7 +133,7 @@ export class JourneyComponent extends BaseComponent {
         return { table, tbody };
     }
 
-    public updateData(agg: LogAggregation): void {
+    public updateData(agg: LogAggregationCube): void {
         super.updateData(agg);
         if (this.isVisible) {
             this.render();
@@ -228,12 +226,11 @@ export class JourneyComponent extends BaseComponent {
         for (let i = 0; i < 10; i++) {
             this.actDefinitions.push({ name: `Act ${i + 1}`, maps: [], duration: 0 });
         }
-        this.actDefinitions.push({ name: `Endgame`, maps: [], duration: 0 });
-        const endgameNumber = this.actDefinitions.length;
         for (const map of this.data!.maps) {
             const zoneInfo = getZoneInfo(map.name, map.areaLevel);
-            const actNumber = zoneInfo?.act ?? endgameNumber;
-            this.actDefinitions[actNumber - 1].maps.push(map);
+            if (zoneInfo) {
+                this.actDefinitions[zoneInfo.act - 1].maps.push(map);
+            }
         }
         this.actDefinitions = this.actDefinitions.filter(a => a.maps.length > 0);
         for (const act of this.actDefinitions) {
