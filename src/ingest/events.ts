@@ -249,7 +249,7 @@ export namespace BossKillEvent {
     export const icon = 'bi-trophy-fill';
     export const color = 'text-warning';
     export function label(event: BossKillEvent): string {
-        return `Boss ${event.detail.bossName} has been slain`;
+        return `${event.detail.bossName} has been slain`;
     }
 }
 
@@ -449,6 +449,36 @@ export namespace MapCompletedEvent {
     }
 }
 
+export interface AFKModeOnEvent extends LogEventBase {
+    name: "afkModeOn";
+}
+export namespace AFKModeOnEvent {
+    export function of(ts: number): AFKModeOnEvent {
+        return { name: "afkModeOn", ts };
+    }
+    export const name = 'AFK mode on';
+    export const icon = 'bi-person-fill-slash';
+    export const color = 'text-danger';
+    export function label(): string {
+        return `AFK mode on`;
+    }
+}
+
+export interface AFKModeOffEvent extends LogEventBase {
+    name: "afkModeOff";
+}
+export namespace AFKModeOffEvent {
+    export function of(ts: number): AFKModeOffEvent {
+        return { name: "afkModeOff", ts };
+    }
+    export const name = 'AFK mode off';
+    export const icon = 'bi-person-fill-check';
+    export const color = 'text-success';
+    export function label(): string {
+        return `AFK mode off`;
+    }
+}
+
 export interface XPSnapshotEvent extends LogEventBase {
     name: "xpSnapshot";
     detail: {
@@ -496,6 +526,8 @@ export const eventMeta = {
     mapReentered: MapReenteredEvent,
     mapEntered: MapEnteredEvent,
     mapCompleted: MapCompletedEvent,
+    afkModeOn: AFKModeOnEvent,
+    afkModeOff: AFKModeOffEvent,
     xpSnapshot: XPSnapshotEvent,
 } as const;
 

@@ -29,7 +29,9 @@ import {
     MapCompletedEvent,
     PassiveUnallocatedEvent,
     PassiveAllocatedEvent,
-    BonusGainedEvent
+    BonusGainedEvent,
+    AFKModeOnEvent,
+    AFKModeOffEvent,
 } from "./events";
 import { createApproximateFileSlice } from "./file-ts-scan";
 
@@ -642,7 +644,9 @@ enum EventCG {
     PassiveUnallocated,
     BonusGained,
     MsgBoss,
-    MsgLocal
+    MsgLocal,
+    AFKModeOn,
+    AFKModeOff,
 }
 
 /**
@@ -676,6 +680,8 @@ enum EventCG {
  * PassiveAllocated   Successfully allocated passive skill id: spells18, name: Spell Damage
  * PassiveUnallocated Successfully unallocated passive skill id: shock5, name: Branching Bolts
  * MsgLocal           Player1: hello
+ * AFKModeOn          : AFK mode is now ON. Autoreply "?"
+ * AFKModeOff         : AFK mode is now OFF.
  */
 
 // if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
@@ -698,6 +704,8 @@ const EVENT_PATTERNS = [
     `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)`,
     `Successfully allocated passive skill id: (?<g${EventCG.PassiveAllocated}>[^ ]+), name: (.+)`,
     `Successfully unallocated passive skill id: (?<g${EventCG.PassiveUnallocated}>[^ ]+), name: (.+)`,
+    `: (?<g${EventCG.AFKModeOn}>)AFK mode is now ON\\.`,
+    `: (?<g${EventCG.AFKModeOff}>)AFK mode is now OFF\\.`,
 ];
 
 const COMPOSITE_EV_REGEX = new RegExp(`^(?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
@@ -1048,6 +1056,12 @@ export class LogTracker {
                     break;
                 case EventCG.ItemsIdentified:
                     this.dispatchEvent(ItemsIdentifiedEvent.of(ts, parseInt(m[offset])));
+                    break;
+                case EventCG.AFKModeOn:
+                    this.dispatchEvent(AFKModeOnEvent.of(ts));
+                    break;
+                case EventCG.AFKModeOff:
+                    this.dispatchEvent(AFKModeOffEvent.of(ts));
                     break;
             }
             this.informInteraction(ts);

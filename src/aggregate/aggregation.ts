@@ -10,9 +10,9 @@ import { buildBitsetIndex as buildEventBitsetIndex, shrinkBitsets as shrinkEvent
 import { buildOverviewAggregation } from "./overview";
 
 export const relevantEventNames = new Set<EventName>([
-    "death",
-    "levelUp",
     "bossKill",
+    "levelUp",
+    "death",
     "passiveGained",
     "passiveAllocated",
     "passiveUnallocated",
@@ -22,7 +22,9 @@ export const relevantEventNames = new Set<EventName>([
     "leftArea",
     "tradeAccepted",
     "msgParty",
-    "hideoutEntered"
+    "hideoutEntered",
+    "afkModeOn",
+    "afkModeOff",
 ]);
 
 export class LogAggregationCube {
@@ -918,7 +920,7 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
     const events = agg.events;
     let eventDimensionSegmentation: Map<string | number, Segmentation> | undefined;
     let metricAggregator: MetricsAggregator;
-    const dataMap = new Map<string | number, number[]>();
+    let dataMap = new Map<string | number, number[]>();
     const fb = new FrameBarrier();
     const eventSegmentationMetricsAggregator = (eventDimensionSegmentation: Map<string | number, Segmentation>) => {
         return {
@@ -1022,6 +1024,8 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
                             values.push(fn(events[i], map.areaLevel));
                         }
                     }
+                    // TODO do this cleaner and type-safer
+                    dataMap = new Map([...dataMap.entries()].sort((a, b) => (a[0] as number) - (b[0] as number)));
                 },
                 walkMaps: async (fn: (map: MapInstance, key: string | number) => number) => {
                     for (const map of agg.maps) {
@@ -1030,6 +1034,8 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
                         const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
                         values.push(fn(map, map.areaLevel));
                     }
+                    // TODO do this cleaner and type-safer
+                    dataMap = new Map([...dataMap.entries()].sort((a, b) => (a[0] as number) - (b[0] as number)));
                 }
             };
             break;
