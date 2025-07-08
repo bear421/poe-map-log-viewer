@@ -62,5 +62,11 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
     },
     "Incarnation of Dread": {
         "deathCries": new Set([" Her dread... shall not be erased so easily..."])
-    }
+    },
+    "Nightmare of Uhtred": {
+        "deathCries": new Set([" Death is... no escape..."])
+    },
+    "Nightmare of Lycia": {
+        "deathCries": new Set([" You are only delaying the inevitable."])
+    },
 };
