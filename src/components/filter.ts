@@ -235,6 +235,7 @@ export class FilterComponent extends BaseComponent {
 
             const now = new Date();
             let fromDate = new Date(now); 
+            const gameVersion = this.data!.gameVersion;
             switch (presetType) {
                 case 'lastHour':
                     fromDate.setHours(now.getHours() - 1);
@@ -258,18 +259,18 @@ export class FilterComponent extends BaseComponent {
                     break;
                 case 'campaignMaps':
                     (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '1';
-                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '67';
+                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '64' : '67';
                     break;
                 case 'whiteMaps':
-                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '65';
-                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '69';
+                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '65' : '68';
+                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '69' : '72';
                     break;
                 case 'yellowMaps':
-                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '70';
-                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '74';
+                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '70' : '74';
+                    (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '74' : '78';
                     break;
                 case 'redMaps':
-                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = '75';
+                    (this.element.querySelector('#minLevelFilter') as HTMLInputElement).value = gameVersion === 2 ? '75' : '79';
                     (this.element.querySelector('#maxLevelFilter') as HTMLInputElement).value = '';
                     break;
             }

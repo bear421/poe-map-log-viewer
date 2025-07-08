@@ -33,6 +33,10 @@ export class LogAggregationCube {
     private _characterAggregation?: CharacterAggregation;
     constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter) {}
 
+    get gameVersion(): 1 | 2 {
+        return this.base.gameVersion;
+    }
+
     get reversedMaps(): MapInstance[] {
         return this._reversedMaps ??= this.maps.toReversed();
     }
