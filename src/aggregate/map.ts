@@ -10,9 +10,9 @@ const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as 
  */
 export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, BitSet> {
     const res = new Map<AreaType, BitSet>();
-    const maxId = maps[maps.length - 1].id;
+    const maxId = maps[maps.length - 1].id + 1;
     for (const areaType of areaTypes) {
-        res.set(areaType, new BitSet(maxId + 1));
+        res.set(areaType, new BitSet(maxId));
     }
     for (const map of maps) {
         res.get(map.areaType)!.set(map.id);
@@ -23,12 +23,21 @@ export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, Bit
 
 export function buildMapNameBitSetIndex(maps: MapInstance[]): Map<string, BitSet> {
     const res = new Map<string, BitSet>();
-    const maxId = maps[maps.length - 1].id;
+    const maxId = maps[maps.length - 1].id + 1;
     for (const map of maps) {
-        computeIfAbsent(res, map.name, () => new BitSet(maxId + 1)).set(map.id);
+        computeIfAbsent(res, map.name, () => new BitSet(maxId)).set(map.id);
     }
     optimizeIndex(res);
     return res;
+}
+
+export function buildMapsBitSetIndex(maps: MapInstance[]): BitSet {
+    const maxId = maps[maps.length - 1].id + 1;
+    const res = new BitSet(maxId);
+    for (const map of maps) {
+        res.set(map.id);
+    }
+    return res.tryShrink();
 }
 
 export function optimizeIndex<K>(bitSetIndex: Map<K, BitSet>): void {

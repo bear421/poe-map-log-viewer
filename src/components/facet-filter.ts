@@ -126,19 +126,20 @@ export class FacetFilterComponent extends BaseComponent {
                 }
             }
         }
-        if (!changed) return;
-
         const selectedFacetBitSets: (BitSet | undefined)[] = this.facets.map(f => this.getCombinedBitsetForFacet(f, f.selectedOptions));
         // could technically store and simply narrow the prior bitset(s) IF the selected facet is a narrowing operation (additive OR / subtractive AND)
         // however, performance is good enough for now and this is simpler
         const combinedBitSet = BitSet.andAll(...selectedFacetBitSets);
         this.updateCounts(combinedBitSet, selectedFacetBitSets);
-        this.prevSelectedOptions = new Map(this.facets.map(f => [f, new Set(f.selectedOptions)]));
-        // not ideal because this attributes the perf took of the callback to this render
-        await this.onFilterChanged(combinedBitSet, this.facets);
+        if (changed) {
+            this.prevSelectedOptions = new Map(this.facets.map(f => [f, new Set(f.selectedOptions)]));
+            // not ideal because this attributes the perf took of the callback to this render
+            await this.onFilterChanged(combinedBitSet, this.facets);
+        }
     }
     
     private updateCounts(selection: BitSet | undefined, selectedFacetBitSets: (BitSet | undefined)[]): void {
+        // selection = BitSet.andAll(selection, this.data!.mapsBitSet);
         const prefixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets);
         const suffixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets.toReversed());
         const n = this.facets.length;
@@ -160,7 +161,8 @@ export class FacetFilterComponent extends BaseComponent {
                     countBitSet = BitSet.andAll(onSelectBitSet, otherFacetsCombinedBitSet);
                 }
 
-                const count = countBitSet?.cardinality() ?? 0;
+                // console.log("trying to reduce countBitSet", countBitSet, this.data!.mapsBitSet, countBitSet?.cardinality(), '=>', BitSet.andAll(countBitSet, this.data!.mapsBitSet)?.cardinality());
+                const count = BitSet.andAll(countBitSet, this.data!.mapsBitSet)?.cardinality() ?? 0;
                 // using querySelector here is ~10x slower than getElementById, causing significant slowdown for facets with many options
                 const countSpan = document.getElementById(`${facet.id}-${option.value}-c`);
                 if (countSpan) {

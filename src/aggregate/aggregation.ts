@@ -8,7 +8,7 @@ import { getGameVersion, getZoneInfo } from "../data/zone_table";
 import { BitSet } from "../bitset";
 import { buildEventBitSetIndex } from "./event";
 import { buildOverviewAggregation } from "./overview";
-import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, shrinkMapBitSetIndex } from "./map";
+import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, buildMapsBitSetIndex } from "./map";
 
 export const relevantEventNames = new Set<EventName>([
     "bossKill",
@@ -33,6 +33,7 @@ export class LogAggregationCube {
     private _overview?: OverviewAggregation;
     private _messages?: Map<string, AnyMsgEvent[]>;
     private _filteredCharacters?: CharacterInfo[];
+    private _mapsBitSet?: BitSet;
     constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter) {}
 
     get gameVersion(): 1 | 2 {
@@ -41,6 +42,10 @@ export class LogAggregationCube {
 
     get reversedMaps(): MapInstance[] {
         return this._reversedMaps ??= this.maps.toReversed();
+    }
+
+    get mapsBitSet(): BitSet {
+        return this._mapsBitSet ??= buildMapsBitSetIndex(this.maps);
     }
 
     async getOverviewAggregation(): Promise<OverviewAggregation> {

@@ -1,6 +1,5 @@
 import { Filter, AreaType, areaTypeMeta } from '../ingest/log-tracker';
 import { EventName, eventMeta } from '../ingest/events';
-import { createElementFromHTML } from '../util';
 import { BaseComponent } from './base-component';
 import { Facet } from './facet';
 import { FacetFilterComponent } from './facet-filter';
