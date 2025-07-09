@@ -5,7 +5,7 @@ import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
-import { relevantEventNames } from '../aggregate/aggregation';
+import { LogAggregationCube, relevantEventNames } from '../aggregate/aggregation';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -24,7 +24,7 @@ export class MapListComponent extends BaseComponent {
     private virtualScroller: VirtualScroll;
     private maps: MapInstance[] = [];
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, private readonly autoLoadMaps: boolean = true) {
         super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
         this.mapDetailModal = new MapDetailComponent();
         this.virtualScroller = new VirtualScroll(
@@ -58,20 +58,21 @@ export class MapListComponent extends BaseComponent {
     protected async render(): Promise<void> {
         if (!this.data) return;
 
-        this.maps = this.data.reversedMaps;
-        this.element.querySelector('.map-list-controls')?.remove();
-        const controlsRow = createElementFromHTML('<div class="row map-list-controls mb-3"></div>');
-
-        const mapCountContainer = createElementFromHTML(`
-            <div class="col-md-4 fs-5 align-self-center">
-                Showing <span class="map-count"></span> maps
-            </div>
-        `) as HTMLDivElement;
-        controlsRow.appendChild(mapCountContainer);
-
+        if (this.autoLoadMaps) {
+            this.maps = this.data.reversedMaps;
+        }
         this.mapDetailModal.updateData(this.data);
         this.mapDetailModal.setApp(this.app!);
         this.updateMapView();
+    }
+
+    public async updateData(newData: LogAggregationCube, maps?: MapInstance[]): Promise<void> {
+        if (maps) {
+            if (this.autoLoadMaps) throw new Error("cannot set maps when autoLoadMaps is true");
+
+            this.maps = maps;
+        }
+        await super.updateData(newData);
     }
 
     private updateMapView(): void {
