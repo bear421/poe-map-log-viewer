@@ -14,6 +14,15 @@ export class FacetFilterComponent extends BaseComponent {
         this.facets = facets;
     }
 
+    public async reset(): Promise<void> {
+        for (const facet of this.facets) {
+            facet.selectedOptions.clear();
+        }
+        this.element.querySelectorAll('input.form-check-input').forEach(e => (e as HTMLInputElement).checked = false);
+        this.element.querySelectorAll('.overlay-filter-options.active').forEach(e => e.classList.remove('active'));
+        await this.applyFilters(true);
+    }
+
     protected async init(): Promise<void> {
         this.renderFilterUI();
         await this.render();
@@ -47,6 +56,7 @@ export class FacetFilterComponent extends BaseComponent {
 
         for (const option of facet.options) {
             const filterId = `${facet.id}-${option.value}`;
+            const countSpanId = `${filterId}-c`;
             const isChecked = facet.selectedOptions.has(option.value);
             const element = createElementFromHTML(`
                 <div class="form-check">
@@ -56,7 +66,7 @@ export class FacetFilterComponent extends BaseComponent {
                             ${option.icon ? `<i class="${option.icon} ${option.color ?? ''}"></i>` : ''}
                             ${option.name}
                         </span>
-                        <span class="facet-count-container"><span class="facet-count">0</span></span>
+                        <span class="facet-count-container"><span class="facet-count" id="${countSpanId}">0</span></span>
                     </label>
                 </div>
             `);
@@ -94,9 +104,9 @@ export class FacetFilterComponent extends BaseComponent {
         return facetContainer;
     }
 
-    public async applyFilters(): Promise<void> {
+    public async applyFilters(force: boolean = false): Promise<void> {
         const prevSelectedOptions = this.prevSelectedOptions;
-        let changed = false;
+        let changed = force;
         if (prevSelectedOptions === undefined) {
             changed = true;
         } else {
@@ -133,7 +143,6 @@ export class FacetFilterComponent extends BaseComponent {
         const suffixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets.toReversed());
         const n = this.facets.length;
         for (let i = 0; i < n; i++) {
-            let then = performance.now();
             const facet = this.facets[i];
             const prefix = i > 0 ? prefixAnds[i - 1] : undefined;
             const suffix = i < n - 1 ? suffixAnds[n - i - 2] : undefined;
@@ -152,8 +161,8 @@ export class FacetFilterComponent extends BaseComponent {
                 }
 
                 const count = countBitSet?.cardinality() ?? 0;
-                const facetContainer = this.element.querySelector(`[data-facet-id="${facet.id}"]`);
-                const countSpan = facetContainer?.querySelector(`label[for="${facet.id}-${option.value}"] .facet-count`);
+                // using querySelector here is ~10x slower than getElementById, causing significant slowdown for facets with many options
+                const countSpan = document.getElementById(`${facet.id}-${option.value}-c`);
                 if (countSpan) {
                     countSpan.textContent = count.toString();
                     if (count === 0 && !isSelected) {
@@ -168,7 +177,6 @@ export class FacetFilterComponent extends BaseComponent {
             if (selectedCountSpan) {
                 selectedCountSpan.textContent = facet.selectedOptions.size > 0 ? `(${facet.selectedOptions.size})` : "";
             }
-            console.log("updateCounts for facet", facet.name, performance.now() - then, facet.options.length);
         }
     }
 

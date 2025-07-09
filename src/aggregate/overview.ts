@@ -47,7 +47,7 @@ export async function buildOverviewAggregation(agg: LogAggregationCube): Promise
                 }
                 break;
             case "bossKill":
-                // assume pinacle bosses are at least i75+ otherwise this matches campaign bosses such as King in the Mists
+                // assume pinnacle bosses are at least i75+ otherwise this matches campaign bosses such as King in the Mists
                 if (event.detail.areaLevel >= 75) {
                     totalBossKills++;
                 }

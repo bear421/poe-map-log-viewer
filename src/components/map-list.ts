@@ -1,14 +1,11 @@
-import { MapInstance, MapSpan, AreaType, areaTypes, areaTypeMeta } from '../ingest/log-tracker';
+import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
 import { binarySearchRange } from '../binary-search';
-import { eventMeta, getEventMeta, EventName, LogEvent } from '../ingest/events';
+import { eventMeta, getEventMeta, LogEvent } from '../ingest/events';
 import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
-import { BitSet } from '../bitset';
 import { relevantEventNames } from '../aggregate/aggregation';
-import { FacetFilterComponent } from './facet-filter';
-import { Facet } from './facet';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -62,9 +59,7 @@ export class MapListComponent extends BaseComponent {
         if (!this.data) return;
 
         this.maps = this.data.reversedMaps;
-
         this.element.querySelector('.map-list-controls')?.remove();
-
         const controlsRow = createElementFromHTML('<div class="row map-list-controls mb-3"></div>');
 
         const mapCountContainer = createElementFromHTML(`
@@ -74,8 +69,6 @@ export class MapListComponent extends BaseComponent {
         `) as HTMLDivElement;
         controlsRow.appendChild(mapCountContainer);
 
-        
-        // this.element.appendChild(controlsRow);
         this.mapDetailModal.updateData(this.data);
         this.mapDetailModal.setApp(this.app!);
         this.updateMapView();
@@ -84,7 +77,6 @@ export class MapListComponent extends BaseComponent {
     private updateMapView(): void {
         const contentContainer = this.element;
         
-        // Detach listener and remove old elements
         this.virtualScroller.detach();
         this.virtualScrollContainer?.remove();
         this.tableElement?.remove();
@@ -113,7 +105,7 @@ export class MapListComponent extends BaseComponent {
             ) as HTMLDivElement;
             this.virtualScrollSpacer = this.virtualScrollContainer.querySelector('.virtual-scroll-spacer') as HTMLDivElement;
             this.virtualScrollContent = this.virtualScrollContainer.querySelector('.virtual-scroll-content') as HTMLDivElement;
-            
+
             const { table, tbody } = this.createScaffolding(100 + BUFFER_ROWS * 2);
             this.tableElement = table;
             this.tbodyElement = tbody;

@@ -136,11 +136,10 @@ export class FilterComponent extends BaseComponent {
             this.facetBitSet = combinedBitSet;
             await this.applyFilters();
         });
-        facetFilter.setApp(this.app!);
 
         this.setupEventListeners();
         this.facetFilter = facetFilter;
-        // await facetFilter.setParentComponent(this);
+        await facetFilter.setParentComponent(this);
     }
 
     protected async render(): Promise<void> {
@@ -156,8 +155,6 @@ export class FilterComponent extends BaseComponent {
             characterSelect.value = oldValue;
             this.prevCharactersSignature = characterOptionsHTML;
         }
-        await this.facetFilter!.updateData(this.data!);
-        await this.facetFilter!.setVisible(true);
     }
 
     private setupEventListeners(): void {
@@ -369,6 +366,7 @@ export class FilterComponent extends BaseComponent {
         });
 
         this.filter = new Filter();
-        this.onFilterChange(this.filter);
+        // implicitly calls applyFilters
+        this.facetFilter!.reset();
     }
 } 
