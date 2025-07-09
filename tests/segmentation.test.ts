@@ -1,4 +1,4 @@
-import { Segmentation } from '../src/log-tracker';
+import { Segmentation } from '../src/ingest/log-tracker';
 
 describe('Segmentation.intersect', () => {
     it('should return an empty array if one segmentation is empty', () => {

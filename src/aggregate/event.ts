@@ -4,7 +4,11 @@ import { relevantEventNames } from "./aggregation";
 import { binarySearchRange } from "../binary-search";
 import { MapInstance } from "../ingest/log-tracker";
 
-export function buildBitsetIndex(maps: MapInstance[], events: LogEvent[]): Map<EventName, BitSet> {
+/**
+ * @param maps - must be ordered by id (as is the case in LogAggregationCube and BaseLogAggregation)
+ * @param events - must be sorted by ts (as is the case in LogAggregationCube and BaseLogAggregation)
+ */
+export function buildEventBitSetIndex(maps: MapInstance[], events: LogEvent[]): Map<EventName, BitSet> {
     const res = new Map<EventName, BitSet>();
     const maxId = maps[maps.length - 1].id;
     for (const eventName of relevantEventNames) {
@@ -28,22 +32,8 @@ export function buildBitsetIndex(maps: MapInstance[], events: LogEvent[]): Map<E
         }
         prevHiIx = hiIx;
     }
-    return res;
-}
-
-export function shrinkBitsets(bitSetIndex: Map<EventName, BitSet>, maps: MapInstance[]): Map<EventName, BitSet> {
-    const res = new Map<EventName, BitSet>();
-    const maxId = maps.length > 0 ? maps[maps.length - 1].id : 0;
-    for (const eventName of relevantEventNames) {
-        res.set(eventName, new BitSet(maxId + 1));
-    }
-    for (const eventName of relevantEventNames) {
-        const bitSet = bitSetIndex.get(eventName)!;
-        for (const map of maps) {
-            if (bitSet.get(map.id)) {
-                res.get(eventName)!.set(map.id);
-            }
-        }
+    for (const [key, bitSet] of res) {
+        res.set(key, bitSet.tryShrink());
     }
     return res;
 }

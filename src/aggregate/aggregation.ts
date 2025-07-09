@@ -1,4 +1,4 @@
-import { AreaType, Filter, MapInstance, MapSpan, Segmentation } from "../ingest/log-tracker";
+import { AreaType, areaTypes, Filter, MapInstance, MapSpan, Segmentation } from "../ingest/log-tracker";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent, EventName } from "../ingest/events";
 import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "../binary-search";
 import { Feature, isFeatureSupportedAt } from "../data/log-versions";
@@ -6,8 +6,9 @@ import { computeIfAbsent, FrameBarrier, Measurement } from "../util";
 import { SplitCache } from "../split-cache";
 import { getGameVersion, getZoneInfo } from "../data/zone_table";
 import { BitSet } from "../bitset";
-import { buildBitsetIndex as buildEventBitsetIndex, shrinkBitsets as shrinkEventBitSetIndex } from "./event";
+import { buildEventBitSetIndex } from "./event";
 import { buildOverviewAggregation } from "./overview";
+import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, shrinkMapBitSetIndex } from "./map";
 
 export const relevantEventNames = new Set<EventName>([
     "bossKill",
@@ -29,10 +30,12 @@ export const relevantEventNames = new Set<EventName>([
 
 export class LogAggregationCube {
     private _reversedMaps?: MapInstance[];
+    private _mapNameBitSetIndex?: Map<string, BitSet>;
     private _eventBitSetIndex?: Map<EventName, BitSet>;
+    private _areaTypeBitSetIndex?: Map<AreaType, BitSet>;
     private _overview?: OverviewAggregation;
     private _messages?: Map<string, AnyMsgEvent[]>;
-    private _characterAggregation?: CharacterAggregation;
+    private _filteredCharacters?: CharacterInfo[];
     constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter) {}
 
     get gameVersion(): 1 | 2 {
@@ -43,11 +46,19 @@ export class LogAggregationCube {
         return this._reversedMaps ??= this.maps.toReversed();
     }
 
+    get mapNameBitSetIndex(): Map<string, BitSet> {
+        return this._mapNameBitSetIndex ??= shrinkMapBitSetIndex(this.base.mapNameBitSetIndex, this.maps);
+    }
+
     /**
      * a map of event names to bitsets, where a bit is set for each map's id that contains at least one event of that name
      */
     get eventBitSetIndex(): Map<EventName, BitSet> {
-        return this._eventBitSetIndex ??= shrinkEventBitSetIndex(this.base.eventBitSets, this.maps);
+        return this._eventBitSetIndex ??= shrinkMapBitSetIndex(this.base.eventBitSetIndex, this.maps);
+    }
+
+    get areaTypeBitSetIndex(): Map<AreaType, BitSet> {
+        return this._areaTypeBitSetIndex ??= shrinkMapBitSetIndex(this.base.areaTypeBitSetIndex, this.maps);
     }
 
     async getOverviewAggregation(): Promise<OverviewAggregation> {
@@ -72,7 +83,33 @@ export class LogAggregationCube {
     }
 
     get characterAggregation(): CharacterAggregation {
-        return this._characterAggregation ??= withFilteredCharacters(this.base.characterAggregation, this.filter);
+        return this.base.characterAggregation;
+    }
+
+    get filteredCharacters(): CharacterInfo[] {
+        if (this._filteredCharacters) return this._filteredCharacters;
+
+        const filter = this.filter;
+        const filteredCharacters = this.characterAggregation.characters.filter(char => {
+            if (this.filter?.fromCharacterLevel && char.level < this.filter.fromCharacterLevel) {
+                return false;
+            }
+            // don't filter by toCharacterLevel, this is generally undesired and uninteresting
+            if (filter?.userTsBounds && filter.userTsBounds.length > 0) {
+                if (char.lastPlayedTs < filter.userTsBounds[0].lo || char.createdTs > filter.userTsBounds[0].hi) {
+                    return false;
+                }
+            } else if (PRACTICE_CHARACTER_REGEX.test(char.name) && char.level < 90 && char.lastPlayedTs < staleCharacterThreshold) {
+                // discard practice characters unless explicitly included by tsBounds
+                return false;
+            }
+            return true;
+        });
+        return this._filteredCharacters = filteredCharacters;
+    }
+
+    get areaTypes(): AreaType[] {
+        return this.base.areaTypes;
     }
 
 }
@@ -83,7 +120,10 @@ export interface BaseLogAggregation {
     readonly maps: MapInstance[];
     readonly events: LogEvent[];
     readonly characterAggregation: CharacterAggregation;
-    readonly eventBitSets: Map<EventName, BitSet>;
+    readonly eventBitSetIndex: Map<EventName, BitSet>;
+    readonly areaTypeBitSetIndex: Map<AreaType, BitSet>;
+    readonly mapNameBitSetIndex: Map<string, BitSet>;
+    readonly areaTypes: AreaType[];
 }
 
 export interface OverviewAggregation {
@@ -183,15 +223,13 @@ export class CharacterAggregation {
     readonly characterTsIndex: AnyCharacterEvent[];
     readonly characterLevelSegmentation: Map<string, Segmentation[]>;
     readonly characters: CharacterInfo[];
-    readonly filteredCharacters: CharacterInfo[];
 
     constructor(characterLevelIndex: Map<string, (LevelUpEvent|SetCharacterEvent)[]>, characterTsIndex: AnyCharacterEvent[], characterLevelSegmentation: Map<string, Segmentation[]>, 
-            characters: CharacterInfo[], filteredCharacters: CharacterInfo[]) {
+            characters: CharacterInfo[]) {
         this.characterLevelIndex = characterLevelIndex;
         this.characterTsIndex = characterTsIndex;
         this.characterLevelSegmentation = characterLevelSegmentation;
         this.characters = characters;
-        this.filteredCharacters = filteredCharacters;
     }
 
     /**
@@ -320,13 +358,24 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
                 }
             }
             const characterAggregation = await buildCharacterAggregation(maps, events);
-            const eventBitSets = buildEventBitsetIndex(maps, events);
+            const eventBitSetIndex = buildEventBitSetIndex(maps, events);
+            const areaTypeBitSetIndex = buildAreaTypeBitSetIndex(maps);
+            const mapNameBitSetIndex = buildMapNameBitSetIndex(maps);
+            let filteredAreaTypes;
+            if (gameVersion === 2) {
+                filteredAreaTypes = areaTypes.filter(at => at !== AreaType.Labyrinth && at !== AreaType.Delve);
+            } else {
+                filteredAreaTypes = areaTypes.filter(at => at !== AreaType.Tower);
+            }
             base = {
                 gameVersion,
                 maps,
                 events,
                 characterAggregation,
-                eventBitSets,
+                eventBitSetIndex,
+                areaTypeBitSetIndex,
+                mapNameBitSetIndex,
+                areaTypes: filteredAreaTypes
             };
         } catch (e) {
             console.error("failed to build base aggregation, limited functionality available", e);
@@ -334,8 +383,11 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
                 gameVersion: 1,
                 maps,
                 events,
-                characterAggregation: new CharacterAggregation(new Map(), [], new Map(), [], []),
-                eventBitSets: new Map(),
+                characterAggregation: new CharacterAggregation(new Map(), [], new Map(), []),
+                eventBitSetIndex: new Map(),
+                areaTypeBitSetIndex: new Map(),
+                mapNameBitSetIndex: new Map(),
+                areaTypes
             };
         }
     }
@@ -352,8 +404,8 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregationCube): Filter 
     if (characterSegmentation.length) {
         segmentations.push(characterSegmentation);
     }
-    if (filter.tsBounds && filter.tsBounds.length) {
-        segmentations.push(filter.tsBounds);
+    if (filter.userTsBounds && filter.userTsBounds.length) {
+        segmentations.push(filter.userTsBounds);
     }
     if (segmentations.length) {
         const newBounds = Segmentation.intersectAll(segmentations);
@@ -367,25 +419,6 @@ function reassembleFilter(filter: Filter, prevAgg?: LogAggregationCube): Filter 
 const staleCharacterThreshold = Date.now() - 1000 * 60 * 60 * 24 * 30 * 6; // 6 months
 
 const PRACTICE_CHARACTER_REGEX = /^AAA/i;
-
-function withFilteredCharacters(ca: CharacterAggregation, filter: Filter): CharacterAggregation {
-    const filteredCharacters = ca.characters.filter(char => {
-        if (filter?.fromCharacterLevel && char.level < filter.fromCharacterLevel) {
-            return false;
-        }
-        // don't filter by toCharacterLevel, this is generally undesired and uninteresting
-        if (filter?.tsBounds && filter.tsBounds.length > 0) {
-            if (char.createdTs < filter.tsBounds[0].lo || char.lastPlayedTs > filter.tsBounds[0].hi) {
-                return false;
-            }
-        } else if (PRACTICE_CHARACTER_REGEX.test(char.name) && char.level < 90 && char.lastPlayedTs < staleCharacterThreshold) {
-            // discard practice characters unless explicitly included by tsBounds
-            return false;
-        }
-        return true;
-    });
-    return new CharacterAggregation(ca.characterLevelIndex, ca.characterTsIndex, ca.characterLevelSegmentation, ca.characters, filteredCharacters);
-}
 
 export const SESSION_THRESHOLD_MILLIS = 1000 * 60 * 60;
 const TRADE_PATTERNS = [
@@ -823,7 +856,7 @@ async function buildCharacterAggregation(_: MapInstance[], events: LogEvent[]): 
         });
     }
     const sortedCharacters = characters.sort((a, b) => a.lastPlayedTs - b.lastPlayedTs);
-    return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex, characterLevelSegmentation, sortedCharacters, sortedCharacters);
+    return new CharacterAggregation(characterLevelIndex, ownedCharacterTsIndex, characterLevelSegmentation, sortedCharacters);
 }
 
 /**
@@ -916,7 +949,7 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
     const filter = agg.filter;
     const fromCharacterLevel = agg.filter.fromCharacterLevel;
     const toCharacterLevel = agg.filter.toCharacterLevel;
-    const characters = agg.characterAggregation.filteredCharacters.map(c => c.name);
+    const characters = agg.filteredCharacters.map(c => c.name);
     const events = agg.events;
     let eventDimensionSegmentation: Map<string | number, Segmentation> | undefined;
     let metricAggregator: MetricsAggregator;

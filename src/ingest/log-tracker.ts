@@ -223,6 +223,61 @@ export enum AreaType {
     Unknown
 }
 
+export const areaTypeMeta: Record<AreaType, { name: string, icon: string, color: string }> = {
+    [AreaType.Map]: {
+        name: "Map",
+        icon: "bi-globe",
+        color: "text-dark"
+    },
+    [AreaType.Hideout]: {
+        name: "Hideout",
+        icon: "bi-house",
+        color: "text-secondary"
+    },
+    [AreaType.Campaign]: {
+        name: "Campaign",
+        icon: "bi-map",
+        color: "text-dark"
+    },
+    [AreaType.Town]: {
+        name: "Town",
+        icon: "bi-shop",
+        color: "text-secondary"
+    },
+    [AreaType.Sanctum]: {
+        name: "Sanctum",
+        icon: "bi-hexagon",
+        color: "text-dark"
+    },
+    [AreaType.Labyrinth]: {
+        name: "Labyrinth",
+        icon: "bi-compass",
+        color: "text-dark"
+    },
+    [AreaType.Logbook]: {
+        name: "Logbook",
+        icon: "bi-book",
+        color: "text-dark"  
+    },
+    [AreaType.Tower]: {
+        name: "Tower",
+        icon: "bi-building-fill",
+        color: "text-dark"
+    },
+    [AreaType.Delve]: {
+        name: "Delve",
+        icon: "bi-diamond-half",
+        color: " text-primary"
+    },
+    [AreaType.Unknown]: {   
+        name: "Unknown",
+        icon: "bi-question-circle",
+        color: "text-dark"
+    }
+}
+
+export const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as AreaType[];
+
 enum MapState {
     LOADING,
     ENTERED,
@@ -494,6 +549,7 @@ export namespace Segmentation {
 }
 
 class Filter {
+    userTsBounds: Segmentation;
     tsBounds: Segmentation;
     fromAreaLevel?: number;
     toAreaLevel?: number;
@@ -502,6 +558,7 @@ class Filter {
     character?: string;
 
     constructor(
+        userTsBounds?: Segmentation,
         tsBounds?: Segmentation,
         fromAreaLevel?: number,
         toAreaLevel?: number,
@@ -509,6 +566,7 @@ class Filter {
         toCharacterLevel?: number,
         character?: string
     ) {
+        this.userTsBounds = userTsBounds ?? [];
         this.tsBounds = tsBounds ?? [];
         this.fromAreaLevel = fromAreaLevel;
         this.toAreaLevel = toAreaLevel;
@@ -518,7 +576,7 @@ class Filter {
     }
 
     withBounds(tsBounds: Segmentation): Filter {
-        return new Filter(tsBounds, this.fromAreaLevel, this.toAreaLevel, this.fromCharacterLevel, this.toCharacterLevel, this.character);
+        return new Filter(this.userTsBounds, tsBounds, this.fromAreaLevel, this.toAreaLevel, this.fromCharacterLevel, this.toCharacterLevel, this.character);
     }
 
     static isEmpty(filter?: Filter): boolean {

@@ -66,26 +66,27 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         });
     }
 
-    protected init(): void {
+    protected async init(): Promise<void> {
         this.setDefaultEmotion(Emotion.HAPPY);
         const data = this.data!;
+        const overview = await data.getOverviewAggregation();
         for (const levelIndex of data.characterAggregation.characterLevelIndex.values()) {
             if (levelIndex[levelIndex.length - 1].detail.level >= 100) {
                 let msg = "Wow! You've reached level 100!";
-                if (data.totalDeaths <= 0) {
+                if (overview.totalDeaths <= 0) {
                     msg += " You must be some kind of mechanical god!";
-                } else if (data.totalDeaths < 10) {
+                } else if (overview.totalDeaths < 10) {
                     msg += " Very impressive!";
                 }
                 this.speak(msg, ['border-success'], 5_000, Emotion.SURPRISED);
                 return;
             }
         }
-        if (data.totalBossKills > 10) { 
+        if (overview.totalBossKills > 10) { 
             let msg = "Wow! You've killed so many bosses!";
-            if (data.totalDeaths <= 0) {
+            if (overview.totalDeaths <= 0) {
                 msg += " You must be an expert!";
-            } else if (data.totalDeaths < data.totalBossKills) {
+            } else if (overview.totalDeaths < overview.totalBossKills) {
                 msg += " Very impressive!";
             }
             this.speak(`${msg}`, ['border-success'], 5_000, Emotion.SURPRISED);
@@ -103,11 +104,11 @@ export class Mascot extends BaseComponent<HTMLImageElement> {
         this.element.src = emotion;
     }
 
-    setVisible(visible: boolean): this {
+    async setVisible(visible: boolean): Promise<void> {
         if (!visible) {
             this.stopAnimation();
         }
-        return super.setVisible(visible);
+        await super.setVisible(visible);
     }
 
     private startAnimation(): void {

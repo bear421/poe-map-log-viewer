@@ -121,8 +121,8 @@ body {
 }
 
 .mascot-image {
-    width: 8rem;
-    height: 8rem;
+    width: 5.5rem;
+    height: 5.5rem;
     display: block;
     position: relative;
     z-index: 1;
@@ -142,7 +142,7 @@ body {
 
 .progress-modal .mascot-image {
     position: absolute;
-    top: -7.2rem;
+    top: -5rem;
     left: 0;
     z-index: 1060;
 }
@@ -219,7 +219,7 @@ body {
 .app-header-container {
     display: flex;
     align-items: flex-start;
-    margin-bottom: -0.6rem;
+    margin-bottom: -1rem;
     position: relative;
 }
 
@@ -329,7 +329,7 @@ body {
     width: 100%;
 }
 
-.facet-filter-options {
+.overlay-filter-options {
     display: none;
     position: absolute;
     top: 100%;
@@ -344,21 +344,21 @@ body {
     overflow-y: auto;
 }
 
-.facet-filter-options.active {
+.overlay-filter-options.active {
     display: block;
 }
 
-.facet-filter-options .form-check {
+.overlay-filter-options .form-check {
     padding-left: 2em;
     margin-bottom: 0.25rem;
 }
 
-.facet-filter-options .form-check-label {
+.overlay-filter-options .form-check-label {
     display: flex;
     justify-content: space-between;
 }
 
-.facet-filter-options .form-check {
+.overlay-filter-options .form-check {
     user-select: none;
     label, input {
         cursor: pointer;

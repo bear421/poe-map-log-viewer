@@ -10,6 +10,7 @@ export interface LogEventBase {
 interface VirtualEvent {}
 
 export interface LogEventMeta<T extends LogEvent = LogEvent, Args extends any[] = any[]> {
+    name: string;
     icon: string;
     color: string;
     of: (...args: Args) => T;

@@ -87,7 +87,7 @@ export class FilterComponent extends BaseComponent {
 
     protected render(): void {
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
-        const characterOptionsHTML = this.data!.characterAggregation.filteredCharacters
+        const characterOptionsHTML = this.data!.filteredCharacters
             .toReversed() // most recent character at the top of the select
             .map(char => `<option value="${char.name}">${char.name} (${char.level} ${char.ascendancy})</option>`)
             .join('');
@@ -209,7 +209,7 @@ export class FilterComponent extends BaseComponent {
             hi = toDate.getTime();
         }
         if (lo !== -Infinity || hi !== Infinity) {
-            filter.tsBounds = [{ lo, hi }];
+            filter.userTsBounds = [{ lo, hi }];
         }
         if (characterInput) {
             filter.character = characterInput;

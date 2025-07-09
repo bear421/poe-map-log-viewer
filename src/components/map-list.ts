@@ -1,4 +1,4 @@
-import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
+import { MapInstance, MapSpan, AreaType, areaTypes, areaTypeMeta } from '../ingest/log-tracker';
 import { binarySearchRange } from '../binary-search';
 import { eventMeta, getEventMeta, EventName, LogEvent } from '../ingest/events';
 import { BaseComponent } from './base-component';
@@ -7,6 +7,8 @@ import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
 import { BitSet } from '../bitset';
 import { relevantEventNames } from '../aggregate/aggregation';
+import { FacetFilterComponent } from './facet-filter';
+import { Facet } from './facet';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -15,6 +17,8 @@ export class MapListComponent extends BaseComponent {
     private mapDetailModal: MapDetailComponent;
     private tooltip: DynamicTooltip = new DynamicTooltip(`<span class="event-offset"></span> <span class="event-label"></span>`);
     
+    private relevantAreaTypes: AreaType[] = [];
+
     private allMaps: MapInstance[] = [];
     private maps: MapInstance[] = [];
 
@@ -27,10 +31,10 @@ export class MapListComponent extends BaseComponent {
     private isVirtualScrollEnabled: boolean = false;
     private virtualScroller: VirtualScroll;
 
+    private facetFilter: FacetFilterComponent<AreaType | EventName>;
+
     // Filtering properties
     private mapCountSpan: HTMLSpanElement | null = null;
-    private filterContainer: HTMLDivElement | null = null;
-    private selectedEvents: Set<EventName> = new Set();
 
     constructor(container: HTMLElement) {
         super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
@@ -45,7 +49,6 @@ export class MapListComponent extends BaseComponent {
     private renderVirtualScrollRows(startIndex: number, endIndex: number): void {
         if (!this.tbodyElement) return;
 
-        console.log('renderVirtualScrollRows', startIndex, endIndex);
         const maps = this.maps;
         if (maps.length === 0) {
             console.log('maps is empty for range', startIndex, endIndex);
@@ -67,129 +70,83 @@ export class MapListComponent extends BaseComponent {
     protected async render(): Promise<void> {
         if (!this.data) return;
 
+        this.relevantAreaTypes = this.data.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
         this.allMaps = this.data.reversedMaps;
-        this.renderFilterUI();
-        this.mapDetailModal.updateData(this.data);
-        this.mapDetailModal.setApp(this.app!);
-        this.applyFilters();
-    }
 
-    private renderFilterUI(): void {
         this.element.querySelector('.map-list-controls')?.remove();
 
         const controlsRow = createElementFromHTML('<div class="row map-list-controls mb-3"></div>');
 
         const mapCountContainer = createElementFromHTML(`
-            <div class="col-md-4 fs-5">
+            <div class="col-md-4 fs-5 align-self-center">
                 Showing <span class="map-count"></span> maps
             </div>
         `) as HTMLDivElement;
         this.mapCountSpan = mapCountContainer.querySelector('.map-count');
         controlsRow.appendChild(mapCountContainer);
 
-        const areaTypeContainer = createElementFromHTML(`
-            <div class="col-md-4"></div>
-        `) as HTMLDivElement;
-        controlsRow.appendChild(areaTypeContainer);
+        const facetContainer = createElementFromHTML('<div class="col-md-8"></div>') as HTMLDivElement;
+        controlsRow.appendChild(facetContainer);
 
-        this.filterContainer = createElementFromHTML(`
-            <div class="facet-filter-container col-md-4 m-s-2 fs-5">
-                <div class="position-relative">
-                    <button class="btn btn-outline-primary facet-filter-toggle d-flex justify-content-between align-items-center">
-                        <span>Events</span>
-                        <i class="bi bi-chevron-down"></i>
-                    </button>
-                    <div class="facet-filter-options shadow-sm mt-1"></div>
-                </div>
-            </div>
-        `) as HTMLDivElement;
+        const mapNameFacet: Facet<string> = {
+            id: 'map-name',
+            name: 'Map Name',
+            combinationLogic: 'OR',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.mapNameBitSetIndex,
+            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name })),
+        };
+
+        const areaTypeFacet: Facet<AreaType> = {
+            id: 'area-type',
+            name: 'Area Type',
+            combinationLogic: 'OR',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.areaTypeBitSetIndex,
+            options: this.relevantAreaTypes.map(areaType => {
+                const meta = areaTypeMeta[areaType];
+                return { value: areaType, name: meta.name, icon: meta.icon, color: meta.color };
+            }),
+        };
+
+        const eventFacet: Facet<EventName> = {
+            id: 'event',
+            name: 'Events',
+            combinationLogic: 'AND',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.eventBitSetIndex,
+            options: Array.from(relevantEventNames).map(eventName => {
+                const meta = eventMeta[eventName];
+                return { value: eventName, name: meta.name, icon: meta.icon, color: meta.color };
+            }),
+        };
         
-        const optionsContainer = this.filterContainer.querySelector('.facet-filter-options') as HTMLDivElement;
-
-        for (const eventName of relevantEventNames) {
-            const filterId = `filter-${eventName}`;
-            const meta = eventMeta[eventName];
-            const isChecked = this.selectedEvents.has(eventName);
-            const element = createElementFromHTML(`
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" id="${filterId}" value="${eventName}" ${isChecked ? 'checked' : ''}>
-                    <label class="form-check-label" for="${filterId}">
-                        <span class="facet-label-content">
-                            <i class="${meta.icon} ${meta.color}"></i>
-                            ${meta.name}
-                        </span>
-                        <span class="facet-count-container"><span class="facet-count">0</span></span>
-                    </label>
-                </div>
-            `);
-            optionsContainer.appendChild(element);
-        }
-
-        const toggleButton = this.filterContainer.querySelector('.facet-filter-toggle') as HTMLButtonElement;
+        this.facetFilter = new FacetFilterComponent(facetContainer, [mapNameFacet, areaTypeFacet, eventFacet], (combinedBitSet, _) => {
+            this.applyFilters(combinedBitSet);
+        });
+        this.facetFilter.setApp(this.app!);
         
-        toggleButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            optionsContainer.classList.toggle('active');
-        });
-
-        document.addEventListener('click', () => {
-            optionsContainer.classList.remove('active');
-        });
-
-        optionsContainer.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        optionsContainer.addEventListener('change', (e) => {
-            const target = e.target as HTMLInputElement;
-            if (target.type === 'checkbox') {
-                if (target.checked) {
-                    this.selectedEvents.add(target.value as EventName);
-                } else {
-                    this.selectedEvents.delete(target.value as EventName);
-                }
-                this.applyFilters();
-            }
-        });
-
-        controlsRow.appendChild(this.filterContainer);
         this.element.appendChild(controlsRow);
+        
+        this.mapDetailModal.updateData(this.data);
+        this.mapDetailModal.setApp(this.app!);
+
+        await this.facetFilter.render();
     }
     
-    private applyFilters(): void {
-        const eventBitSetIndex = this.data!.eventBitSetIndex;
-        let resultBitSet: BitSet | undefined;
-        if (this.selectedEvents.size === 0) {
-            this.maps = this.allMaps;
-            resultBitSet = undefined;
+    private applyFilters(combinedBitSet: BitSet | undefined): void {
+        if (combinedBitSet) {
+            this.maps = this.allMaps.filter(m => combinedBitSet.get(m.id));
         } else {
-            const selectedEventNames = Array.from(this.selectedEvents);
-            resultBitSet = eventBitSetIndex.get(selectedEventNames[0])!.clone();
-    
-            for (let i = 1; i < selectedEventNames.length; i++) {
-                const nextBitset = eventBitSetIndex.get(selectedEventNames[i])!;
-                resultBitSet = resultBitSet.and(nextBitset);
-            }
-    
-            this.maps = this.allMaps.filter((m) => resultBitSet!.get(m.id));
+            this.maps = this.allMaps;
         }
-    
+
         if (this.maps.length === this.allMaps.length) {
             this.mapCountSpan!.textContent = `${this.allMaps.length}`;
         } else {
             this.mapCountSpan!.textContent = `${this.maps.length} / ${this.allMaps.length}`;
         }
 
-        for (const eventName of relevantEventNames) {
-            const eventBitSet = eventBitSetIndex.get(eventName)!;
-            const next = resultBitSet ? resultBitSet.and(eventBitSet) : eventBitSet;
-            const count = next.cardinality();
-            
-            const countSpan = this.filterContainer!.querySelector(`#filter-${eventName}`)?.nextElementSibling?.querySelector('.facet-count');
-            if (countSpan) {
-                countSpan.textContent = count.toString();
-            }
-        }
         this.updateMapView();
     }
 

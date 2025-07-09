@@ -146,7 +146,7 @@ export class App {
         modalTemplate.innerHTML = modalHtml.trim();
         const modalElement = modalTemplate.content.firstChild as HTMLElement;
         
-        this.modalMascot = new Mascot(modalElement.querySelector('.modal-header') as HTMLElement).setVisible(false);
+        this.modalMascot = new Mascot(modalElement.querySelector('.modal-header') as HTMLElement);
         
         modalElement.querySelector('.modal-body')!.appendChild(this.progressBar);
         container.appendChild(modalElement);
@@ -297,7 +297,7 @@ export class App {
         }
     }
 
-    private setupEventListeners() {
+    private async setupEventListeners() {
         const downloadJsonButton = document.getElementById('download-json-tab');
         if (downloadJsonButton) {
             downloadJsonButton.addEventListener('click', () => this.exportJsonData());
@@ -320,26 +320,26 @@ export class App {
             });
         }
 
-        const informComponentOnTabChange = (tabId: string, component: BaseComponent<any>) => {
+        const informComponentOnTabChange = async (tabId: string, component: BaseComponent<any>) => {
             const tabButton = document.getElementById(tabId) as HTMLElement;
-            tabButton.addEventListener('shown.bs.tab', () => {
-                component.setVisible(true);
+            tabButton.addEventListener('shown.bs.tab', async () => {
+                await component.setVisible(true);
                 this.currentComponent = component;
                 if (tabId === 'campaign-tab' && !this.filterComponent.getFilter()?.character) {
                     this.mascot.speak('Please select a character to use the Campaign tab', ['border-warning']);
                 }
             });
-            tabButton.addEventListener('hide.bs.tab', () => {
-                component.setVisible(false);
+            tabButton.addEventListener('hide.bs.tab', async () => {
+                await component.setVisible(false);
             });
         };
 
-        informComponentOnTabChange('overview-tab', this.overviewComponent);
-        informComponentOnTabChange('maps-tab', this.mapListComponent);
-        informComponentOnTabChange('map-stats-tab', this.mapStatsComponent);
-        informComponentOnTabChange('analysis-tab', this.analysisComponent);
-        informComponentOnTabChange('campaign-tab', this.campaignComponent);
-        informComponentOnTabChange('messages-tab', this.messagesComponent);
+        await informComponentOnTabChange('overview-tab', this.overviewComponent);
+        await informComponentOnTabChange('maps-tab', this.mapListComponent);
+        await informComponentOnTabChange('map-stats-tab', this.mapStatsComponent);
+        await informComponentOnTabChange('analysis-tab', this.analysisComponent);
+        await informComponentOnTabChange('campaign-tab', this.campaignComponent);
+        await informComponentOnTabChange('messages-tab', this.messagesComponent);
     }
 
     private async handleData(maps: MapInstance[], events: LogEvent[]) {
@@ -386,11 +386,11 @@ export class App {
         }
     }
 
-    private displayResults(agg: LogAggregationCube) {
+    private async displayResults(agg: LogAggregationCube) {
         for (const component of this.components) {
-            component.updateData(agg);
+            await component.updateData(agg);
         }
-        this.mascot.updateData(agg);
+        await this.mascot.updateData(agg);
         this.currentComponent?.setVisible(true);
     }
 

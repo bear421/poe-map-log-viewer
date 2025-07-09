@@ -30,6 +30,9 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
     "Strange Voice": {
         "deathCries": new Set([" So be it. Keep your precious sanity, my agent of chaos. You shall serve me, whether you like it or not. I'm not going anywhere..."])
     },
+    "Izaro": {
+        "deathCries": new Set([" I die for the Empire!", " You are free!", " Triumphant at last!", " The trap of tyranny is inescapable.", " Delight in your gilded dungeon, ascendant.", " Your destination is more dangerous than the journey, ascendant."])
+    },
     "The Eater of Worlds": {
         "greetings": new Set([" This is not a battle you can win, hatchling."]),
         "deathCries": new Set([" You deny us... escape from pain..."])
@@ -53,6 +56,9 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
     },
     "The Maven": {
         "deathCries": new Set([" I am being hurt!"])
+    },
+    "Aul, the Crystal King": {
+        "deathCries": new Set([" Am-... amta..."])
     },
     "Incarnation of Neglect": {
         "deathCries": new Set([" Madness... consumes..."])

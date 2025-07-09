@@ -139,12 +139,8 @@ export class MapStatsComponent extends BaseComponent {
         modalTitle.textContent = `${mapName} Instances (${maps.length})`;
         modalBody.innerHTML = '';
 
-        const tempData = {
-            ...this.data!,
-            maps: maps.toReversed()
-        };
         const mapListComponent = new MapListComponent(modalBody);
-        mapListComponent.updateData(tempData);
+        mapListComponent.updateData(this.data!);
         mapListComponent.setApp(this.app!);
         mapListComponent.setVisible(true);
         

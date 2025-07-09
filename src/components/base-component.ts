@@ -9,6 +9,8 @@ export abstract class BaseComponent<
 > {
     protected readonly element: TElement;
     protected readonly containerElement: TContainerElement;
+    protected readonly children: BaseComponent<any, TData, any>[] = [];
+    protected parentComponent?: BaseComponent<any, TData, any>;
     protected data: TData | null = null;
     protected isInitialized: boolean = false;
     protected isDataChanged: boolean = false;
@@ -21,20 +23,37 @@ export abstract class BaseComponent<
         this.containerElement.appendChild(this.element);
     }
 
-    public updateData(newData: TData): Promise<void> | void {
-        this.data = newData;
-        this.isDataChanged = true;
-        return this.tryRender();
+    public async setParentComponent(parentComponent: BaseComponent<any, TData, any>): Promise<void> {
+        if (this.parentComponent) throw new Error("component already has a parent: " + parentComponent.constructor.name);
+
+        this.parentComponent = parentComponent;
+        await parentComponent.addChildComponent(this);
     }
 
-    public setVisible(visible: boolean): this {
+    protected async addChildComponent(component: BaseComponent<any, TData, any>): Promise<void> {
+        this.children.push(component);
+        if (this.data) {
+            await component.updateData(this.data);
+        }
+        await component.setVisible(this.isVisible);
+    }
+
+    public async updateData(newData: TData): Promise<void> {
+        this.data = newData;
+        this.isDataChanged = true;
+        for (const child of this.children) {
+            await child.updateData(newData);
+        }
+        await this.tryRender();
+    }
+
+    public async setVisible(visible: boolean): Promise<void> {
         const visibilityChanged = this.isVisible !== visible;
         this.isVisible = visible;
         if (visibilityChanged) {
-            this.tryRender();
+            await this.tryRender();
             visible ? this.element.classList.remove('d-none') : this.element.classList.add('d-none');
         }
-        return this;
     }
     
     public setApp(app: App): void {
@@ -45,17 +64,20 @@ export abstract class BaseComponent<
         if (!this.isVisible || !this.isDataChanged) return;
 
         if (!this.isInitialized) {
-            this.init();
+            const promise = this.init();
+            promise && await promise;
             this.isInitialized = true;
         }
         const m = new Measurement();
         const promise = this.render();
-        await promise;
+        promise && await promise;
         m.logTook(this.constructor.name + ".render " + (promise instanceof Promise ? "(async)" : ""));
         this.isDataChanged = false;
     }
 
-    protected init() {}
+    protected init(): Promise<void> | void {
+        return;
+    }
 
     protected abstract render(): Promise<void> | void;
 } 

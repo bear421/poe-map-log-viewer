@@ -1,4 +1,4 @@
-import { parseTs, parseTsSlow, parseTsStrict, clearOffsetCache } from "../src/ts-parser";
+import { parseTs, parseTsSlow, parseTsStrict, clearOffsetCache } from "../src/ingest/ts-parser";
 
 describe('Timestamp Parser Performance', () => {
 

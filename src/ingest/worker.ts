@@ -106,8 +106,8 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 } as ProgressResponse);
             }
 
-            const tsFilter = filter?.tsBounds && filter.tsBounds.length > 0 ? 
-                { lo: filter.tsBounds[0].lo, hi: filter.tsBounds[filter.tsBounds.length - 1].hi } : 
+            const tsFilter = filter?.userTsBounds && filter.userTsBounds.length > 0 ? 
+                { lo: filter.userTsBounds[0].lo, hi: filter.userTsBounds[filter.userTsBounds.length - 1].hi } : 
                 undefined;
             
             const lines = await tracker.searchLogFile(pattern, limit, file, onSearchProgress, tsFilter);
