@@ -1,5 +1,11 @@
-import { Filter } from '../ingest/log-tracker';
+import { Filter, AreaType, areaTypeMeta } from '../ingest/log-tracker';
+import { EventName, eventMeta } from '../ingest/events';
+import { createElementFromHTML } from '../util';
 import { BaseComponent } from './base-component';
+import { Facet } from './facet';
+import { FacetFilterComponent } from './facet-filter';
+import { relevantEventNames } from '../aggregate/aggregation';
+import { BitSet } from '../bitset';
 
 export class FilterComponent extends BaseComponent {
     private onFilterChange: (filter: Filter) => Promise<void>;
@@ -9,7 +15,9 @@ export class FilterComponent extends BaseComponent {
     private readonly allPresetButtonIds = [...this.datePresetButtonIds, ...this.mapPresetButtonIds];
 
     private prevCharactersSignature: string = "";
+    private facetBitSet: BitSet | undefined;
     private filter: Filter | undefined;
+    private facetFilter: FacetFilterComponent | undefined;
 
     constructor(onFilterChangeCallback: (filter: Filter) => Promise<void>, container: HTMLDivElement) {
         super(document.createElement('div'), container);
@@ -17,75 +25,125 @@ export class FilterComponent extends BaseComponent {
         this.onFilterChange = onFilterChangeCallback;
     }
 
-    init(): void {
+    async init(): Promise<void> {
         this.element.innerHTML = `
                 <div class="card-header">
                     <h4 class="mb-0">Filter Data</h4>
                 </div>
                 <div class="card-body">
-                    <div class="filters row g-3">
-                        <div class="col-md-2">
-                            <label for="characterFilter" class="form-label">Character</label>
-                            <select id="characterFilter" class="form-select border-dark"></select>
+                    <div class="filters">
+                        <div class="broad row">
+                            <div class="col-md-2">
+                                <label for="characterFilter" class="form-label">Character</label>
+                                <select id="characterFilter" class="form-select border-dark"></select>
+                            </div>
+                            <div class="col-md-1">
+                                <label for="minCharacterLevelFilter" class="form-label">Min Lvl</label>
+                                <input type="number" class="form-control border-dark" id="minCharacterLevelFilter" min="1" max="100">
+                            </div>
+                            <div class="col-md-1">
+                                <label for="maxCharacterLevelFilter" class="form-label">Max Lvl</label>
+                                <input type="number" class="form-control border-dark" id="maxCharacterLevelFilter" min="1" max="100">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="minLevelFilter" class="form-label">Min Area Lvl</label>
+                                <input type="number" class="form-control border-dark" id="minLevelFilter" min="1" max="100">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="maxLevelFilter" class="form-label">Max Area Lvl</label>
+                                <input type="number" class="form-control border-dark" id="maxLevelFilter" min="1" max="100">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="fromDateFilter" class="form-label">From Date</label>
+                                <input type="date" class="form-control border-dark" id="fromDateFilter">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="toDateFilter" class="form-label">To Date</label>
+                                <input type="date" class="form-control border-dark" id="toDateFilter">
+                            </div>
                         </div>
-                        <div class="col-md-1">
-                            <label for="minCharacterLevelFilter" class="form-label">Min Lvl</label>
-                            <input type="number" class="form-control border-dark" id="minCharacterLevelFilter" min="1" max="100">
-                        </div>
-                        <div class="col-md-1">
-                            <label for="maxCharacterLevelFilter" class="form-label">Max Lvl</label>
-                            <input type="number" class="form-control border-dark" id="maxCharacterLevelFilter" min="1" max="100">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="minLevelFilter" class="form-label">Min Area Lvl</label>
-                            <input type="number" class="form-control border-dark" id="minLevelFilter" min="1" max="100">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="maxLevelFilter" class="form-label">Max Area Lvl</label>
-                            <input type="number" class="form-control border-dark" id="maxLevelFilter" min="1" max="100">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="fromDateFilter" class="form-label">From Date</label>
-                            <input type="date" class="form-control border-dark" id="fromDateFilter">
-                        </div>
-                        <div class="col-md-2">
-                            <label for="toDateFilter" class="form-label">To Date</label>
-                            <input type="date" class="form-control border-dark" id="toDateFilter">
-                        </div>
-                        <div class="col-4">
-                            <button id="resetFiltersBtn" class="btn btn-outline-secondary">Reset</button>
-                        </div>
-                        <div class="map-presets col-2 d-flex justify-content-between">
-                            <button id="campaignBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
-                                Campaign
-                            </button>
-                            <button id="presetWhiteMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
-                                White Maps
-                            </button>
-                        </div>
-                        <div class="map-presets col-2 d-flex justify-content-between">
-                            <button id="presetYellowMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
-                                Yellow Maps
-                            </button>
-                            <button id="presetRedMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
-                                Red Maps
-                            </button>
-                        </div>
-                        <div class="date-presets col-2 d-flex justify-content-between">
-                            <button id="presetLastHourBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last Hour</button>
-                            <button id="presetLast24HoursBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 24 Hours</button>
-                        </div>
-                        <div class="date-presets col-2 d-flex justify-content-between">
-                            <button id="presetLast7DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 7 Days</button>
-                            <button id="presetLast30DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 30 Days</button>
+                        <div class="facets row my-3"></div>
+                        <div class="presets row">
+                            <div class="col-4">
+                                <button id="resetFiltersBtn" class="btn btn-outline-secondary">Reset</button>
+                            </div>
+                            <div class="map-presets col-2 d-flex justify-content-between">
+                                <button id="campaignBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
+                                    Campaign
+                                </button>
+                                <button id="presetWhiteMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
+                                    White Maps
+                                </button>
+                            </div>
+                            <div class="map-presets col-2 d-flex justify-content-between">
+                                <button id="presetYellowMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
+                                    Yellow Maps
+                                </button>
+                                <button id="presetRedMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
+                                    Red Maps
+                                </button>
+                            </div>
+                            <div class="date-presets col-2 d-flex justify-content-between">
+                                <button id="presetLastHourBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last Hour</button>
+                                <button id="presetLast24HoursBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 24 Hours</button>
+                            </div>
+                            <div class="date-presets col-2 d-flex justify-content-between">
+                                <button id="presetLast7DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 7 Days</button>
+                                <button id="presetLast30DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 30 Days</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             `;
+
+        const relevantAreaTypes = this.data!.base.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
+
+        const areaTypeFacet: Facet<AreaType> = {
+            id: 'area-type',
+            name: 'Area Type',
+            operator: 'OR',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.base.areaTypeBitSetIndex,
+            options: relevantAreaTypes.map(areaType => {
+                const meta = areaTypeMeta[areaType];
+                return { value: areaType, name: meta.name, icon: meta.icon, color: meta.color };
+            }),
+        };
+
+        const mapNameFacet: Facet<string> = {
+            id: 'map-name',
+            name: 'Map Name',
+            operator: 'OR',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.base.mapNameBitSetIndex,
+            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name })),
+        };
+
+        const eventFacet: Facet<EventName> = {
+            id: 'event',
+            name: 'Events',
+            operator: 'AND',
+            selectedOptions: new Set(),
+            getBitsetIndex: () => this.data!.base.eventBitSetIndex,
+            options: Array.from(relevantEventNames).map(eventName => {
+                const meta = eventMeta[eventName];
+                return { value: eventName, name: meta.name, icon: meta.icon, color: meta.color };
+            }),
+        };
+        
+        const facetContainer = this.element.querySelector('.facets') as HTMLDivElement;
+        const facetFilter = new FacetFilterComponent(facetContainer, [mapNameFacet, areaTypeFacet, eventFacet], async (combinedBitSet, _) => {
+            this.facetBitSet = combinedBitSet;
+            await this.applyFilters();
+        });
+        facetFilter.setApp(this.app!);
+
         this.setupEventListeners();
+        this.facetFilter = facetFilter;
+        // await facetFilter.setParentComponent(this);
     }
 
-    protected render(): void {
+    protected async render(): Promise<void> {
         const characterSelect = this.element.querySelector<HTMLSelectElement>('#characterFilter')!;
         const characterOptionsHTML = this.data!.filteredCharacters
             .toReversed() // most recent character at the top of the select
@@ -98,6 +156,8 @@ export class FilterComponent extends BaseComponent {
             characterSelect.value = oldValue;
             this.prevCharactersSignature = characterOptionsHTML;
         }
+        await this.facetFilter!.updateData(this.data!);
+        await this.facetFilter!.setVisible(true);
     }
 
     private setupEventListeners(): void {
@@ -214,6 +274,7 @@ export class FilterComponent extends BaseComponent {
         if (characterInput) {
             filter.character = characterInput;
         }
+        filter.mapBitSet = this.facetBitSet;
         this.filter = filter;
         await this.onFilterChange(filter);
     }

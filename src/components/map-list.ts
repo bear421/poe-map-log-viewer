@@ -17,11 +17,6 @@ export class MapListComponent extends BaseComponent {
     private mapDetailModal: MapDetailComponent;
     private tooltip: DynamicTooltip = new DynamicTooltip(`<span class="event-offset"></span> <span class="event-label"></span>`);
     
-    private relevantAreaTypes: AreaType[] = [];
-
-    private allMaps: MapInstance[] = [];
-    private maps: MapInstance[] = [];
-
     private virtualScrollContainer: HTMLDivElement | null = null;
     private virtualScrollContent: HTMLDivElement | null = null;
     private virtualScrollSpacer: HTMLDivElement | null = null;
@@ -30,11 +25,7 @@ export class MapListComponent extends BaseComponent {
 
     private isVirtualScrollEnabled: boolean = false;
     private virtualScroller: VirtualScroll;
-
-    private facetFilter: FacetFilterComponent<AreaType | EventName>;
-
-    // Filtering properties
-    private mapCountSpan: HTMLSpanElement | null = null;
+    private maps: MapInstance[] = [];
 
     constructor(container: HTMLElement) {
         super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
@@ -70,8 +61,7 @@ export class MapListComponent extends BaseComponent {
     protected async render(): Promise<void> {
         if (!this.data) return;
 
-        this.relevantAreaTypes = this.data.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
-        this.allMaps = this.data.reversedMaps;
+        this.maps = this.data.reversedMaps;
 
         this.element.querySelector('.map-list-controls')?.remove();
 
@@ -82,71 +72,12 @@ export class MapListComponent extends BaseComponent {
                 Showing <span class="map-count"></span> maps
             </div>
         `) as HTMLDivElement;
-        this.mapCountSpan = mapCountContainer.querySelector('.map-count');
         controlsRow.appendChild(mapCountContainer);
 
-        const facetContainer = createElementFromHTML('<div class="col-md-8"></div>') as HTMLDivElement;
-        controlsRow.appendChild(facetContainer);
-
-        const mapNameFacet: Facet<string> = {
-            id: 'map-name',
-            name: 'Map Name',
-            combinationLogic: 'OR',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.mapNameBitSetIndex,
-            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name })),
-        };
-
-        const areaTypeFacet: Facet<AreaType> = {
-            id: 'area-type',
-            name: 'Area Type',
-            combinationLogic: 'OR',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.areaTypeBitSetIndex,
-            options: this.relevantAreaTypes.map(areaType => {
-                const meta = areaTypeMeta[areaType];
-                return { value: areaType, name: meta.name, icon: meta.icon, color: meta.color };
-            }),
-        };
-
-        const eventFacet: Facet<EventName> = {
-            id: 'event',
-            name: 'Events',
-            combinationLogic: 'AND',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.eventBitSetIndex,
-            options: Array.from(relevantEventNames).map(eventName => {
-                const meta = eventMeta[eventName];
-                return { value: eventName, name: meta.name, icon: meta.icon, color: meta.color };
-            }),
-        };
         
-        this.facetFilter = new FacetFilterComponent(facetContainer, [mapNameFacet, areaTypeFacet, eventFacet], (combinedBitSet, _) => {
-            this.applyFilters(combinedBitSet);
-        });
-        this.facetFilter.setApp(this.app!);
-        
-        this.element.appendChild(controlsRow);
-        
+        // this.element.appendChild(controlsRow);
         this.mapDetailModal.updateData(this.data);
         this.mapDetailModal.setApp(this.app!);
-
-        await this.facetFilter.render();
-    }
-    
-    private applyFilters(combinedBitSet: BitSet | undefined): void {
-        if (combinedBitSet) {
-            this.maps = this.allMaps.filter(m => combinedBitSet.get(m.id));
-        } else {
-            this.maps = this.allMaps;
-        }
-
-        if (this.maps.length === this.allMaps.length) {
-            this.mapCountSpan!.textContent = `${this.allMaps.length}`;
-        } else {
-            this.mapCountSpan!.textContent = `${this.maps.length} / ${this.allMaps.length}`;
-        }
-
         this.updateMapView();
     }
 

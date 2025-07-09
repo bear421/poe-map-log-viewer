@@ -34,6 +34,7 @@ import {
     AFKModeOffEvent,
 } from "./events";
 import { createApproximateFileSlice } from "./file-ts-scan";
+import { BitSet } from "../bitset";
 
 class AreaInfo {
     ts: number;
@@ -556,6 +557,7 @@ class Filter {
     fromCharacterLevel?: number;
     toCharacterLevel?: number;
     character?: string;
+    mapBitSet?: BitSet;
 
     constructor(
         userTsBounds?: Segmentation,
@@ -564,7 +566,8 @@ class Filter {
         toAreaLevel?: number,
         fromCharacterLevel?: number,
         toCharacterLevel?: number,
-        character?: string
+        character?: string,
+        mapBitSet?: BitSet
     ) {
         this.userTsBounds = userTsBounds ?? [];
         this.tsBounds = tsBounds ?? [];
@@ -573,10 +576,11 @@ class Filter {
         this.fromCharacterLevel = fromCharacterLevel;
         this.toCharacterLevel = toCharacterLevel;
         this.character = character;
+        this.mapBitSet = mapBitSet;
     }
 
     withBounds(tsBounds: Segmentation): Filter {
-        return new Filter(this.userTsBounds, tsBounds, this.fromAreaLevel, this.toAreaLevel, this.fromCharacterLevel, this.toCharacterLevel, this.character);
+        return new Filter(this.userTsBounds, tsBounds, this.fromAreaLevel, this.toAreaLevel, this.fromCharacterLevel, this.toCharacterLevel, this.character, this.mapBitSet);
     }
 
     static isEmpty(filter?: Filter): boolean {
@@ -592,7 +596,7 @@ class Filter {
         } else {
             hasFiniteBounds = false;
         }
-        return !hasFiniteBounds && !filter.fromAreaLevel && !filter.toAreaLevel && !filter.character;
+        return !hasFiniteBounds && !filter.fromAreaLevel && !filter.toAreaLevel && !filter.character && !filter.mapBitSet;
     }
 
     static testAreaLevel(map: MapInstance, filter?: Filter): boolean {
@@ -607,6 +611,11 @@ class Filter {
 
     static filterMaps(maps: MapInstance[], filter: Filter): MapInstance[] {
         if (Filter.isEmpty(filter)) return maps; 
+
+        const mapBitSet = filter.mapBitSet;
+        if (mapBitSet) {
+            maps = maps.filter(m => mapBitSet.get(m.id));
+        }
 
         const tsBounds = filter.tsBounds;
         if (!filter.fromAreaLevel && !filter.toAreaLevel && tsBounds.length > 0) {

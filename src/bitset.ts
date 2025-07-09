@@ -129,6 +129,28 @@ export class BitSet {
         return res;
     }
 
+    public static equals(a: BitSet | undefined, b: BitSet | undefined): boolean {
+        if (a === b) return true;
+
+        if (!a || !b) return false;
+
+        if (a.size < b.size) {
+            [a, b] = [b, a];
+        }
+
+        if (a.size > b.size) {
+            // test if a was shrunk and b wasn't
+            for (let i = b.words.length; i < a.words.length; i++) {
+                if (a.words[i] !== 0) return false;
+            }
+        }
+
+        for (let i = 0; i < b.words.length; i++) {
+            if (a.words[i] !== b.words[i]) return false;
+        }
+        return true;
+    }
+
     public static fromIndices(size: number, indices: number[]): BitSet {
         const bitset = new BitSet(size);
         for (const index of indices) {

@@ -30,9 +30,6 @@ export const relevantEventNames = new Set<EventName>([
 
 export class LogAggregationCube {
     private _reversedMaps?: MapInstance[];
-    private _mapNameBitSetIndex?: Map<string, BitSet>;
-    private _eventBitSetIndex?: Map<EventName, BitSet>;
-    private _areaTypeBitSetIndex?: Map<AreaType, BitSet>;
     private _overview?: OverviewAggregation;
     private _messages?: Map<string, AnyMsgEvent[]>;
     private _filteredCharacters?: CharacterInfo[];
@@ -44,21 +41,6 @@ export class LogAggregationCube {
 
     get reversedMaps(): MapInstance[] {
         return this._reversedMaps ??= this.maps.toReversed();
-    }
-
-    get mapNameBitSetIndex(): Map<string, BitSet> {
-        return this._mapNameBitSetIndex ??= shrinkMapBitSetIndex(this.base.mapNameBitSetIndex, this.maps);
-    }
-
-    /**
-     * a map of event names to bitsets, where a bit is set for each map's id that contains at least one event of that name
-     */
-    get eventBitSetIndex(): Map<EventName, BitSet> {
-        return this._eventBitSetIndex ??= shrinkMapBitSetIndex(this.base.eventBitSetIndex, this.maps);
-    }
-
-    get areaTypeBitSetIndex(): Map<AreaType, BitSet> {
-        return this._areaTypeBitSetIndex ??= shrinkMapBitSetIndex(this.base.areaTypeBitSetIndex, this.maps);
     }
 
     async getOverviewAggregation(): Promise<OverviewAggregation> {
@@ -106,10 +88,6 @@ export class LogAggregationCube {
             return true;
         });
         return this._filteredCharacters = filteredCharacters;
-    }
-
-    get areaTypes(): AreaType[] {
-        return this.base.areaTypes;
     }
 
 }

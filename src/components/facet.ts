@@ -15,6 +15,6 @@ export interface Facet<T> {
     name: string;
     options: FacetOption<T>[];
     getBitsetIndex: () => Map<T, BitSet>;
-    combinationLogic: CombinationOp;
+    operator: CombinationOp;
     selectedOptions: Set<T>;
 } 

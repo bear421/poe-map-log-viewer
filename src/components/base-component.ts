@@ -20,7 +20,9 @@ export abstract class BaseComponent<
     constructor(element: TElement, container: TContainerElement) {
         this.element = element;
         this.containerElement = container;
-        this.containerElement.appendChild(this.element);
+        if (element as any !== container) {
+            this.containerElement.appendChild(this.element);
+        }
     }
 
     public async setParentComponent(parentComponent: BaseComponent<any, TData, any>): Promise<void> {
@@ -64,13 +66,15 @@ export abstract class BaseComponent<
         if (!this.isVisible || !this.isDataChanged) return;
 
         if (!this.isInitialized) {
+            const m = new Measurement();
             const promise = this.init();
-            promise && await promise;
+            await promise;
+            m.logTook(this.constructor.name + ".init " + (promise instanceof Promise ? "(async)" : ""));
             this.isInitialized = true;
         }
         const m = new Measurement();
         const promise = this.render();
-        promise && await promise;
+        await promise;
         m.logTook(this.constructor.name + ".render " + (promise instanceof Promise ? "(async)" : ""));
         this.isDataChanged = false;
     }

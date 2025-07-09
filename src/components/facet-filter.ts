@@ -5,22 +5,25 @@ import { Facet } from './facet';
 
 export class FacetFilterComponent extends BaseComponent {
     private facets: Facet<any>[];
+    private prevSelectedOptions: Map<Facet<any>, Set<any>> | undefined = undefined;
 
-    constructor(container: HTMLElement, facets: Facet<any>[], private readonly onFilterChanged: ((combinedBitSet: BitSet | undefined, filteredFacets: Facet<any>[]) => void)) {
+    constructor(container: HTMLElement, facets: Facet<any>[], private readonly onFilterChanged: ((combinedBitSet: BitSet | undefined, filteredFacets: Facet<any>[]) => Promise<void>)) {
         if (facets.length === 0) throw new Error('facets must be non-empty');
 
-        super(createElementFromHTML('<div class="row g-2"></div>'), container);
+        super(container, container);
         this.facets = facets;
     }
 
-    protected async render(): Promise<void> {
+    protected async init(): Promise<void> {
         this.renderFilterUI();
-        this.applyFilters();
+        await this.render();
+    }
+
+    protected async render(): Promise<void> {
+        await this.applyFilters();
     }
 
     private renderFilterUI(): void {
-        this.element.innerHTML = '';
-        
         for (const facet of this.facets) {
             const facetContainer = this.createFacetUI(facet);
             this.element.appendChild(facetContainer);
@@ -64,7 +67,6 @@ export class FacetFilterComponent extends BaseComponent {
         
         toggleButton.addEventListener('click', (e) => {
             e.stopPropagation();
-            // TODO: close other popups
             optionsContainer.classList.toggle('active');
         });
 
@@ -92,56 +94,72 @@ export class FacetFilterComponent extends BaseComponent {
         return facetContainer;
     }
 
-    public applyFilters(): void {
-        const facetBitSets = this.facets.map(f => this.getCombinedBitsetForFacet(f, f.selectedOptions));
-        const combinedBitSet = BitSet.andAll(...facetBitSets);
-        
-        this.updateCounts(combinedBitSet);
-
-        if (this.onFilterChanged) {
-            this.onFilterChanged(combinedBitSet, this.facets);
+    public async applyFilters(): Promise<void> {
+        const prevSelectedOptions = this.prevSelectedOptions;
+        let changed = false;
+        if (prevSelectedOptions === undefined) {
+            changed = true;
+        } else {
+            for (const facet of this.facets) {
+                const selection = facet.selectedOptions;
+                const prevSelection = prevSelectedOptions.get(facet)!;
+                if (selection.size !== prevSelection.size) {
+                    changed = true;
+                    break;
+                }
+                // unnecessary with current implementation, kept for future correctness
+                for (const value of selection) {
+                    if (!prevSelection.has(value)) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
         }
-    }
+        if (!changed) return;
 
-    private getCombinedBitsetForFacet(facet: Facet<any>, selected: Set<any>): BitSet | undefined {
-        if (selected.size === 0) return undefined;
-
-        const bitsets = Array.from(selected).map(value => facet.getBitsetIndex().get(value)!);
-        return facet.combinationLogic === 'AND' ? BitSet.andAll(...bitsets) : BitSet.orAll(...bitsets);
+        const selectedFacetBitSets: (BitSet | undefined)[] = this.facets.map(f => this.getCombinedBitsetForFacet(f, f.selectedOptions));
+        // could technically store and simply narrow the prior bitset(s) IF the selected facet is a narrowing operation (additive OR / subtractive AND)
+        // however, performance is good enough for now and this is simpler
+        const combinedBitSet = BitSet.andAll(...selectedFacetBitSets);
+        this.updateCounts(combinedBitSet, selectedFacetBitSets);
+        this.prevSelectedOptions = new Map(this.facets.map(f => [f, new Set(f.selectedOptions)]));
+        // not ideal because this attributes the perf took of the callback to this render
+        await this.onFilterChanged(combinedBitSet, this.facets);
     }
     
-    private updateCounts(baseBitSet: BitSet | undefined): void {
-        const individualFacetBitsets = this.facets.map(f => this.getCombinedBitsetForFacet(f, f.selectedOptions));
-        const prefixAnds = this.buildAccumulatingBitsets(individualFacetBitsets);
-        const suffixAnds = this.buildAccumulatingBitsets(individualFacetBitsets.toReversed());
+    private updateCounts(selection: BitSet | undefined, selectedFacetBitSets: (BitSet | undefined)[]): void {
+        const prefixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets);
+        const suffixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets.toReversed());
         const n = this.facets.length;
         for (let i = 0; i < n; i++) {
+            let then = performance.now();
             const facet = this.facets[i];
             const prefix = i > 0 ? prefixAnds[i - 1] : undefined;
-            const suffix = i < n - 1 ? suffixAnds[i + 1] : undefined;
+            const suffix = i < n - 1 ? suffixAnds[n - i - 2] : undefined;
             const otherFacetsCombinedBitSet = BitSet.andAll(prefix, suffix);
-
+            const selectedFacetBitSet = selectedFacetBitSets[i];
             for (const option of facet.options) {
                 const isSelected = facet.selectedOptions.has(option.value);
                 let countBitSet: BitSet | undefined;
                 
                 if (isSelected) {
-                    countBitSet = baseBitSet;
+                    countBitSet = selection;
                 } else {
-                    const tempSelected = new Set(facet.selectedOptions);
-                    tempSelected.add(option.value);
-                    const thisFacetBitSet = this.getCombinedBitsetForFacet(facet, tempSelected);
-                    countBitSet = BitSet.andAll(thisFacetBitSet, otherFacetsCombinedBitSet);
+                    const optionBitSet = facet.getBitsetIndex().get(option.value)!;
+                    const onSelectBitSet = (facet.operator === 'AND' ? BitSet.andAll : BitSet.orAll)(selectedFacetBitSet, optionBitSet);
+                    countBitSet = BitSet.andAll(onSelectBitSet, otherFacetsCombinedBitSet);
                 }
 
-                const count = countBitSet ? countBitSet.cardinality() : 0;
+                const count = countBitSet?.cardinality() ?? 0;
                 const facetContainer = this.element.querySelector(`[data-facet-id="${facet.id}"]`);
                 const countSpan = facetContainer?.querySelector(`label[for="${facet.id}-${option.value}"] .facet-count`);
                 if (countSpan) {
                     countSpan.textContent = count.toString();
-                    countSpan.classList.remove('text-muted');
                     if (count === 0 && !isSelected) {
                         countSpan.classList.add('text-muted');
+                    } else {
+                        countSpan.classList.remove('text-muted');
                     }
                 }
             }
@@ -150,11 +168,25 @@ export class FacetFilterComponent extends BaseComponent {
             if (selectedCountSpan) {
                 selectedCountSpan.textContent = facet.selectedOptions.size > 0 ? `(${facet.selectedOptions.size})` : "";
             }
+            console.log("updateCounts for facet", facet.name, performance.now() - then, facet.options.length);
         }
     }
 
+    private getCombinedBitsetForFacet(facet: Facet<any>, selected: Set<any>): BitSet | undefined {
+        if (selected.size === 0) return undefined;
+
+        const bitsets = Array.from(selected).map(value => facet.getBitsetIndex().get(value)!);
+        return (facet.operator === 'AND' ? BitSet.andAll : BitSet.orAll)(...bitsets);
+    }
+
     /**
-     * builds an array of bitsets, where the i-th element is the AND of all bitsets up to index i
+     * builds an array of bitsets, where the i-th element is the AND of all bitsets up to index i.
+     * 
+     * e.g. [a, b, c] -> [
+     *   a, 
+     *   a AND b, 
+     *   a AND b AND c
+     * ]
      */
     private buildAccumulatingBitsets(bitsets: (BitSet | undefined)[]): (BitSet | undefined)[] {
         const n = bitsets.length;
