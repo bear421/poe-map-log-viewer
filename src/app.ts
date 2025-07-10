@@ -1,5 +1,6 @@
 declare var bootstrap: any;
-import { Filter, LogLine, MapInstance, Progress } from './ingest/log-tracker';
+import { LogLine, MapInstance, Progress } from './ingest/log-tracker';
+import { Filter } from "./aggregate/filter";
 import { LogEvent } from './ingest/events';
 import { Emotion, Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';

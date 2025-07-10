@@ -291,8 +291,8 @@ export class SparseBitSet implements BitSet {
 
 export namespace BitSet {
 
-    export function ofDense(size: number, words: Uint32Array = new Uint32Array(Math.ceil(size / 32))): BitSet {
-        return new DenseBitSet(size, words);
+    export function ofDense(maxIndex: number, words: Uint32Array = new Uint32Array(Math.ceil((maxIndex + 1) / 32))): BitSet {
+        return new DenseBitSet(maxIndex, words);
     }
 
     export function ofSparse(indices: number[] = []): BitSet {

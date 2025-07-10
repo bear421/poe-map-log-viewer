@@ -1,4 +1,5 @@
-import { Filter, AreaType, areaTypeMeta } from '../ingest/log-tracker';
+import { AreaType, areaTypeMeta } from '../ingest/log-tracker';
+import { Filter } from "../aggregate/filter";
 import { EventName, eventMeta } from '../ingest/events';
 import { BaseComponent } from './base-component';
 import { Facet } from './facet';

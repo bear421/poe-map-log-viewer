@@ -3,7 +3,7 @@ import { LogEvent, eventMeta, getEventMeta } from '../ingest/events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregationCube } from '../aggregate/aggregation';
 import { BaseComponent } from './base-component';
-import { Filter } from '../ingest/log-tracker';
+import { Filter } from "../aggregate/filter";
 import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
 

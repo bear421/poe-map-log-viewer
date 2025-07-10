@@ -1,4 +1,6 @@
-import { AreaType, areaTypes, Filter, MapInstance, MapSpan, Segmentation } from "../ingest/log-tracker";
+import { AreaType, areaTypes, MapInstance, MapSpan } from "../ingest/log-tracker";
+import { Segmentation } from "./segmentation";
+import { Filter } from "./filter";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent, AnyMsgEvent, EventName } from "../ingest/events";
 import { binarySearchFindFirstIx, binarySearchFindLast, binarySearchFindLastIx } from "../binary-search";
 import { Feature, isFeatureSupportedAt } from "../data/log-versions";
@@ -34,7 +36,7 @@ export class LogAggregationCube {
     private _messages?: Map<string, AnyMsgEvent[]>;
     private _filteredCharacters?: CharacterInfo[];
     private _mapsBitSet?: BitSet;
-    constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter) {}
+    constructor(readonly maps: MapInstance[], readonly events: LogEvent[], readonly base: BaseLogAggregation, readonly filter: Filter, private readonly sfMaps: MapInstance[]) {}
 
     get gameVersion(): 1 | 2 {
         return this.base.gameVersion;
@@ -44,8 +46,8 @@ export class LogAggregationCube {
         return this._reversedMaps ??= this.maps.toReversed();
     }
 
-    get mapsBitSet(): BitSet {
-        return this._mapsBitSet ??= buildMapsBitSetIndex(this.maps);
+    get simpleFilterMapsBitSet(): BitSet {
+        return this._mapsBitSet ??= buildMapsBitSetIndex(this.sfMaps);
     }
 
     async getOverviewAggregation(): Promise<OverviewAggregation> {
@@ -319,12 +321,19 @@ export async function aggregateCached(maps: MapInstance[], events: LogEvent[], f
 
 export async function aggregate(maps: MapInstance[], events: LogEvent[], filter: Filter, prevAgg?: LogAggregationCube): Promise<LogAggregationCube> {
     const reassembledFilter = reassembleFilter(filter, prevAgg);
+    let sfMaps: MapInstance[];
     if (reassembledFilter) {
-        maps = Filter.filterMaps(maps, reassembledFilter);
+        sfMaps = Filter.filterMaps(maps, reassembledFilter);
+        if (reassembledFilter.mapBitSet) {
+            maps = sfMaps.filter(m => reassembledFilter.mapBitSet!.get(m.id));
+        } else {
+            maps = sfMaps;
+        }
         events = Filter.filterEvents(events, reassembledFilter);
     } else {
         // selected filter combination excludes all data
         maps = [];
+        sfMaps = [];
         events = [];
     }
     let base: BaseLogAggregation;
@@ -374,7 +383,7 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
             };
         }
     }
-    return new LogAggregationCube(maps, events, base, reassembledFilter ?? filter);
+    return new LogAggregationCube(maps, events, base, reassembledFilter ?? filter, sfMaps);
 }
 
 function reassembleFilter(filter: Filter, prevAgg?: LogAggregationCube): Filter | undefined {

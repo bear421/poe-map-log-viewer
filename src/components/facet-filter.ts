@@ -161,8 +161,7 @@ export class FacetFilterComponent extends BaseComponent {
                     countBitSet = BitSet.andAll(onSelectBitSet, otherFacetsCombinedBitSet);
                 }
 
-                // console.log("trying to reduce countBitSet", countBitSet, this.data!.mapsBitSet, countBitSet?.cardinality(), '=>', BitSet.andAll(countBitSet, this.data!.mapsBitSet)?.cardinality());
-                const count = BitSet.andAll(countBitSet, this.data!.mapsBitSet)?.cardinality() ?? 0;
+                const count = BitSet.andAll(countBitSet, this.data!.simpleFilterMapsBitSet)?.cardinality() ?? 0;
                 // using querySelector here is ~10x slower than getElementById, causing significant slowdown for facets with many options
                 const countSpan = document.getElementById(`${facet.id}-${option.value}-c`);
                 if (countSpan) {

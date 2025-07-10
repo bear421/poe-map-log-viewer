@@ -1,4 +1,5 @@
-import { Filter, Progress } from './log-tracker';
+import { Progress } from './log-tracker';
+import { Filter } from "../aggregate/filter";
 import { IngestRequest, SearchRequest, IngestResponse, SearchResponse, ErrorResponse, AnyResponse } from './worker';
 
 

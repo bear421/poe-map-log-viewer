@@ -1,4 +1,5 @@
-import { LogTracker, MapInstance, Filter, Progress, LogLine } from './log-tracker';
+import { LogTracker, MapInstance, Progress, LogLine } from './log-tracker';
+import { Filter } from "../aggregate/filter";
 import { LogEvent } from './events';
 
 interface RequestMessage {
