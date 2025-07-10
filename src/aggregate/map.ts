@@ -10,9 +10,9 @@ const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as 
  */
 export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, BitSet> {
     const res = new Map<AreaType, BitSet>();
-    const maxId = maps[maps.length - 1].id + 1;
+    const maxId = maps[maps.length - 1].id;
     for (const areaType of areaTypes) {
-        res.set(areaType, new BitSet(maxId));
+        res.set(areaType, BitSet.of(maxId));
     }
     for (const map of maps) {
         res.get(map.areaType)!.set(map.id);
@@ -23,26 +23,26 @@ export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, Bit
 
 export function buildMapNameBitSetIndex(maps: MapInstance[]): Map<string, BitSet> {
     const res = new Map<string, BitSet>();
-    const maxId = maps[maps.length - 1].id + 1;
+    const maxId = maps[maps.length - 1].id;
     for (const map of maps) {
-        computeIfAbsent(res, map.name, () => new BitSet(maxId)).set(map.id);
+        computeIfAbsent(res, map.name, () => BitSet.of(maxId)).set(map.id);
     }
     optimizeIndex(res);
     return res;
 }
 
 export function buildMapsBitSetIndex(maps: MapInstance[]): BitSet {
-    const maxId = maps[maps.length - 1].id + 1;
-    const res = new BitSet(maxId);
+    const maxId = maps[maps.length - 1].id;
+    const res = BitSet.of(maxId);
     for (const map of maps) {
         res.set(map.id);
     }
-    return res.tryShrink();
+    return res.tryOptimize();
 }
 
 export function optimizeIndex<K>(bitSetIndex: Map<K, BitSet>): void {
     for (const [key, bitSet] of bitSetIndex) {
-        bitSetIndex.set(key, bitSet.tryShrink());
+        bitSetIndex.set(key, bitSet.tryOptimize());
     }
 }
 
@@ -52,12 +52,12 @@ export function optimizeIndex<K>(bitSetIndex: Map<K, BitSet>): void {
 export function shrinkMapBitSetIndex<K>(bitSetIndex: Map<K, BitSet>, maps: MapInstance[]): Map<K, BitSet> {
     const res = new Map<K, BitSet>();
     const maxId = maps.length > 0 ? maps[maps.length - 1].id : 0;
-    const keep = new BitSet(maxId + 1);
+    const keep = BitSet.of(maxId);
     for (const map of maps) {
         keep.set(map.id);
     }
     for (const [key, bitSet] of bitSetIndex) {
-        res.set(key, bitSet.and(keep).tryShrink());
+        res.set(key, bitSet.and(keep).tryOptimize());
     }
     return res;
 }

@@ -1,19 +1,42 @@
 const SHIFT = 5; // 2^5 = 32
 const MASK = 31; // 32 − 1
 const MAX_VALUE = 0xFFFFFFFF
+const SPARSE_DENSITY_THRESHOLD = 0.5;
 
-export class BitSet {
-    private readonly words: Uint32Array;
-    readonly size: number;
+export interface BitSet {
+    readonly maxIndex: number;
+    readonly sizeHint: number;
+    fill(bit: 0 | 1): void;
+    set(index: number): void;
+    get(index: number): boolean;
+    clear(index: number): void;
+    cardinality(): number;
+    and(other: BitSet): BitSet;
+    or(other: BitSet): BitSet;
+    tryOptimize(): BitSet;
+    clone(): BitSet;
+}
 
-    constructor(size: number, words: Uint32Array = new Uint32Array(Math.ceil(size / 32))) {
-        this.size = size;
+export class DenseBitSet implements BitSet {
+    readonly maxIndex: number;
+    readonly words: Uint32Array;
+
+    constructor(maxIndex: number, words: Uint32Array = new Uint32Array(Math.ceil((maxIndex + 1) / 32))) {
+        this.maxIndex = maxIndex;
         this.words = words;
+    }
+
+    toString(): string {
+        return `DenseBitSet(cardinality=${this.cardinality()}, maxIndex=${this.maxIndex}, density=${this.density()})`;
+    }
+
+    get sizeHint(): number {
+        return this.maxIndex;
     }
 
     public fill(bit: 0 | 1): void {
         this.words.fill(bit === 1 ? MAX_VALUE : 0);
-        const remainder = this.size % 32;
+        const remainder = this.maxIndex % 32;
         if (remainder > 0) {
             const mask = (1 << remainder) - 1;
             this.words[this.words.length - 1] &= mask;
@@ -37,7 +60,7 @@ export class BitSet {
     private checkIndexBounds(index: number): void {
         if (index < 0) throw new Error(`Index out of bounds: ${index} must be non-negative`);
 
-        if (index >= this.size) throw new Error(`Index out of bounds: ${index} must be less than size (${this.size})`);
+        if (index > this.maxIndex) throw new Error(`Index out of bounds: ${index} must not exceed maxIndex (${this.maxIndex})`);
     }
 
     public cardinality(): number {
@@ -60,7 +83,11 @@ export class BitSet {
         return count / this.words.length;
     }
 
-    public tryShrink(): BitSet {
+    public tryOptimize(sparseThreshold: number = SPARSE_DENSITY_THRESHOLD): BitSet {
+        if (sparseThreshold < 0 || sparseThreshold > 1) throw new Error(`sparse threshold must be between 0 and 1: ${sparseThreshold}`);
+
+        if (this.density() < sparseThreshold) return new SparseBitSet(this.indices());
+        
         let maxWordIndex = -1;
         for (let i = this.words.length - 1; i >= 0; i--) {
             if (this.words[i] !== 0) {
@@ -68,43 +95,214 @@ export class BitSet {
                 break;
             }
         }
-        if (maxWordIndex === -1) return new BitSet(0);
+        if (maxWordIndex === -1) return BitSet.of(0);
 
         if (maxWordIndex >= this.words.length - 1) return this;
 
         const newSize = (maxWordIndex + 1) * 32;
         const newWords = this.words.subarray(0, maxWordIndex + 1);
-        return new BitSet(newSize, newWords);
+        return BitSet.of(newSize, newWords);
+    }
+
+    public indices(): number[] {
+        const res: number[] = [];
+        for (let i = 0; i < this.words.length; i++) {
+            const word = this.words[i];
+            if (word === 0) continue;
+
+            for (let j = 0; j < 32; j++) {
+                if ((word & (1 << j)) !== 0) {
+                    const index = (i * 32) + j;
+                    if (index <= this.maxIndex) {
+                        res.push(index);
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     public and(other: BitSet): BitSet {
-        if (this.size > other.size) return other.and(this); // result BitSet may shrink
+        if (this.sizeHint > other.sizeHint) return other.and(this); // result BitSet may shrink
 
-        const result = new BitSet(this.size);
-        for (let i = 0; i < this.words.length; i++) {
-            result.words[i] = this.words[i] & other.words[i];
+        if (other instanceof DenseBitSet) {
+            const res = new DenseBitSet(this.maxIndex);
+            for (let i = 0; i < this.words.length; i++) {
+                res.words[i] = this.words[i] & other.words[i];
+            }
+            return res;
+        } else {
+            return other.and(this);
         }
-        return result;
     }
 
     public or(other: BitSet): BitSet {
-        if (this.size < other.size) return other.or(this); // result BitSet may grow
+        if (this.sizeHint < other.sizeHint) return other.or(this); // result BitSet may grow
 
-        const result = new BitSet(this.size);
-        for (let i = 0; i < this.words.length; i++) {
-            result.words[i] = this.words[i] | other.words[i];
+        if (other instanceof DenseBitSet) {
+            const res = new DenseBitSet(this.maxIndex);
+            for (let i = 0; i < this.words.length; i++) {
+                res.words[i] = this.words[i] | other.words[i];
+            }
+            return res;
+        } else {
+            return other.or(this);
         }
-        return result;
     }
 
     public clone(): BitSet {
-        const newBitSet = new BitSet(this.size);
-        newBitSet.words.set(this.words);
-        return newBitSet;
+        return new DenseBitSet(this.maxIndex, this.words.slice());
+    }
+} 
+
+export class SparseBitSet implements BitSet {
+    indices: number[];
+
+    constructor(indices: number[] = []) {
+        this.indices = indices;
     }
 
-    public static andAll(...bitSets: (BitSet | undefined)[]): BitSet | undefined {
-        const sizeOrder = bitSets.filter(b => b !== undefined).toSorted((a, b) => a.size - b.size);
+    toString(): string {
+        return `SparseBitSet(cardinality=${this.cardinality()}, maxIndex=${this.maxIndex}, density=${this.density()})`;
+    }
+
+    get sizeHint(): number {
+        return this.indices.length;
+    }
+
+    get maxIndex(): number {
+        return this.indices.length > 0 ? this.indices[this.indices.length - 1] : -1;
+    }
+
+    fill(bit: 0 | 1): void {
+        if (bit === 1) {
+            this.indices = Array.from({ length: this.indices.length }, (_, i) => i);
+        } else {
+            this.indices = [];
+        }
+    }
+
+    set(index: number): void {
+        const insertionPoint = this.binarySearch(index);
+        if (insertionPoint < 0) {
+            this.indices.splice(~insertionPoint, 0, index);
+        }
+    }
+
+    get(index: number): boolean {
+        return this.binarySearch(index) >= 0;
+    }
+
+    clear(index: number): void {
+        const insertionPoint = this.binarySearch(index);
+        if (insertionPoint >= 0) {
+            this.indices.splice(insertionPoint, 1);
+        }
+    }
+
+    cardinality(): number {
+        return this.indices.length;
+    }
+
+    density(): number {
+        // TODO maybe calculate density as if this was a DenseBitSet
+        return 1;
+    }
+
+    tryOptimize(): BitSet {
+        // TODO maybe convert to DenseBitSet if density is high enough (useful when starting off as a SparseBitSet)
+        return this;
+    }
+
+    and(other: BitSet): BitSet {
+        if (other instanceof SparseBitSet) {
+            const newIndices: number[] = [];
+            let i = 0, j = 0;
+            while (i < this.indices.length && j < other.indices.length) {
+                if (this.indices[i] < other.indices[j]) {
+                    i++;
+                } else if (this.indices[i] > other.indices[j]) {
+                    j++;
+                } else {
+                    newIndices.push(this.indices[i]);
+                    i++;
+                    j++;
+                }
+            }
+            return new SparseBitSet(newIndices);
+        } else {
+            const newIndices = this.indices.filter(index => index < other.maxIndex && other.get(index));
+            return new SparseBitSet(newIndices);
+        }
+    }
+
+    or(other: BitSet): BitSet {
+        if (other instanceof SparseBitSet) {
+            const newIndices: number[] = [];
+            let i = 0, j = 0;
+            while (i < this.indices.length || j < other.indices.length) {
+                if (i < this.indices.length && (j >= other.indices.length || this.indices[i] < other.indices[j])) {
+                    newIndices.push(this.indices[i]);
+                    i++;
+                } else if (j < other.indices.length && (i >= this.indices.length || other.indices[j] < this.indices[i])) {
+                    newIndices.push(other.indices[j]);
+                    j++;
+                } else if (i < this.indices.length && j < other.indices.length) { // they are equal
+                    newIndices.push(this.indices[i]);
+                    i++;
+                    j++;
+                }
+            }
+            return new SparseBitSet(newIndices);
+        } else if (other instanceof DenseBitSet) {
+            const res = new DenseBitSet(Math.max(this.maxIndex, other.maxIndex));
+            res.words.set(other.words);
+            for (const index of this.indices) {
+                res.set(index);
+            }
+            return res;
+        }
+        throw new Error(`unsupported BitSet impl: ${other.constructor.name}`);
+    }
+
+    clone(): BitSet {
+        return new SparseBitSet(this.indices.slice());
+    }
+
+    private binarySearch(value: number): number {
+        let low = 0;
+        let high = this.indices.length - 1;
+
+        while (low <= high) {
+            const mid = (low + high) >>> 1;
+            const midVal = this.indices[mid];
+
+            if (midVal < value) {
+                low = mid + 1;
+            } else if (midVal > value) {
+                high = mid - 1;
+            } else {
+                return mid; 
+            }
+        }
+        return ~low;
+    }
+}
+
+export namespace BitSet {
+
+    export function ofDense(size: number, words: Uint32Array = new Uint32Array(Math.ceil(size / 32))): BitSet {
+        return new DenseBitSet(size, words);
+    }
+
+    export function ofSparse(indices: number[] = []): BitSet {
+        return new SparseBitSet(indices);
+    }
+
+    export const of = ofDense;
+    
+    export function andAll(...bitSets: (BitSet | undefined)[]): BitSet | undefined {
+        const sizeOrder = bitSets.filter(b => b !== undefined).toSorted((a, b) => a.sizeHint - b.sizeHint);
         if (sizeOrder.length === 0) return undefined;
 
         let res = sizeOrder[0];
@@ -114,7 +312,7 @@ export class BitSet {
         return res;
     }
 
-    public static orAll(...bitSets: (BitSet | undefined)[]): BitSet | undefined {
+    export function orAll(...bitSets: (BitSet | undefined)[]): BitSet | undefined {
         if (bitSets.length === 0) return undefined;
 
         let res = bitSets[0];
@@ -129,33 +327,45 @@ export class BitSet {
         return res;
     }
 
-    public static equals(a: BitSet | undefined, b: BitSet | undefined): boolean {
+    export function equals(a: BitSet | undefined, b: BitSet | undefined): boolean {
         if (a === b) return true;
 
         if (!a || !b) return false;
 
-        if (a.size < b.size) {
+        if (a.sizeHint < b.sizeHint) {
             [a, b] = [b, a];
         }
 
-        if (a.size > b.size) {
-            // test if a was shrunk and b wasn't
-            for (let i = b.words.length; i < a.words.length; i++) {
-                if (a.words[i] !== 0) return false;
+        if (a instanceof DenseBitSet && b instanceof DenseBitSet) {
+            if (a.sizeHint > b.sizeHint) {
+                // test if a was shrunk and b wasn't
+                for (let i = b.words.length; i < a.words.length; i++) {
+                    if (a.words[i] !== 0) return false;
+                }
             }
-        }
 
-        for (let i = 0; i < b.words.length; i++) {
-            if (a.words[i] !== b.words[i]) return false;
+            for (let i = 0; i < b.words.length; i++) {
+                if (a.words[i] !== b.words[i]) return false;
+            }
+        } else {
+            if (a.cardinality() !== b.cardinality()) return false;
+            
+            let sparse: SparseBitSet;
+            let other: BitSet;
+            if (a instanceof SparseBitSet) {
+                sparse = a;
+                other = b;
+            } else if (b instanceof SparseBitSet) {
+                sparse = b;
+                other = a;
+            } else {
+                throw new Error("illegal state: expected a sparse bitset.");
+            }
+
+            for (const index of sparse.indices) {
+                if (!other.get(index)) return false;
+            }
         }
         return true;
     }
-
-    public static fromIndices(size: number, indices: number[]): BitSet {
-        const bitset = new BitSet(size);
-        for (const index of indices) {
-            bitset.set(index);
-        }
-        return bitset;
-    }
-} 
+}

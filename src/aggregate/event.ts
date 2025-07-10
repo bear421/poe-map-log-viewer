@@ -12,7 +12,7 @@ export function buildEventBitSetIndex(maps: MapInstance[], events: LogEvent[]): 
     const res = new Map<EventName, BitSet>();
     const maxId = maps[maps.length - 1].id;
     for (const eventName of relevantEventNames) {
-        res.set(eventName, new BitSet(maxId + 1));
+        res.set(eventName, BitSet.of(maxId));
     }
     let prevHiIx = 0;
     for (const map of maps) {
@@ -33,7 +33,7 @@ export function buildEventBitSetIndex(maps: MapInstance[], events: LogEvent[]): 
         prevHiIx = hiIx;
     }
     for (const [key, bitSet] of res) {
-        res.set(key, bitSet.tryShrink());
+        res.set(key, bitSet.tryOptimize());
     }
     return res;
 }
