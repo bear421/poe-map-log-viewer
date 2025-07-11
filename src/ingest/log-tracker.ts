@@ -62,7 +62,7 @@ export class AreaInfo {
 
 }
 
-class XPSnapshot {
+export class XPSnapshot {
     id: string;
     ts: number;
     xp: number;
@@ -418,6 +418,17 @@ export class MapInstance {
         if (words.length === 0) {
             return name;
         }
+        return words.join(' ');
+    }
+
+    static labelForName(name: string): string {
+        const zoneInfo = getZoneInfo(name);
+        if (zoneInfo) return zoneInfo.label;
+
+        const normName = name.replace(/(^MapUnique)|(^MapWorlds)|(^Map)|(_NoBoss$)/gi, '');
+        const words = normName.match(/[A-Z][a-z]*|[a-z]+/g) || [];
+        if (words.length === 0) return normName;
+        
         return words.join(' ');
     }
 

@@ -129,13 +129,97 @@ export function logTook(name: string, then: number, logThresholdMs: number = 10)
     return took;
 }
 
-export function checkContiguous<T>(array: T[], extractValue: (t: T) => number): void {
-    for (let i = 0; i < array.length - 1; i++) {
-        const value = extractValue(array[i]);
-        const nextValue = extractValue(array[i + 1]);
-        if (value > nextValue) {
-            console.error(`array[${i}] is not contiguous: ${value} > ${nextValue}`, array[i], array[i + 1], array);
-            throw new Error(`array[${i}] is not contiguous: ${value} > ${nextValue}`);
+
+export class ContiguousArray<T extends {ts: number}> extends Array<T> {
+    push(...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length > 0) {
+                const tail = this[this.length - 1];
+                const itemHead = items[0];
+                if (itemHead.ts < tail.ts) {
+                    throw new Error(`new element precedes prior element: ${itemHead.ts} < ${tail.ts}`);
+                }
+            }
+        }
+        return super.push(...items);
+    }
+
+    unshift(...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length) {
+                const head = this[0];
+                const itemTail = items[items.length - 1];
+                if (itemTail.ts > head.ts) {
+                    throw new Error(`new tail[${items.length - 1}] succeeds current head[0]: ${itemTail.ts} > ${head.ts}`);
+                }
+            }
+        }
+        return super.unshift(...items);
+    }
+
+    checkedSet(ix: number, item: T) {
+        if (ix < 0 || ix >= this.length) {
+            throw new Error(`index out of bounds: ${ix} is not in range [0, ${this.length})`);
+        }
+        if (ix > 0) {
+            const prev = this[ix - 1];
+            if (item.ts < prev.ts) {
+                throw new Error(`new element precedes prior element: ${item.ts} < ${prev.ts}`);
+            }
+        }
+        if (ix < this.length - 1) {
+            const next = this[ix + 1];
+            if (item.ts > next.ts) {
+                throw new Error(`new element succeeds next element: ${item.ts} > ${next.ts}`);
+            }
+        }
+        super[ix] = item;
+    }
+
+    sort(): this {
+        throw new Error("must not sort a contiguous array");
+    }
+
+    reverse(): this {
+        throw new Error("must not reverse a contiguous array");
+    }
+
+    copyWithin(): this {
+        throw new Error("unsupported");
+    }
+
+    fill(): this {
+        throw new Error("unsupported");
+    }
+
+    splice(ix: number, delCount: number, ...items: T[]) {
+        if (items.length) {
+            checkContiguous(items);
+            if (this.length) {
+                if (items[0].ts < this[ix - 1].ts) {
+                    throw new Error(`new head[0] precedes prior element: ${items[0].ts} < ${this[ix - 1].ts}`);
+                }
+                if (items[items.length - 1].ts > this[ix].ts) {
+                    throw new Error(`new tail[${items.length - 1}] precedes prior element: ${items[items.length - 1].ts} > ${this[ix].ts}`);
+                }
+            }
+        }
+        return super.splice(ix, delCount, ...items);
+    }
+}
+
+export function checkContiguous<T extends {ts: number}>(items: T[]) {
+    for (let i = 0; i < items.length - 1; i++) {
+        const prev = items[i];
+        const next = items[i + 1];
+        if (prev.ts > next.ts) {
+            const e = new Error(`element[${i}] precedes element[${i + 1}]: ${next.ts} < ${prev.ts}`,
+                { cause: { prev, next } }
+            );
+            console.error(e, e.cause);
+            throw e;
         }
     }
 }

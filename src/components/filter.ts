@@ -1,4 +1,4 @@
-import { AreaType, areaTypeMeta } from '../ingest/log-tracker';
+import { AreaType, areaTypeMeta, MapInstance } from '../ingest/log-tracker';
 import { Filter } from "../aggregate/filter";
 import { EventName, eventMeta } from '../ingest/events';
 import { BaseComponent } from './base-component';
@@ -116,7 +116,7 @@ export class FilterComponent extends BaseComponent {
             operator: 'OR',
             selectedOptions: new Set(),
             getBitsetIndex: () => this.data!.base.mapNameBitSetIndex,
-            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name })),
+            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name: MapInstance.labelForName(name) })),
         };
 
         const eventFacet: Facet<EventName> = {
