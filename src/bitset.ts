@@ -6,7 +6,6 @@ const SPARSE_DENSITY_THRESHOLD = 0.5;
 export interface BitSet {
     readonly maxIndex: number;
     readonly sizeHint: number;
-    fill(bit: 0 | 1): void;
     set(index: number): void;
     get(index: number): boolean;
     clear(index: number): void;
@@ -32,15 +31,6 @@ export class DenseBitSet implements BitSet {
 
     get sizeHint(): number {
         return this.maxIndex;
-    }
-
-    public fill(bit: 0 | 1): void {
-        this.words.fill(bit === 1 ? MAX_VALUE : 0);
-        const remainder = this.maxIndex % 32;
-        if (remainder > 0) {
-            const mask = (1 << remainder) - 1;
-            this.words[this.words.length - 1] &= mask;
-        }
     }
 
     public set(index: number): void {
@@ -95,7 +85,7 @@ export class DenseBitSet implements BitSet {
                 break;
             }
         }
-        if (maxWordIndex === -1) return BitSet.of(0);
+        if (maxWordIndex === -1) return BitSet.empty();
 
         if (maxWordIndex >= this.words.length - 1) return this;
 
@@ -172,14 +162,6 @@ export class SparseBitSet implements BitSet {
 
     get maxIndex(): number {
         return this.indices.length > 0 ? this.indices[this.indices.length - 1] : -1;
-    }
-
-    fill(bit: 0 | 1): void {
-        if (bit === 1) {
-            this.indices = Array.from({ length: this.indices.length }, (_, i) => i);
-        } else {
-            this.indices = [];
-        }
     }
 
     set(index: number): void {
@@ -300,6 +282,10 @@ export namespace BitSet {
     }
 
     export const of = ofDense;
+
+    export function empty(): BitSet {
+        return ofDense(0);
+    }
     
     export function andAll(...bitSets: (BitSet | undefined)[]): BitSet | undefined {
         const sizeOrder = bitSets.filter(b => b !== undefined).toSorted((a, b) => a.sizeHint - b.sizeHint);

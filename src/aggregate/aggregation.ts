@@ -520,6 +520,7 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
                 case Metric.loadTime:
                     return map.span.loadTime;
                 case Metric.campaignTime:
+                    // return agg.isCampaignMap(map) ? MapSpan.mapTimePlusIdle(map.span) : 0;
                     // FIXME should only count time until campaign is completed (per character), e.g. once the final zone is reached, stop counting campaign zones towards campaign time
                     const zoneInfo = getZoneInfo(map.name, map.areaLevel);
                     return zoneInfo ? MapSpan.mapTimePlusIdle(map.span) : 0;

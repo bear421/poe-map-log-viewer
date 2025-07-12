@@ -57,7 +57,7 @@ export class AreaInfo {
     }
 
     get isHideoutOrTown(): boolean {
-        return this.seed === 1;
+        return this.seed === 1 || this.name === "KalguuranSettlersLeague";
     }
 
 }

@@ -3,16 +3,18 @@ import { ContiguousArray } from "../util";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent } from "../ingest/events";
 import { MapInstance } from "../ingest/log-tracker";
 import { FrameBarrier } from "../util";
-import { binarySearchFindLast, binarySearchFindLastIx } from "../binary-search";
+import { binarySearchFindLast, binarySearchFindLastIx, binarySearchRange } from "../binary-search";
 import { computeIfAbsent } from "../util";
 import { isFeatureSupportedAt, Feature } from "../data/log-versions";
 import { Segmentation } from "./segmentation";
+import { getZoneInfo } from "../data/zone_table";
 
 export interface CharacterInfo {
     name: string;
     level: number;
     ascendancy: string;
     createdTs: number;
+    campaignCompletedTs: number;
     lastPlayedTs: number;
 }
 
@@ -120,6 +122,7 @@ export async function buildCharacterAggregation(_: MapInstance[], events: LogEve
     const foreignCharacters = determineForeignCharacters(events);
     const characterLevelIndex = new Map<string, ContiguousArray<LevelUpEvent|SetCharacterEvent>>();
     const characterTsIndex = new ContiguousArray<AnyCharacterEvent>();
+    const zoneCompletionTsIndex = new Map<string, number>();
     // expands the supplied and prior's character's adjacent character level range by appending a setCharacter event to both
     const handleCharacterSwitch = (ts: number, character: string, ascendancy: string, level: number, eventLoopIndex: number) => {
         // expand the range of the prior character, unless this is the first character
@@ -301,6 +304,16 @@ export async function buildCharacterAggregation(_: MapInstance[], events: LogEve
             
             handleCharacterEvent(event, i);
             break;
+            case "hideoutEntered":
+                const zoneInfo = getZoneInfo(event.detail.areaName);
+                if (zoneInfo?.campaignCompletionIndicator) {
+                    const characterEvent = characterTsIndex[characterTsIndex.length - 1];
+                    if (characterEvent) {
+                        computeIfAbsent(zoneCompletionTsIndex, characterEvent.detail.character, () => event.ts);
+                    }
+                    break;
+                }
+                break;
         }
     }
     // create tail event for last active character, otherwise, there is a gap at the end
@@ -430,12 +443,14 @@ export async function buildCharacterAggregation(_: MapInstance[], events: LogEve
         const lastLevelEvent = levelIndex[levelIndex.length - 1];
         const level = lastLevelEvent.detail.level;
         const ascendancy = lastLevelEvent.detail.ascendancy;
+        const campaignCompletedTs = zoneCompletionTsIndex.get(charName) ?? -1;
         const lastPlayedTs = characterTsIndex.findLast(e => e.detail.character === charName)!.ts;
         characters.push({
             name: charName,
             level,
             ascendancy,
             createdTs: levelIndex[0].ts,
+            campaignCompletedTs,
             lastPlayedTs,
         });
     }

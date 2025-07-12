@@ -10,7 +10,7 @@ const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as 
  */
 export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, BitSet> {
     const res = new Map<AreaType, BitSet>();
-    const maxId = maps[maps.length - 1].id;
+    const maxId = maps.length > 0 ? maps[maps.length - 1].id : 0;
     for (const areaType of areaTypes) {
         res.set(areaType, BitSet.of(maxId));
     }
@@ -23,7 +23,7 @@ export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, Bit
 
 export function buildMapNameBitSetIndex(maps: MapInstance[]): Map<string, BitSet> {
     const res = new Map<string, BitSet>();
-    const maxId = maps[maps.length - 1].id;
+    const maxId = maps.length > 0 ? maps[maps.length - 1].id : 0;
     for (const map of maps) {
         computeIfAbsent(res, map.name, () => BitSet.of(maxId)).set(map.id);
     }
@@ -32,6 +32,8 @@ export function buildMapNameBitSetIndex(maps: MapInstance[]): Map<string, BitSet
 }
 
 export function buildMapsBitSetIndex(maps: MapInstance[]): BitSet {
+    if (maps.length === 0) return BitSet.empty();
+
     const maxId = maps[maps.length - 1].id;
     const res = BitSet.of(maxId);
     for (const map of maps) {

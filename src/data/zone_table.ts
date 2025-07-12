@@ -1,22 +1,14 @@
 class ZoneInfo {
-    label: string;
-    act: number;
-    areaLevel: number;
-    bosses: string[];
 
-    constructor(label: string, act: number, areaLevel: number, bosses: string[]) {
-        this.label = label;
-        this.act = act;
-        this.areaLevel = areaLevel;
-        this.bosses = bosses;
-    }
+    constructor(readonly label: string, readonly act: number, readonly areaLevel: number, readonly bosses: string[], readonly campaignCompletionIndicator: boolean = false) {}
 
     get url(): string {
         return `https://poe2db.tw/us/${this.label.replace(/ /g, "_")}`;
     }
 }
 
-const ZI = (label: string, act: number, areaLevel: number, bosses: string[]) => new ZoneInfo(label, act, areaLevel, bosses);
+const ZI = (label: string, act: number, areaLevel: number, bosses: string[], campaignCompletionIndicator: boolean = false) => 
+    new ZoneInfo(label, act, areaLevel, bosses, campaignCompletionIndicator);
 
 const ZONE_TABLE_POE1: Record<string, ZoneInfo> = {
     /* Act 1 */
@@ -181,7 +173,8 @@ const ZONE_TABLE_POE1: Record<string, ZoneInfo> = {
     "2_10_6":    ZI("The Feeding Trough", 10, 67, ["Kitava, the Insatiable", "Kitava's Herald"]),
     "2_10_7":    ZI("The Control Blocks", 10, 66, ["Vilenta", "Heretical Adjudicator"]),
     "2_10_8":    ZI("The Reliquary", 10, 67, []),
-    "2_10_9":    ZI("The Ossuary", 10, 67, ["Bone Husk", "Awoken Giant", "Bone Stalker"])
+    "2_10_9":    ZI("The Ossuary", 10, 67, ["Bone Husk", "Awoken Giant", "Bone Stalker"]),
+    "2_11_endgame_town": ZI("Karui Shores", 10, 69, [], true)
 };
 
 const ZONE_TABLE_POE2: Record<string, ZoneInfo> = {
@@ -302,7 +295,7 @@ const ZONE_TABLE_POE2: Record<string, ZoneInfo> = {
     "C_G3_16_":    ZI("Aggorat", 6, 63, ["Vaal Goliath", "Bannerbearing Zealot", "Vaal Formshifter", "Blood Priest", "Blood Priestess"]),
     "C_G3_17":    ZI("The Black Chambers", 6, 64, ["Doryani, Royal Thaumaturge", "Doryani's Triumph", "Brutal Transcendent", "Surgical Experimentalist", "Goliath Transcendent", "Shielded Transcendent"]),
     /* Endgame */
-    "G_Endgame_Town": ZI("The Ziggurat Refuge", 10, 65, [])
+    "G_Endgame_Town": ZI("The Ziggurat Refuge", 10, 65, [], true)
 }
 
 const SANCTUM_A2 = ZI("Trial of the Sekhemas (A2)", 2, 22, []);

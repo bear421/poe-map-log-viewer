@@ -3,6 +3,8 @@ import { BaseComponent } from './base-component';
 import { getZoneInfo } from '../data/zone_table';
 import { MapListComponent } from './map-list';
 import { computeIfAbsent, createElementFromHTML } from '../util';
+import { LogAggregationCube } from '../aggregate/aggregation';
+import { binarySearchFindLastIx } from '../binary-search';
 
 interface ActDefinition {
     name: string;
@@ -25,18 +27,21 @@ export class CampaignComponent extends BaseComponent {
     }
 
     protected render(): void {
-        this.categorizeMaps();
+        this.categorizeMaps(this.data!);
         this.renderPills();
         const visibility = this.actDefinitions[this.currentActIndex]?.maps.length > 0;
         this.mapListComponents.get(this.currentActIndex)?.setVisible(visibility);
     }
 
-    private categorizeMaps(): void {
+    private categorizeMaps(data: LogAggregationCube): void {
         this.actDefinitions = [];
         for (let i = 0; i < 10; i++) {
             this.actDefinitions.push({ name: `Act ${i + 1}`, maps: [], duration: 0 });
         }
-        for (const map of this.data!.maps) {
+        const characterInfo = data.filter.character ? data.characterAggregation.characters.find(c => c.name === data.filter.character) : undefined;
+        const campaignEndIx = characterInfo ? binarySearchFindLastIx(data.maps, (map) => map.span.start < characterInfo.campaignCompletedTs) : data.maps.length - 1;
+        for (let i = 0; i <= campaignEndIx; i++) {
+            const map = data.maps[i];
             const zoneInfo = getZoneInfo(map.name, map.areaLevel);
             if (zoneInfo?.act) {
                 this.actDefinitions[zoneInfo.act - 1].maps.push(map);
@@ -50,7 +55,7 @@ export class CampaignComponent extends BaseComponent {
             }
             const mapListComponent = computeIfAbsent(this.mapListComponents, index, () => new MapListComponent(contentContainer, false));
             mapListComponent.setApp(this.app!);
-            mapListComponent.updateData(this.data!, act.maps);
+            mapListComponent.updateData(data, act.maps);
         }
     }
 

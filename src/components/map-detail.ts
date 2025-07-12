@@ -233,6 +233,7 @@ export class MapDetailComponent extends BaseComponent {
                             </div>
                             <div class="col">
                                 <pre>Attributed character event: ${JSON.stringify(characterEvent, null, 2)}</pre>
+                                <pre>Character info: ${JSON.stringify(this.data!.characterAggregation.characters.find(c => c.name === characterEvent.detail.character), null, 2)}</pre>
                             </div>
                         </div>
                     </div>
