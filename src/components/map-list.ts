@@ -5,7 +5,8 @@ import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
-import { LogAggregationCube, relevantEventNames } from '../aggregate/aggregation';
+import { LogAggregationCube, MapField, MapOrder, relevantEventNames } from '../aggregate/aggregation';
+import { IdentityCachingMapSorter, sortMaps } from '../aggregate/map';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -23,8 +24,11 @@ export class MapListComponent extends BaseComponent {
     private isVirtualScrollEnabled: boolean = false;
     private virtualScroller: VirtualScroll;
     private maps: MapInstance[] = [];
+    private manualMaps?: MapInstance[];
+    private sorter?: IdentityCachingMapSorter;
+    private order: MapOrder;
 
-    constructor(container: HTMLElement, private readonly autoLoadMaps: boolean = true) {
+    constructor(container: HTMLElement, private readonly autoLoadMaps: boolean = true, initialOrder: MapOrder = {field: MapField.startedTs, ascending: false}) {
         super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
         this.mapDetailModal = new MapDetailComponent();
         this.virtualScroller = new VirtualScroll(
@@ -32,6 +36,10 @@ export class MapListComponent extends BaseComponent {
             BUFFER_ROWS,
             (startIndex, endIndex) => this.renderVirtualScrollRows(startIndex, endIndex)
         );
+        if (!this.autoLoadMaps) {
+            this.sorter = new IdentityCachingMapSorter();
+        }
+        this.order = initialOrder;
     }
 
     private renderVirtualScrollRows(startIndex: number, endIndex: number): void {
@@ -59,7 +67,9 @@ export class MapListComponent extends BaseComponent {
         if (!this.data) return;
 
         if (this.autoLoadMaps) {
-            this.maps = this.data.reversedMaps;
+            this.maps = this.data.getMapsSorted(this.order);
+        } else if (this.manualMaps) {
+            this.maps = this.sorter!.sortMaps(this.manualMaps, this.order, this.data);
         }
         this.mapDetailModal.updateData(this.data);
         this.mapDetailModal.setApp(this.app!);
@@ -70,7 +80,7 @@ export class MapListComponent extends BaseComponent {
         if (maps) {
             if (this.autoLoadMaps) throw new Error("cannot set maps when autoLoadMaps is true");
 
-            this.maps = maps;
+            this.manualMaps = maps;
         }
         await super.updateData(newData);
     }
@@ -131,8 +141,43 @@ export class MapListComponent extends BaseComponent {
             contentContainer.appendChild(this.tableElement);
         }
 
+        this.tableElement!.querySelector('thead')!.addEventListener('click', (e) => this.handleHeaderClick(e));
+        this.updateSortIndicator();
+
         if (this.tbodyElement) {
             this.hookContainer(this.tbodyElement);
+        }
+    }
+
+    private handleHeaderClick(e: MouseEvent): void {
+        const target = e.target as HTMLElement;
+        const th = target.closest('th');
+        if (!th) return;
+
+        const fieldStr = th.dataset.field;
+        if (fieldStr === undefined) return;
+
+        const field = parseInt(fieldStr, 10) as MapField;
+
+        if (this.order.field === field) {
+            this.order.ascending = !this.order.ascending;
+        } else {
+            this.order.field = field;
+            this.order.ascending = (field === MapField.name);
+        }
+        this.render();
+    }
+    
+    private updateSortIndicator(): void {
+        if (!this.tableElement) return;
+
+        this.tableElement.querySelectorAll('th .sort-indicator').forEach(icon => icon.remove());
+
+        const th = this.tableElement.querySelector(`th[data-field="${this.order.field}"]`);
+        if (th) {
+            const iconClass = this.order.ascending ? 'bi-arrow-up' : 'bi-arrow-down';
+            const icon = createElementFromHTML(`<span class="sort-indicator"> <i class="bi ${iconClass}"></i></span>`);
+            th.appendChild(icon);
         }
     }
     
@@ -141,12 +186,12 @@ export class MapListComponent extends BaseComponent {
             <table class="table table-sm table-striped table-fixed caption-top map-list-table">
                 <thead>
                     <tr>
-                        <th class="th-area">Area</th>
+                        <th class="th-area sortable" data-field="${MapField.name}">Area</th>
                         <th class="th-events">Events</th>
-                        <th class="th-time-spent">Time</th>
-                        <th class="th-entered-at">Entered At</th>
-                        <th class="th-area-level">Area Lvl</th>
-                        <th class="th-char-level">Char Lvl</th>
+                        <th class="th-time-spent sortable" data-field="${MapField.mapTimePlusIdle}">Time</th>
+                        <th class="th-entered-at sortable" data-field="${MapField.startedTs}">Entered At</th>
+                        <th class="th-area-level sortable" data-field="${MapField.areaLevel}">Area Lvl</th>
+                        <th class="th-char-level sortable" data-field="${MapField.startLevel}">Char Lvl</th>
                     </tr>
                 </thead>
                 <tbody class="align-middle"></tbody>

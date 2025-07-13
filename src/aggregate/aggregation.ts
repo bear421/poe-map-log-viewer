@@ -10,7 +10,7 @@ import { getGameVersion, getZoneInfo } from "../data/zone_table";
 import { BitSet } from "../bitset";
 import { buildEventBitSetIndex } from "./event";
 import { buildOverviewAggregation } from "./overview";
-import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, buildMapsBitSetIndex } from "./map";
+import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, buildMapsBitSetIndex, IdentityCachingMapSorter, sortMaps } from "./map";
 
 export const relevantEventNames = new Set<EventName>([
     "bossKill",
@@ -30,8 +30,22 @@ export const relevantEventNames = new Set<EventName>([
     "afkModeOff",
 ]);
 
+
+export interface MapOrder {
+    field: MapField;
+    ascending: boolean;
+}
+
+export enum MapField {
+    name,
+    startedTs,
+    areaLevel,
+    mapTimePlusIdle,
+    startLevel,
+}
+
 export class LogAggregationCube {
-    private _reversedMaps?: MapInstance[];
+    private _mapSorter = new IdentityCachingMapSorter();
     private _overview?: OverviewAggregation;
     private _messages?: Map<string, AnyMsgEvent[]>;
     private _filteredCharacters?: CharacterInfo[];
@@ -43,7 +57,11 @@ export class LogAggregationCube {
     }
 
     get reversedMaps(): MapInstance[] {
-        return this._reversedMaps ??= this.maps.toReversed();
+        return this.getMapsSorted({field: MapField.startedTs, ascending: false});
+    }
+
+    getMapsSorted(order: MapOrder): MapInstance[] {
+        return this._mapSorter.sortMaps(this.maps, order, this);
     }
 
     get simpleFilterMapsBitSet(): BitSet {

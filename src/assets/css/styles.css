@@ -241,17 +241,25 @@ body {
     width: 9.5rem;
 }
 
-.map-list-table .th-time-spent, .map-list-table .th-time-spent {
-    width: 4rem;
+.map-list-table .th-time-spent {
+    width: 4.5rem;
 }
 
-.map-list-table .th-area-level,
+.map-list-table .th-area-level {
+    width: 6rem;
+}
+
 .map-list-table .th-char-level {
-    width: 7%;
+    width: 6.5rem;
 }
 
 .map-list-table td:nth-of-type(n+3):nth-of-type(-n+6) { /* time spent, entered at, area level, char level */
     text-align: right;
+}
+
+.map-list-table th.sortable {
+    cursor: pointer;
+    user-select: none;
 }
 
 .map-list-table td {

@@ -3,7 +3,7 @@ import { BaseComponent } from './base-component';
 import { getZoneInfo } from '../data/zone_table';
 import { MapListComponent } from './map-list';
 import { computeIfAbsent, createElementFromHTML } from '../util';
-import { LogAggregationCube } from '../aggregate/aggregation';
+import { LogAggregationCube, MapField } from '../aggregate/aggregation';
 import { binarySearchFindLastIx } from '../binary-search';
 
 interface ActDefinition {
@@ -53,7 +53,7 @@ export class CampaignComponent extends BaseComponent {
             if (act.maps.length > 0) {
                 act.duration = act.maps.reduce((acc, map) => acc + MapSpan.mapTimePlusIdle(map.span), 0);
             }
-            const mapListComponent = computeIfAbsent(this.mapListComponents, index, () => new MapListComponent(contentContainer, false));
+            const mapListComponent = computeIfAbsent(this.mapListComponents, index, () => new MapListComponent(contentContainer, false, {field: MapField.startedTs, ascending: true}));
             mapListComponent.setApp(this.app!);
             mapListComponent.updateData(data, act.maps);
         }

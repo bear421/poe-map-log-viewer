@@ -1,7 +1,8 @@
-import { MapInstance } from "../ingest/log-tracker";
+import { MapInstance, MapSpan } from "../ingest/log-tracker";
 import { BitSet } from "../bitset";
 import { AreaType } from "../ingest/log-tracker";
 import { computeIfAbsent } from "../util";
+import { LogAggregationCube, MapField, MapOrder } from "./aggregation";
 
 const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as AreaType[];
 
@@ -62,4 +63,47 @@ export function shrinkMapBitSetIndex<K>(bitSetIndex: Map<K, BitSet>, maps: MapIn
         res.set(key, bitSet.and(keep).tryOptimize());
     }
     return res;
+}
+
+
+interface SortedCacheValue {
+    source: MapInstance[];
+    sorted: MapInstance[];
+}
+
+export class IdentityCachingMapSorter {
+    private _mapsSorted: Map<number, SortedCacheValue> = new Map();
+
+    sortMaps(maps: MapInstance[], order: MapOrder, agg: LogAggregationCube): MapInstance[] {
+        const key = order.field * 2 + (order.ascending ? 0 : 1);
+        const present = this._mapsSorted.get(key);
+        if (present && present.source === maps) {
+            return present.sorted;
+        }
+        const sorted = sortMaps(maps, order, agg);
+        this._mapsSorted.set(key, {source: maps, sorted});
+        return sorted;
+    }
+}
+
+export function sortMaps(maps: MapInstance[], order: MapOrder, agg: LogAggregationCube): MapInstance[] {
+    if (order.field == MapField.startedTs) {
+        return order.ascending ? maps : maps.toReversed();
+    } else {
+        const cmp = (a: MapInstance, b: MapInstance) => {
+            switch (order.field) {
+                case MapField.name:
+                    return a.name.localeCompare(b.name);
+                case MapField.areaLevel:
+                    return a.areaLevel - b.areaLevel;
+                case MapField.mapTimePlusIdle:
+                    return MapSpan.mapTimePlusIdle(a.span) - MapSpan.mapTimePlusIdle(b.span);
+                case MapField.startLevel:
+                    // TODO slow?
+                    return agg.characterAggregation.guessLevel(a.span.start) - agg.characterAggregation.guessLevel(b.span.start);
+                default: throw new Error(`unsupported map field: ${order.field}`);
+            }
+        }
+        return maps.toSorted(order.ascending ? cmp : (a, b) => cmp(b, a));
+    }
 }
