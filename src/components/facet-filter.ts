@@ -43,7 +43,7 @@ export class FacetFilterComponent extends BaseComponent {
         const facetContainer = createElementFromHTML(`
             <div class="facet-filter-container col fs-5" data-facet-id="${facet.id}">
                 <div class="position-relative">
-                    <button class="btn btn-outline-primary facet-filter-toggle d-flex justify-content-between w-100">
+                    <button class="btn btn-outline-dark facet-filter-toggle d-flex justify-content-between w-100">
                         <span>${facet.name} <span class="selected-count"></span></span>
                         <i class="bi bi-chevron-down"></i>
                     </button>

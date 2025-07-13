@@ -67,15 +67,13 @@ export class FilterComponent extends BaseComponent {
                             <div class="col-4">
                                 <button id="resetFiltersBtn" class="btn btn-outline-secondary">Reset</button>
                             </div>
-                            <div class="map-presets col-2 d-flex justify-content-between">
+                            <div class="map-presets col-4 d-flex justify-content-between">
                                 <button id="campaignBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
                                     Campaign
                                 </button>
                                 <button id="presetWhiteMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
                                     White Maps
                                 </button>
-                            </div>
-                            <div class="map-presets col-2 d-flex justify-content-between">
                                 <button id="presetYellowMapsBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">
                                     Yellow Maps
                                 </button>
@@ -83,11 +81,9 @@ export class FilterComponent extends BaseComponent {
                                     Red Maps
                                 </button>
                             </div>
-                            <div class="date-presets col-2 d-flex justify-content-between">
+                            <div class="date-presets col-4 d-flex justify-content-between">
                                 <button id="presetLastHourBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last Hour</button>
                                 <button id="presetLast24HoursBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 24 Hours</button>
-                            </div>
-                            <div class="date-presets col-2 d-flex justify-content-between">
                                 <button id="presetLast7DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 7 Days</button>
                                 <button id="presetLast30DaysBtn" class="btn btn-sm btn-outline-dark" data-bs-toggle="button">Last 30 Days</button>
                             </div>
