@@ -36,7 +36,7 @@ export class MessagesComponent extends BaseComponent {
 
         this.noResultsElement = document.createElement('p');
         this.noResultsElement.className = 'text-muted mt-2';
-        this.noResultsElement.style.display = 'none'; // Initially hidden
+        this.noResultsElement.style.display = 'none';
 
         this.resultsInfoElement = document.createElement('p');
         this.resultsInfoElement.className = 'text-muted mt-2';

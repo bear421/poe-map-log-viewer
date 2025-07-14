@@ -40,7 +40,7 @@ class FrameBarrierImpl {
     private then: number;
     private step: number;
     private checkFrequency: number;
-    constructor(private msThreshold: number = 5, initialCheckFrequency: number = 1024 * 128) {
+    constructor(initialCheckFrequency: number = 1024 * 128, private msThreshold: number = 5) {
         this.then = performance.now();
         this.step = 0;
         this.checkFrequency = initialCheckFrequency;
@@ -234,6 +234,18 @@ export function computeIfAbsent<K, V>(map: Map<K, V>, key: K, compute: () => V):
     return value;
 }
 
+export function memoize<T>(fn: () => T): () => T {
+    let done = false;
+    let value: T;
+    return () => {
+        if (!done) {
+            value = fn();
+            done = true;
+        }
+        return value;
+    };
+}
+
 declare const Popper: any;
 export class DynamicTooltip {
     private tooltipElement: HTMLElement;
@@ -343,4 +355,8 @@ export function formatDuration(milliseconds: number): string {
     }
 
     return parts.join(' ');
+}
+
+export function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
 }

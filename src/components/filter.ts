@@ -94,38 +94,36 @@ export class FilterComponent extends BaseComponent {
 
         const relevantAreaTypes = this.data!.base.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
 
-        const areaTypeFacet: Facet<AreaType> = {
-            id: 'area-type',
-            name: 'Area Type',
-            operator: 'OR',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.base.areaTypeBitSetIndex,
-            options: relevantAreaTypes.map(areaType => {
+        const areaTypeFacet: Facet<AreaType> = new Facet(
+            'areaType',
+            'Area Type',
+            relevantAreaTypes.map(areaType => {
                 const meta = areaTypeMeta[areaType];
                 return { value: areaType, name: meta.name, icon: meta.icon, color: meta.color };
             }),
-        };
+            () => this.data!.base.areaTypeBitSetIndex,
+            ['OR', 'NOT'],
+        );
 
-        const mapNameFacet: Facet<string> = {
-            id: 'map-name',
-            name: 'Map Name',
-            operator: 'OR',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.base.mapNameBitSetIndex,
-            options: Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name: MapInstance.labelForName(name) })),
-        };
+        const mapNameFacet: Facet<string> = new Facet(
+            'mapName',
+            'Map Name',
+            Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name: MapInstance.labelForName(name) })),
+            () => this.data!.base.mapNameBitSetIndex,
+            ['OR', 'NOT'],
+        );
 
-        const eventFacet: Facet<EventName> = {
-            id: 'event',
-            name: 'Events',
-            operator: 'AND',
-            selectedOptions: new Set(),
-            getBitsetIndex: () => this.data!.base.eventBitSetIndex,
-            options: Array.from(relevantEventNames).map(eventName => {
+        const eventFacet: Facet<EventName> = new Facet(
+            'event',
+            'Events',
+            Array.from(relevantEventNames).map(eventName => {
                 const meta = eventMeta[eventName];
                 return { value: eventName, name: meta.name, icon: meta.icon, color: meta.color };
             }),
-        };
+            () => this.data!.base.eventBitSetIndex,
+            ['OR', 'AND', 'NOT'],
+            'AND',
+        );
         
         const facetContainer = this.element.querySelector('.facets') as HTMLDivElement;
         const facetFilter = new FacetFilterComponent(facetContainer, [mapNameFacet, areaTypeFacet, eventFacet], async (combinedBitSet, _) => {

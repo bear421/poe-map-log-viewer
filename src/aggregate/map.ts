@@ -29,7 +29,8 @@ export function buildMapNameBitSetIndex(maps: MapInstance[]): Map<string, BitSet
         computeIfAbsent(res, map.name, () => BitSet.of(maxId)).set(map.id);
     }
     optimizeIndex(res);
-    return res;
+    const sortedEntries = Array.from(res.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    return new Map(sortedEntries);
 }
 
 export function buildMapsBitSetIndex(maps: MapInstance[]): BitSet {

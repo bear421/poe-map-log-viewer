@@ -8,13 +8,22 @@ export interface FacetOption<T> {
     color?: string;
 }
 
-export type CombinationOp = 'OR' | 'AND';
+export namespace FacetOption {
+    export const ANY_VALUE = "__any__";
+}
 
-export interface Facet<T> {
-    id: string;
-    name: string;
-    options: FacetOption<T>[];
-    getBitsetIndex: () => Map<T, BitSet>;
-    operator: CombinationOp;
-    selectedOptions: Set<T>;
-} 
+export type CombinationOp = 'OR' | 'AND' | 'NOT';
+
+export class Facet<T> {
+    constructor(
+        public readonly id: string,
+        public readonly name: string,
+        public readonly options: FacetOption<T>[],
+        public readonly getBitsetIndex: () => Map<T, BitSet>,
+        public readonly operators: CombinationOp[] = ['OR', 'AND', 'NOT'],
+        public operator: CombinationOp = operators[0],
+        public countStyle: 'abs' | 'delta' = 'abs', 
+        public selectedOptions: Set<T> = new Set(),
+        public filter: string = '',
+    ) {}
+}
