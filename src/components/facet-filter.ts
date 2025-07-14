@@ -229,6 +229,7 @@ export class FacetFilterComponent extends BaseComponent {
     }
 
     private updateCountsLazy(selection: BitSet | undefined, selectedFacetBitSets: (BitSet | undefined)[]): Map<Facet<any>, () => Promise<void>> {
+        const fb = new FrameBarrier(128);
         const getCommonContext = memoize(() => {
             const prefixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets);
             const suffixAnds = this.buildAccumulatingBitsets(selectedFacetBitSets.toReversed());
@@ -256,6 +257,8 @@ export class FacetFilterComponent extends BaseComponent {
                     }
                 }
                 for (const option of facet.options) {
+                    if (fb.shouldYield()) await fb.yield();
+
                     const isSelected = facet.selectedOptions.has(option.value);
                     let countBitSet: BitSet | undefined;
                     
@@ -269,13 +272,13 @@ export class FacetFilterComponent extends BaseComponent {
                                 onSelectBitSet = BitSet.andAll(selectedFacetBitSet, optionBitSet);
                                 break;
                             case 'OR':
-                                onSelectBitSet = BitSet.orAll(selectedFacetBitSet, optionBitSet);
+                                // if there is no other option selected, we must AND, otherwise the OR has no effect (incorrect count)
+                                onSelectBitSet = (facet.selectedOptions.size > 0 ? BitSet.orAll : BitSet.andAll)(selectedFacetBitSet, optionBitSet);
                                 break;
                             case 'NOT':
                                 onSelectBitSet = BitSet.andAll(selectedFacetBitSet, optionBitSet?.not());
                                 break;
                         }
-                        
                         countBitSet = BitSet.andAll(onSelectBitSet, otherFacetsCombinedBitSet);
                     }
 
@@ -288,7 +291,7 @@ export class FacetFilterComponent extends BaseComponent {
                     } else {
                         throw new Error(`unsupported count style: ${facet.countStyle}`);
                     }
-                    // using querySelector here is ~10x slower than getElementById, causing significant slowdown for facets with many options
+                    // using querySelector with label[for=...] here is ~10x slower than getElementById, causing significant slowdown for facets with many options
                     const countSpan = document.getElementById(`${facet.id}-${option.value}-c`);
                     if (countSpan) {
                         countSpan.textContent = count.toString();
