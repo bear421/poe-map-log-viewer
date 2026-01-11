@@ -246,6 +246,16 @@ export function memoize<T>(fn: () => T): () => T {
     };
 }
 
+export function toBitFlags(flags: Iterable<number>): number {
+    let res = 0;
+    for (const flag of flags) {
+        if (flag < 0 || flag > 31) throw new Error(`flag out of range: ${flag}`);
+        
+        res |= 1 << flag;
+    }
+    return res;
+}
+
 declare const Popper: any;
 export class DynamicTooltip {
     private tooltipElement: HTMLElement;

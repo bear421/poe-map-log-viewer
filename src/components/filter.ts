@@ -16,7 +16,7 @@ export class FilterComponent extends BaseComponent {
 
     private prevCharactersSignature: string = "";
     private facetBitSet: BitSet | undefined;
-    private filter: Filter | undefined;
+    private filter: Filter = new Filter();
     private facetFilter: FacetFilterComponent | undefined;
 
     constructor(onFilterChangeCallback: (filter: Filter) => Promise<void>, container: HTMLDivElement) {
@@ -92,7 +92,8 @@ export class FilterComponent extends BaseComponent {
                 </div>
             `;
 
-        const relevantAreaTypes = this.data!.base.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
+        const data = this.data!;
+        const relevantAreaTypes = data.base.areaTypes.filter(at => at !== AreaType.Hideout && at !== AreaType.Town);
 
         const areaTypeFacet: Facet<AreaType> = new Facet(
             'areaType',
@@ -101,32 +102,33 @@ export class FilterComponent extends BaseComponent {
                 const meta = areaTypeMeta[areaType];
                 return { value: areaType, name: meta.name, icon: meta.icon, color: meta.color };
             }),
-            () => this.data!.base.areaTypeBitSetIndex,
+            data.base.areaTypeBitSetIndex,
             ['OR', 'NOT'],
-        );
-
-        const mapNameFacet: Facet<string> = new Facet(
-            'mapName',
-            'Map Name',
-            Array.from(this.data!.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name: MapInstance.labelForName(name) })),
-            () => this.data!.base.mapNameBitSetIndex,
-            ['OR', 'NOT'],
-        );
+        ).filterEmptyOptions();
 
         const eventFacet: Facet<EventName> = new Facet(
             'event',
-            'Events',
+            'Area Events',
             Array.from(relevantEventNames).map(eventName => {
                 const meta = eventMeta[eventName];
                 return { value: eventName, name: meta.name, icon: meta.icon, color: meta.color };
             }),
-            () => this.data!.base.eventBitSetIndex,
+            data.base.eventBitSetIndex,
             ['OR', 'AND', 'NOT'],
             'AND',
-        );
-        
+        ).filterEmptyOptions();
+
+        const mapNameFacet: Facet<string> = new Facet(
+            'mapName',
+            'Map Name',
+            Array.from(data.base.mapNameBitSetIndex.keys()).map(name => ({ value: name, name: MapInstance.labelForName(name) })),
+            data.base.mapNameBitSetIndex,
+            ['OR', 'NOT'],
+        ).filterEmptyOptions();
+
+        const facets = [areaTypeFacet, eventFacet, mapNameFacet];
         const facetContainer = this.element.querySelector('.facets') as HTMLDivElement;
-        const facetFilter = new FacetFilterComponent(facetContainer, [mapNameFacet, areaTypeFacet, eventFacet], async (combinedBitSet, _) => {
+        const facetFilter = new FacetFilterComponent(facetContainer, facets, async (combinedBitSet, _) => {
             this.facetBitSet = combinedBitSet;
             await this.applyFilters();
         });
@@ -270,8 +272,13 @@ export class FilterComponent extends BaseComponent {
         await this.onFilterChange(filter);
     }
 
-    getFilter(): Filter | undefined {
+    getFilter(): Filter {
         return this.filter;
+    }
+
+    updateFilter(): void {
+        // TODO update dom
+        this.applyFilters();
     }
 
     private applyPreset(presetType: 'lastHour' | 'last24Hours' | 'last7Days' | 'last30Days' | 'campaignMaps' | 'whiteMaps' | 'yellowMaps' | 'redMaps', clickedButton: HTMLButtonElement): void {

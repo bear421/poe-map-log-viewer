@@ -1,3 +1,4 @@
+import { binarySearchFindLast } from "../binary-search";
 import { LogEvent } from "../ingest/events";
 
 export interface TSRange {
@@ -92,4 +93,8 @@ export namespace Segmentation {
         return res;
     }
 
+    export function find(segmentation: Segmentation, ts: number): TSRange | undefined {
+        const candidate = binarySearchFindLast(segmentation, (r) => ts >= r.lo);
+        return candidate && candidate.hi >= ts ? candidate : undefined;
+    }
 }

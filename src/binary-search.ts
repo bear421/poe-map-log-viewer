@@ -19,11 +19,9 @@ export function binarySearchFindFirstIx<T>(array: T[], predicate: (element: T) =
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (predicate(array[mid])) {
-            // Found a match, store it and continue searching left
             res = mid;
             right = mid - 1;
         } else {
-            // Continue searching right
             left = mid + 1;
         }
     }
@@ -35,15 +33,31 @@ export function binarySearchFindLastIx<T>(array: T[], predicate: (element: T) =>
     while (left <= right) {
         const mid = Math.floor((left + right) / 2);
         if (predicate(array[mid])) {
-            // Found a match, store it and continue searching right
             res = mid;
             left = mid + 1;
         } else {
-            // Continue searching left
             right = mid - 1;
         }
     }
     return res;
+}
+
+export function binarySearchFindExact<T>(array: T[], cmp: (element: T) => number, left = 0, right = array.length - 1): T | undefined {
+    const ix = binarySearchFindExactIx(array, cmp, left, right);
+    return ix === -1 ? undefined : array[ix];
+}
+
+export function binarySearchFindExactIx<T>(array: T[], cmp: (element: T) => number, left = 0, right = array.length - 1): number {
+    let low = left;
+    let high = right;
+    while (low <= high) {
+        const mid = (low + high) >>> 1;
+        const c = cmp(array[mid]);
+        if (c === 0) return mid;
+
+        if (c < 0) low = mid + 1; else high = mid - 1;
+    }
+    return -low;
 }
 
 export function binarySearch<T>(

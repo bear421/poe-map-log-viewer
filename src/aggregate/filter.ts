@@ -75,10 +75,10 @@ export namespace Filter {
             let ix = 0;
             const res = [];
             for (const { lo, hi } of tsBounds) {
-                const boundsLoIx = binarySearchFindFirstIx(maps, (m) => m.span.start >= lo, ix);
+                const boundsLoIx = binarySearchFindFirstIx(maps, (m) => m.start >= lo, ix);
                 if (boundsLoIx === -1) continue;
 
-                const boundsHiIx = binarySearchFindLastIx(maps, (m) => m.span.start <= hi, ix);
+                const boundsHiIx = binarySearchFindLastIx(maps, (m) => m.start <= hi, ix);
                 if (boundsHiIx === -1) continue;
 
                 if (tsBounds.length === 1 && boundsLoIx === 0 && boundsHiIx === maps.length - 1) return maps;
@@ -94,7 +94,7 @@ export namespace Filter {
         if (tsBounds.length > 0) {
             let ix = 0, hiIx = maps.length - 1;
             for (const { lo, hi } of tsBounds) {
-                const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.span.start, ix, hiIx);
+                const { loIx: boundsLoIx, hiIx: boundsHiIx } = binarySearchRange(maps, lo, hi, (m) => m.start, ix, hiIx);
                 if (boundsLoIx === -1) continue;
 
                 for (let i = boundsLoIx; i <= boundsHiIx; i++) {
@@ -116,6 +116,21 @@ export namespace Filter {
 
                 res.push(map);
             }
+        }
+        return res;
+    }
+
+    export function filterEventsByMaps(events: LogEvent[], maps: MapInstance[]): LogEvent[] {
+        const res: LogEvent[] = [];
+        let initialLeft = 0;
+        for (const map of maps) {
+            const { loIx, hiIx } = binarySearchRange(events, map.start, map.end, (e) => e.ts, initialLeft);
+            if (loIx === -1) continue;
+
+            for (let i = loIx; i <= hiIx; i++) {
+                res.push(events[i]);
+            }
+            initialLeft = hiIx + 1;
         }
         return res;
     }

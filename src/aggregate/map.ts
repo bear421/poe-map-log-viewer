@@ -1,13 +1,13 @@
-import { MapInstance, MapSpan } from "../ingest/log-tracker";
+import { MapInstance, MapMarkerType } from "../ingest/log-tracker";
 import { BitSet } from "../bitset";
 import { AreaType } from "../ingest/log-tracker";
 import { computeIfAbsent } from "../util";
-import { LogAggregationCube, MapField, MapOrder } from "./aggregation";
+import { LogAggregationCube } from "./aggregation";
 
 const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as AreaType[];
 
 /**
- * @param maps - must be ordered by id (as is the case in LogAggregationCube and BaseLogAggregation)
+ * @param maps must be ordered by id (as is the case in LogAggregationCube and BaseLogAggregation)
  */
 export function buildAreaTypeBitSetIndex(maps: MapInstance[]): Map<AreaType, BitSet> {
     const res = new Map<AreaType, BitSet>();
@@ -51,7 +51,7 @@ export function optimizeIndex<K>(bitSetIndex: Map<K, BitSet>): void {
 }
 
 /**
- * @param maps - must be ordered by id (as is the case in LogAggregationCube and BaseLogAggregation)
+ * @param maps must be ordered by id (as is the case in LogAggregationCube and BaseLogAggregation)
  */
 export function shrinkMapBitSetIndex<K>(bitSetIndex: Map<K, BitSet>, maps: MapInstance[]): Map<K, BitSet> {
     const res = new Map<K, BitSet>();
@@ -66,6 +66,19 @@ export function shrinkMapBitSetIndex<K>(bitSetIndex: Map<K, BitSet>, maps: MapIn
     return res;
 }
 
+export enum MapField {
+    name,
+    startedTs,
+    areaLevel,
+    mapTime,
+    startLevel,
+}
+
+export interface MapOrder {
+    field: MapField;
+    ascending: boolean;
+    timeContributors?: Set<MapMarkerType>;
+}
 
 interface SortedCacheValue {
     source: MapInstance[];
@@ -76,35 +89,64 @@ export class IdentityCachingMapSorter {
     private _mapsSorted: Map<number, SortedCacheValue> = new Map();
 
     sortMaps(maps: MapInstance[], order: MapOrder, agg: LogAggregationCube): MapInstance[] {
-        const key = order.field * 2 + (order.ascending ? 0 : 1);
+        let key = ((order.field << 1) | (order.ascending ? 1 : 0)) << 15;
+        if (order.field === MapField.mapTime && order.timeContributors) {
+            for (const contributor of order.timeContributors) {
+                if (contributor > 15) throw new Error(`marker exceeds max key bits: ${contributor}`);
+
+                key |= 1 << contributor;
+            }
+        }
         const present = this._mapsSorted.get(key);
-        if (present && present.source === maps) {
+        if (present?.source === maps) {
             return present.sorted;
         }
+        const presentInversed = this._mapsSorted.get(key ^ 1);
+        if (presentInversed?.source === maps) {
+            const sorted = presentInversed.sorted.toReversed();
+            this._mapsSorted.set(key, {source: maps, sorted});
+            return sorted;
+        }   
         const sorted = sortMaps(maps, order, agg);
         this._mapsSorted.set(key, {source: maps, sorted});
         return sorted;
     }
 }
 
+/**
+ * @param maps must be sorted in ascending order by start ts
+ */
 export function sortMaps(maps: MapInstance[], order: MapOrder, agg: LogAggregationCube): MapInstance[] {
     if (order.field == MapField.startedTs) {
         return order.ascending ? maps : maps.toReversed();
     } else {
-        const cmp = (a: MapInstance, b: MapInstance) => {
-            switch (order.field) {
-                case MapField.name:
-                    return a.name.localeCompare(b.name);
-                case MapField.areaLevel:
-                    return a.areaLevel - b.areaLevel;
-                case MapField.mapTimePlusIdle:
-                    return MapSpan.mapTimePlusIdle(a.span) - MapSpan.mapTimePlusIdle(b.span);
-                case MapField.startLevel:
-                    // TODO slow?
-                    return agg.characterAggregation.guessLevel(a.span.start) - agg.characterAggregation.guessLevel(b.span.start);
-                default: throw new Error(`unsupported map field: ${order.field}`);
-            }
+        let cmp: (a: MapInstance, b: MapInstance) => number;
+        
+        switch (order.field) {
+            case MapField.name:
+                cmp = (a, b) => a.name.localeCompare(b.name);
+                break;
+            case MapField.areaLevel:
+                cmp = (a, b) => a.areaLevel - b.areaLevel;
+                break;
+            case MapField.mapTime:
+                const timeCache = new Map<MapInstance, number>();
+                for (const map of maps) {
+                    timeCache.set(map, map.getTime(order.timeContributors));
+                }
+                cmp = (a, b) => timeCache.get(a)! - timeCache.get(b)!;
+                break;
+            case MapField.startLevel:
+                const levelCache = new Map<MapInstance, number>();
+                for (const map of maps) {
+                    levelCache.set(map, agg.characterAggregation.guessLevel(map.start));
+                }
+                cmp = (a, b) => levelCache.get(a)! - levelCache.get(b)!;
+                break;
+            default: 
+                throw new Error(`unsupported map field: ${order.field}`);
         }
+        
         return maps.toSorted(order.ascending ? cmp : (a, b) => cmp(b, a));
     }
 }

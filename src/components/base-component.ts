@@ -2,26 +2,31 @@ import { App } from "../app";
 import { LogAggregationCube } from "../aggregate/aggregation";
 import { Measurement } from "../util";
 
+let componentId = 0;
+
 export abstract class BaseComponent<
     TElement extends HTMLElement = HTMLElement,
     TData = LogAggregationCube,
     TContainerElement extends HTMLElement = HTMLElement
 > {
+    protected readonly id: number;
     protected readonly element: TElement;
     protected readonly containerElement: TContainerElement;
     protected readonly children: BaseComponent<any, TData, any>[] = [];
     protected parentComponent?: BaseComponent<any, TData, any>;
-    protected data: TData | null = null;
+    protected data!: TData;
+    protected app!: App; // hacky "global" state sharing for now
     protected isInitialized: boolean = false;
     protected isDataChanged: boolean = false;
     protected isVisible: boolean = false;
-    protected app?: App; // hacky "global" state sharing for now
 
     constructor(element: TElement, container: TContainerElement) {
+        this.id = ++componentId;
         this.element = element;
         this.containerElement = container;
         if (element as any !== container) {
             this.containerElement.appendChild(this.element);
+            !this.isVisible && this.element.classList.add('d-none');
         }
     }
 
@@ -55,9 +60,17 @@ export abstract class BaseComponent<
         if (visibilityChanged) {
             await this.tryRender();
             visible ? this.element.classList.remove('d-none') : this.element.classList.add('d-none');
+            for (const child of this.children) {
+                await child.setVisible(visible);
+            }
         }
+        visibilityChanged && this.visibilityChanged();
     }
-    
+
+    protected visibilityChanged(): void {
+        return;
+    }
+
     public setApp(app: App): void {
         this.app = app;
     }

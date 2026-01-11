@@ -7,13 +7,15 @@
     "dev": "vite --force --host",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "jest"
+    "test": "jest",
+    "gen-ggpk": "node scripts/gen-ggpk.mjs"
   },
   "devDependencies": {
     "@types/chart.js": "^2.9.41",
     "@types/jest": "^29.5.14",
     "@types/node": "^22.14.0",
     "jest": "^29.7.0",
+    "pathofexile-dat": "15.0.0",
     "ts-jest": "^29.3.2",
     "typescript": "^5.2.2",
     "vite": "^6.3.2"

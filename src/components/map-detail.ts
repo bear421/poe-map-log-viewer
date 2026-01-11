@@ -1,11 +1,11 @@
-import { LogLine, MapInstance } from '../ingest/log-tracker';
+import { LogLine, MapInstance, MapMarkerType } from '../ingest/log-tracker';
 import { LogEvent, eventMeta, getEventMeta } from '../ingest/events';
 import { binarySearch, BinarySearchMode } from '../binary-search';
 import { LogAggregationCube } from '../aggregate/aggregation';
 import { BaseComponent } from './base-component';
-import { Filter } from "../aggregate/filter";
 import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
+import { TSRange } from '../aggregate/segmentation';
 
 declare var bootstrap: any;
 
@@ -59,11 +59,11 @@ export class MapDetailComponent extends BaseComponent {
             if (isChecked) {
                 this.showTimeline = false;
                 if (!this.logSearchResults && this.currentMap) {
-                    const tsBounds = [{
-                        lo: this.currentMap.span.start - this.currentMap.span.loadTime - 1000 * 5,
-                        hi: (this.currentMap.span.end || Date.now()) + 1000 * 60 * 10
-                    }];
-                    logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, new Filter(tsBounds)).then(results => {
+                    const tsBounds = {
+                        lo: this.currentMap.start - this.currentMap.getTime(new Set([MapMarkerType.load])) - 1000 * 5,
+                        hi: (this.currentMap.end || Date.now()) + 1000 * 60 * 10
+                    };
+                    logWorkerService.searchLog(new RegExp(''), 1000, this.app!.getSelectedFile()!, tsBounds).then(results => {
                         this.logSearchResults = results.lines;
                         this.showTimeline = false;
                         const currentSwitchState = this.modalElement?.querySelector('#timelineSwitch') as HTMLInputElement;
@@ -112,7 +112,7 @@ export class MapDetailComponent extends BaseComponent {
         const map = this.currentMap;
         const agg = this.currentAggregation;
 
-        this.modalTitleElement.textContent = `${MapInstance.label(map)} ${new Date(map.span.start).toLocaleString()} - ${map.span.end ? new Date(map.span.end).toLocaleString() : 'Unfinished'}`;
+        this.modalTitleElement.textContent = `${MapInstance.label(map)} ${new Date(map.start).toLocaleString()} - ${map.end ? new Date(map.end).toLocaleString() : 'Unfinished'}`;
         this.modalBodyElement.innerHTML = ''; 
 
         if (this.showTimeline) {
@@ -138,9 +138,9 @@ export class MapDetailComponent extends BaseComponent {
         ));
 
         let relevantEvents: LogEvent[] = [];
-        if (agg.events && map.span.start) {
-            const searchEnd = map.span.end || Infinity;
-            const lo = binarySearch(agg.events, map.span.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
+        if (agg.events && map.start) {
+            const searchEnd = map.end || Infinity;
+            const lo = binarySearch(agg.events, map.start, (e: LogEvent) => e.ts, BinarySearchMode.FIRST);
             const hi = binarySearch(agg.events, searchEnd, (e: LogEvent) => e.ts, BinarySearchMode.LAST);
 
             if (lo !== -1 && hi !== -1 && lo <= hi) {
@@ -157,9 +157,9 @@ export class MapDetailComponent extends BaseComponent {
             el && timelineContainer.appendChild(el);
         });
 
-        if (map.span.end) {
+        if (map.end) {
             timelineContainer.appendChild(this.createTimelineEventElement(
-                map.span.end - map.span.start,
+                map.end - map.start,
                 'Map Ended',
                 '',
                 'bi-stop-circle',
@@ -167,7 +167,7 @@ export class MapDetailComponent extends BaseComponent {
             ));
         } else {
             timelineContainer.appendChild(this.createTimelineEventElement(
-                map.span.start,
+                map.start,
                 'Map In Progress / Abrupt End',
                 'End time not recorded or map is ongoing.',
                 'bi-hourglass-split',
@@ -191,11 +191,11 @@ export class MapDetailComponent extends BaseComponent {
                 let className = 'list-group-item';
                 let outOfMapBounds = pastMapEnd;
                 if (!outOfMapBounds && line.ts) {
-                    if (map.span.end && line.ts > map.span.end) {
+                    if (map.end && line.ts > map.end) {
                         pastMapEnd = true;
                         outOfMapBounds = true;
                     }
-                    if (line.ts < map.span.start) {
+                    if (line.ts < map.start) {
                         outOfMapBounds = true;
                     }
                 }
@@ -210,9 +210,9 @@ export class MapDetailComponent extends BaseComponent {
                 `);
                 listGroup.appendChild(listItem);
             }
-            let characterEvent = this.data!.characterAggregation.guessAnyEvent(map.span.start) as any;
+            let characterEvent = this.data!.characterAggregation.guessAnyEvent(map.start) as any | undefined;
             if (characterEvent && !characterEvent.detail.level) {
-                const levelEvent = this.data!.characterAggregation.guessLevelEvent(map.span.start);
+                const levelEvent = this.data!.characterAggregation.guessLevelEvent(map.start);
                 if (levelEvent) {
                     characterEvent = Object.assign({}, characterEvent);
                     characterEvent.detail.level = levelEvent.detail.level;
@@ -233,7 +233,7 @@ export class MapDetailComponent extends BaseComponent {
                             </div>
                             <div class="col">
                                 <pre>Attributed character event: ${JSON.stringify(characterEvent, null, 2)}</pre>
-                                <pre>Character info: ${JSON.stringify(this.data!.characterAggregation.characters.find(c => c.name === characterEvent.detail.character), null, 2)}</pre>
+                                <pre>Character info: ${JSON.stringify(this.data!.characterAggregation.characters.find(c => c.name === characterEvent?.detail.character), null, 2)}</pre>
                             </div>
                         </div>
                     </div>
@@ -272,7 +272,7 @@ export class MapDetailComponent extends BaseComponent {
                 return null;
         }
         details = details.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const delta = event.ts - map.span.start;
+        const delta = event.ts - map.start;
         return this.createTimelineEventElement(delta, label, details, icon, iconColorClass);
     }
 

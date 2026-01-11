@@ -1,12 +1,13 @@
-import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
+import { MapInstance, AreaType, MapMarkerType } from '../ingest/log-tracker';
 import { binarySearchRange } from '../binary-search';
 import { eventMeta, getEventMeta, LogEvent } from '../ingest/events';
 import { BaseComponent } from './base-component';
 import { MapDetailComponent } from './map-detail';
 import { createElementFromHTML, DynamicTooltip } from '../util';
 import { VirtualScroll } from '../virtual-scroll';
-import { LogAggregationCube, MapField, MapOrder, relevantEventNames } from '../aggregate/aggregation';
-import { IdentityCachingMapSorter, sortMaps } from '../aggregate/map';
+import { LogAggregationCube, relevantEventNames } from '../aggregate/aggregation';
+import { IdentityCachingMapSorter, MapField, MapOrder } from '../aggregate/map';
+import { MultiSelectComponent, MultiSelectOption } from './multi-select';
 
 const ROW_HEIGHT = 33; // Fixed height for each row
 const BUFFER_ROWS = 10; // Number of extra rows to render above/below visible area
@@ -27,9 +28,22 @@ export class MapListComponent extends BaseComponent {
     private manualMaps?: MapInstance[];
     private sorter?: IdentityCachingMapSorter;
     private order: MapOrder;
+    private selectedTimeContributors: Set<MapMarkerType> = new Set([
+        MapMarkerType.map,
+        MapMarkerType.load,
+        MapMarkerType.hideout,
+        MapMarkerType.afk,
+        MapMarkerType.pause,
+        MapMarkerType.complete,
+    ]);
 
     constructor(container: HTMLElement, private readonly autoLoadMaps: boolean = true, initialOrder: MapOrder = {field: MapField.startedTs, ascending: false}) {
-        super(createElementFromHTML('<div class="map-list-container mt-3">') as HTMLDivElement, container);
+        super(createElementFromHTML(`
+            <div class="map-list-container mt-3">
+                <div class="map-list-controls"></div>
+                <div class="map-list-content"></div>
+            </div>
+        `) as HTMLDivElement, container);
         this.mapDetailModal = new MapDetailComponent();
         this.virtualScroller = new VirtualScroll(
             ROW_HEIGHT,
@@ -39,6 +53,29 @@ export class MapListComponent extends BaseComponent {
         if (!this.autoLoadMaps) {
             this.sorter = new IdentityCachingMapSorter();
         }
+        const controls = this.element.querySelector('.map-list-controls') as HTMLDivElement;
+        const timeContributorContainer = createElementFromHTML(`<div class="row"><div class="col-4"></div></div>`);
+        controls.appendChild(timeContributorContainer);
+
+        const options: MultiSelectOption<MapMarkerType>[] = [
+            { value: MapMarkerType.map, name: 'Active Map Time', icon: 'bi-clock text-dark' },
+            { value: MapMarkerType.load, name: 'Load Time', icon: eventMeta.areaPostLoad.icon + ' ' + eventMeta.areaPostLoad.color },
+            { value: MapMarkerType.hideout, name: 'Hideout Time', icon: eventMeta.hideoutEntered.icon + ' ' + eventMeta.hideoutEntered.color },
+            { value: MapMarkerType.afk, name: 'AFK Time', icon: eventMeta.afkModeOn.icon + ' ' + eventMeta.afkModeOn.color },
+        ];
+
+        const timeContributorSelect = new MultiSelectComponent(
+            timeContributorContainer.firstElementChild as HTMLElement,
+            'Time Contributors',
+            options,
+            Array.from(this.selectedTimeContributors),
+            (selected) => {
+                this.selectedTimeContributors = selected;
+                this.order.timeContributors = selected;
+                this.updateMapView();
+            }
+        );
+        timeContributorSelect.setParentComponent(this);
         this.order = initialOrder;
     }
 
@@ -86,7 +123,7 @@ export class MapListComponent extends BaseComponent {
     }
 
     private updateMapView(): void {
-        const contentContainer = this.element;
+        const contentContainer = this.element.querySelector('.map-list-content') as HTMLDivElement;
         
         this.virtualScroller.detach();
         this.virtualScrollContainer?.remove();
@@ -188,7 +225,7 @@ export class MapListComponent extends BaseComponent {
                     <tr>
                         <th class="th-area sortable" data-field="${MapField.name}">Area</th>
                         <th class="th-events">Events</th>
-                        <th class="th-time-spent sortable" data-field="${MapField.mapTimePlusIdle}">Time</th>
+                        <th class="th-time-spent sortable" data-field="${MapField.mapTime}">Time</th>
                         <th class="th-entered-at sortable" data-field="${MapField.startedTs}">Entered At</th>
                         <th class="th-area-level sortable" data-field="${MapField.areaLevel}">Area Lvl</th>
                         <th class="th-char-level sortable" data-field="${MapField.startLevel}">Char Lvl</th>
@@ -254,15 +291,15 @@ export class MapListComponent extends BaseComponent {
             }
             mapNameLink.innerHTML = icon + ' ' + MapInstance.label(map);
             row.cells[1].innerHTML = this.renderEventsHTML(map); 
-            row.cells[2].textContent = this.formatDuration(MapSpan.mapTimePlusIdle(map.span));
-            row.cells[3].textContent = this.formatTs(map.span.start);
+            row.cells[2].textContent = this.formatDuration(map.getTime(this.selectedTimeContributors));
+            row.cells[3].textContent = this.formatTs(map.start);
             row.cells[4].textContent = map.areaLevel.toString();
-            row.cells[5].textContent = this.data!.characterAggregation.guessLevel(map.span.start).toString();
+            row.cells[5].textContent = this.data!.characterAggregation.guessLevel(map.start).toString();
         }
     }
     
     private renderEventsHTML(map: MapInstance): string {
-        const {loIx, hiIx} = binarySearchRange(this.data!.events, map.span.start, map.span.end, (e) => e.ts);
+        const {loIx, hiIx} = binarySearchRange(this.data!.events, map.start, map.end, (e) => e.ts);
         if (loIx === -1) return "";
 
         let eventsHTML = "";
@@ -302,7 +339,7 @@ export class MapListComponent extends BaseComponent {
                     const map = maps[mapIndex];
                     if (!map) return;
 
-                    const { loIx, hiIx } = binarySearchRange(this.data.events, map.span.start, map.span.end, (ev) => ev.ts);
+                    const { loIx, hiIx } = binarySearchRange(this.data.events, map.start, map.end, (ev) => ev.ts);
                     if (loIx === -1) return;
 
                     let currentEventForTooltip: LogEvent | null = null;
@@ -327,7 +364,7 @@ export class MapListComponent extends BaseComponent {
                             const labelSpan = tooltipInner.querySelector('.event-label') as HTMLElement;
 
                             if (offsetSpan && labelSpan) {
-                                const eventTimeOffsetMs = currentEventForTooltip.ts - map.span.start;
+                                const eventTimeOffsetMs = currentEventForTooltip.ts - map.start;
                                 offsetSpan.textContent = `${this.formatDuration(eventTimeOffsetMs)}`;
                                 
                                 const meta = getEventMeta(currentEventForTooltip);

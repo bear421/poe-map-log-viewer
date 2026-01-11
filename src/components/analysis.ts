@@ -57,6 +57,9 @@ export class AnalysisComponent extends BaseComponent {
                         <option value="${Dimension.characterLevel}">Character Level</option>
                         <option value="${Dimension.areaLevel}">Area Level</option>
                         <option value="${Dimension.date}">Date</option>
+                        <option value="${Dimension.hourOfDay}">Hour of Day</option>
+                        <option value="${Dimension.hourOfSession}">Hour of Session</option>
+                        <option value="${Dimension.dayOfWeek}">Day of Week</option>
                     </select>
                 </div>
                 <div class="col-md-4">
@@ -69,12 +72,11 @@ export class AnalysisComponent extends BaseComponent {
                         <option value="${Metric.mapTime}">Map Time</option>
                         <option value="${Metric.hideoutTime}">Hideout Time</option>
                         <option value="${Metric.loadTime}">Load Time</option>
+                        <option value="${Metric.afkTime}">AFK Time</option>
                         <option value="${Metric.campaignTime}">Campaign Time</option>
                         <option value="${Metric.totalTime}">Total Time</option>
                         <option value="${Metric.bossKills}">Boss Kills</option>
                         <option value="${Metric.sessions}">Sessions</option>
-                        <option value="${Metric.totalBuysAttempted}">Total Buys Attempted</option>
-                        <option value="${Metric.salesAttempted}">Sales Attempted</option>
                     </select>
                 </div>
                 <div class="col-md-4">

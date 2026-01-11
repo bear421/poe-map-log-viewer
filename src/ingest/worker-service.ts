@@ -1,6 +1,6 @@
-import { Progress } from './log-tracker';
-import { Filter } from "../aggregate/filter";
+import { MapInstance, Progress } from './log-tracker';
 import { IngestRequest, SearchRequest, IngestResponse, SearchResponse, ErrorResponse, AnyResponse } from './worker';
+import { TSRange } from '../aggregate/segmentation';
 
 
 interface PendingRequest {
@@ -34,11 +34,10 @@ export class LogWorkerService {
         }
         switch (response.type) {
             case 'progress':
-                if (request.onProgress) {
-                    request.onProgress(response.payload); 
-                }
+                request.onProgress?.(response.payload); 
                 break;
             case 'ingest':
+                response.payload.maps.forEach(map => Object.setPrototypeOf(map, MapInstance.prototype));
             case 'search':
                 request.resolve(response.payload);
                 this.pendingRequests.delete(requestId);
@@ -66,7 +65,7 @@ export class LogWorkerService {
         });
     }
 
-    public searchLog(pattern: RegExp, limit: number, file: File, filter?: Filter, onProgress?: (progress: Progress) => void): Promise<SearchResponse['payload']> {
+    public searchLog(pattern: RegExp, limit: number, file: File, tsBounds?: TSRange, onProgress?: (progress: Progress) => void): Promise<SearchResponse['payload']> {
         return new Promise((resolve, reject) => {
             const requestId = this.nextRequestId();
             this.pendingRequests.set(requestId, { resolve, reject, onProgress });
@@ -76,7 +75,7 @@ export class LogWorkerService {
                 file,
                 pattern,
                 limit,
-                filter
+                tsBounds
             } as SearchRequest);
         });
     }

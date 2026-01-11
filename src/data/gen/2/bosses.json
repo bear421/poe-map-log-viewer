@@ -1,0 +1,521 @@
+{
+  "Rigwald": {
+    "deathCries": [
+      "...First Ones, remember me.",
+      "The Greatwolf has left me!",
+      "Forgive me, Ezomyr.",
+      "There is nothing to regret."
+    ]
+  },
+  "Drox, the Warlord": {
+    "deathCries": [
+      "Your strength... is the law...",
+      "My kingdom is yours... if you can keep it...",
+      "Time takes even the greatest of men...",
+      "Veritania... my kingdom for... Veritania..."
+    ]
+  },
+  "Al-Hezmin, the Hunter": {
+    "deathCries": [
+      "You've killed me a thousand times, but those were just dreams...",
+      "Molten One, save me from this unending nightmare!",
+      "Let me out... please, let me out...",
+      "I awaken from this nightmare... at last..."
+    ]
+  },
+  "Veritania, the Redeemer": {
+    "deathCries": [
+      "The end of the cycle of madness... until next time...",
+      "I thought myself better than you... but you and I are bound to waltz together forever...",
+      "My only consolation... is that I am not alone in this torture... see you soon...",
+      "You stand victorious, your heart's desire... the Atlas provides... your addiction..."
+    ]
+  },
+  "Baran, the Crusader": {
+    "deathCries": [
+      "Kirac... sent you? You must keep him out of the Atlas... I cannot be saved... he will find only his own doom, endlessly pursuing my rescue... he will end up... like me...\r\n\r\nTell Zana... she was right... to seal us away... Sirus must never... be...",
+      "Tell Zana... ... ...<italic>{demons}...",
+      "... tell my brother... that I cannot be saved...",
+      "Keep Kirac... out of the Atlas... at all costs...",
+      "A brief moment of sanity... it never lasts..."
+    ]
+  },
+  "Sirus, Awakener of Worlds": {
+    "deathCries": [
+      "At least I felt something...",
+      "You left me there, Zana... centuries alone in the Atlas... all I wanted was to feel something again...",
+      "Impressive... but now you will fight on <italic>{my} lands.",
+      "I feel... something... at last...",
+      "The Atlas will fuel me. Behold. ...What?! No!",
+      "I always knew it would be you... Zana... to make me feel something... one last... time..."
+    ]
+  },
+  "Oshabi": {
+    "deathCries": [
+      "I'm... undone...",
+      "Un-... natural...",
+      "Please... let this... end.",
+      "It... never... ends...",
+      "No more... no... more...",
+      "Break... the cycle..."
+    ]
+  },
+  "Vic Vox": {
+    "deathCries": [
+      "Brother!"
+    ]
+  },
+  "Vinny Vox": {
+    "deathCries": [
+      "Vic! No!"
+    ]
+  },
+  "Jamanra, The Great": {
+    "deathCries": [
+      "We will... rise... again..."
+    ]
+  },
+  "Admiral Darnaw": {
+    "deathCries": [
+      "Death from below!",
+      "That... damn... tyrant."
+    ]
+  },
+  "Friedrich Tarollo, Slave Merchant": {
+    "deathCries": [
+      "You... Stupid fools..."
+    ]
+  },
+  "Kadaris, Crimson Mayor": {
+    "deathCries": [
+      "Unlawful...",
+      "Meeting adjourned...",
+      "One with the crimson..."
+    ]
+  },
+  "Captain Clayborne, The Accursed": {
+    "deathCries": [
+      "Curses...",
+      "Death... will... find you.",
+      "Impossible...",
+      "My last... voyage...",
+      "You too... will... perish."
+    ]
+  },
+  "Ara, Sister of Light": {
+    "deathCries": [
+      "Sister--... I-...",
+      "I shall avenge, you, sister.",
+      "I... am... eclipsed."
+    ]
+  },
+  "Khor, Sister of Shadows": {
+    "deathCries": [
+      "You fought well, sister.",
+      "I am... done...",
+      "Dawn comes... at last..."
+    ]
+  },
+  "Ormud, Fiend of the Flood": {
+    "deathCries": [
+      "I... will... return...",
+      "You only delay...",
+      "Death... cannot stop... me.",
+      "Swirling death!"
+    ]
+  },
+  "The Maven": {
+    "deathCries": [
+      "Death made real."
+    ]
+  },
+  "Ciergan, Shadow Alchemist": {
+    "deathCries": [
+      "No... It's not... ready...",
+      "The work... must... (blehhhh)",
+      "So close... so...",
+      "M-... Madness..."
+    ]
+  },
+  "Ahuatotli, the Blind": {
+    "deathCries": [
+      "Atzi-... ah-...",
+      "Opil... Vaal...",
+      "Tocab--... atla-..."
+    ]
+  },
+  "Aul, the Crystal King": {
+    "deathCries": [
+      "Am-... amta...",
+      "Zurra... sha...",
+      "Ahkbo tel... zar."
+    ]
+  },
+  "Vorana, Last to Fall": {
+    "deathCries": [
+      "Death wind!",
+      "To the death!"
+    ]
+  },
+  "Uhtred": {
+    "deathCries": [
+      "Death is... no escape...",
+      "Olroth... lives..."
+    ]
+  },
+  "Finn": {
+    "deathCries": [
+      "The dark light fades...",
+      "How... unexpected..."
+    ]
+  },
+  "Lycia": {
+    "deathCries": [
+      "You have accomplished nothing... I have achieved eternal life...",
+      "You are only delaying the inevitable.",
+      "I cannot die. You know this.",
+      "Beidat beckons just beyond the door...",
+      "You've accomplished nothing.",
+      "*laughter*"
+    ]
+  },
+  "Lachlann of Endless Lament": {
+    "deathCries": [
+      "Together... at last..."
+    ]
+  },
+  "Mortimer": {
+    "deathCries": [
+      "Well done! Please come inside.",
+      "Well done! Come in and speak with the others."
+    ],
+    "alias": "The Bloated Miller"
+  },
+  "Azarian, the Forsaken Son": {
+    "deathCries": [
+      "She didn't... want me..."
+    ]
+  },
+  "Balbala": {
+    "deathCries": [
+      "I have not yet... earned my rest!"
+    ]
+  },
+  "Iktab, the Deathlord": {
+    "deathCries": [
+      "<i>{Dagok}!",
+      "<i>{Gral}!",
+      "<i>{Hak-grum}.",
+      "<i>{Nir hagok}."
+    ]
+  },
+  "Bearer Of Penitence": {
+    "deathCries": [
+      "Forgive.. me..."
+    ]
+  },
+  "Atalui, Blood Priestess": {
+    "deathCries": [
+      "Atziri!",
+      "My Queen... take my soul..."
+    ]
+  },
+  "Atazek, Blood Priest": {
+    "deathCries": [
+      "I shall live on..."
+    ]
+  },
+  "Captain Hartlin": {
+    "deathCries": [
+      "Do not... believe his lies..."
+    ]
+  },
+  "Imperial Knight": {
+    "deathCries": [
+      "I... will not be... a slave to evil!"
+    ]
+  },
+  "Viper Napuatzi": {
+    "deathCries": [
+      "A voice... calls to me...",
+      "A vast hand... reaches out...",
+      "My war... is not over!",
+      "No... I'm not ready...!",
+      "Do not let them... leave alive..."
+    ]
+  },
+  "Diamora, the Song of Death": {
+    "deathCries": [
+      "We could have been... so much more."
+    ]
+  },
+  "The Countess": {
+    "deathCries": [
+      "No! <i>{No!} My son! What have they done!",
+      "No! There is still time! We will have utopia!"
+    ]
+  },
+  "Phanos, Last Disciple of Auria": {
+    "deathCries": [
+      "You are worthy... take my staff...",
+      "Take my staff... carry on her influence...",
+      "Auria! I have found your next... bearer..."
+    ]
+  },
+  "Geonor, the Putrid Wolf": {
+    "deathCries": [
+      "The madness... It consumed my being. Oriana used it against me.",
+      "I found messages... From the desert.",
+      "Yes... Find her. Kill her. But first, please stop the madness."
+    ]
+  },
+  "Sekhema Asala": {
+    "deathCries": [
+      "The Faridun have never organized in such numbers before. They fight as if they no longer fear death!",
+      "Jamanra! I return you to the embrace of death! "
+    ]
+  },
+  "Jamanra, the Abomination": {
+    "deathCries": [
+      "All we wanted...\t",
+      "It doesn't matter... we succeeded...",
+      "I give my life gladly.",
+      "You have no idea... what you've done...",
+      "Die... foolish <i>{Sekhema}!",
+      "Tyranny's end is nigh...",
+      "The Faridun will not be forgotten...",
+      "You have accomplished... nothing. Oriana will prevail... and the Faridun will rule the Vastiri.",
+      "What are.... you waiting for... Give me.... a warrior's death!",
+      "Countess? My Queen... she gave us power... she gave us respect... We would have been fools not to try...",
+      "She's taking it... far from here... it's beyond you now.",
+      "You thought us weak... we have proven... how wrong you were...",
+      "I die a true warrior."
+    ]
+  },
+  "The King in the Mists": {
+    "deathCries": [
+      "So long as you know me, I will always exist...",
+      "Why do you hate us for wanting to exist?",
+      "This is not the end...",
+      "Hahahaha! Your path will always lead back to me..."
+    ]
+  },
+  "Doryani": {
+    "deathCries": [
+      "Gah! No! Do not fail me... Not now!",
+      "Ugh... how could this happen...? All I have done. All that I sacrificed...",
+      "Hmm... the legacy of the Vaal must be protected... I do know of a way to contain the Beast."
+    ]
+  },
+  "Rudja, Dread Engineer": {
+    "deathCries": [
+      "The Maraketh will fall!",
+      "The King will have your head!"
+    ]
+  },
+  "Xesht, We That Are One": {
+    "deathCries": [
+      "Ugh...! We That Failed..."
+    ]
+  },
+  "Ketzuli, High Priest of the Sun": {
+    "deathCries": [
+      "Kopec.. will return...",
+      "Kopec's... will...",
+      "The light shall... remain...",
+      "The Vaal will be saved!"
+    ]
+  },
+  "The Trialmaster": {
+    "deathCries": [
+      "Ugh... my service is finally over...",
+      "... And my service continues."
+    ]
+  },
+  "Zarokh, the Temporal": {
+    "deathCries": [
+      "Ugh... who are you to overthrow your fate?",
+      "Ugh, this is not the future I had forseen!",
+      "This cannot be... it is not my time...",
+      "My sand... runs out...",
+      "The sands shift, Taljari...",
+      "You would have made a worthy <i>{Sekhema}..."
+    ]
+  },
+  "The Arbiter of Ash": {
+    "deathCries": [
+      "The Mothersoul... Must prevail..."
+    ]
+  },
+  "Mysterious Entity": {
+    "deathCries": [
+      "This power serves a new master..."
+    ]
+  },
+  "Ulfred, The Afflicted": {
+    "deathCries": [
+      "Oofh... sweet relief..."
+    ]
+  },
+  "Drusian, The Artillerist": {
+    "deathCries": [
+      "Tell 'em... ol' Drusian went out like a legend..."
+    ]
+  },
+  "Squire": {
+    "deathCries": [
+      "Glad you're still alive guv!",
+      "Whew, 'least you're still fine, Boss!",
+      "Were you... close?",
+      "Terrible business this.",
+      "Oh, terrible business this.",
+      "Poor bastard...",
+      "Ooh, poor bastard...",
+      "Fought well, they did.",
+      "Nice try Boss!",
+      "You'll get 'em next time!",
+      "Ya weren't going all-out, is all!",
+      "They just caught ya off-guard, is all!",
+      "Oh, they just caught ye off-guard, is all!",
+      "They just got lucky, is all!",
+      "Bah, they just got lucky, is all!",
+      "Poor sod...",
+      "Huh... Poor sod...",
+      "That's the way life goes...",
+      "An' that's the way life goes...",
+      "Barely knew ya...",
+      "Don't end up like them eh?",
+      "Oh, you're not goin' back in there are ya?",
+      "You're not goin' back in there are ya?",
+      "Ah, maybe it's a bit too much for ya?",
+      "Maybe it's a bit too much for ya.",
+      "Ya like dyin' or somethin?",
+      "You like dyin' or somethin?",
+      "It's alright to take a rest once in a while...",
+      "Hey - It's alright to take a rest once in a while...",
+      "Gah, poor sod.",
+      "Awh, poor sod.",
+      "Eh. Barely knew 'em...",
+      "Psch. Barely knew 'em...",
+      "There another one goes...",
+      "Ain't you meant to be a party?",
+      "What was it this time hmm?",
+      "As expected...",
+      "Yeah. As expected...",
+      "Whoa, to no one's surprise...",
+      "To no one's surprise...",
+      "Life ain't fair innit?",
+      "Well well well..."
+    ]
+  },
+  "The Immured Fury": {
+    "deathCries": [
+      "I am unmade...and yet.... unchanged",
+      "This vessel breaks... but the seed remains... "
+    ]
+  },
+  "Missionary Lorandis": {
+    "deathCries": [
+      "Why did it come to this? We were trying to... save you..."
+    ]
+  },
+  "Benedictus, First Herald of Utopia": {
+    "deathCries": [
+      "My lady... you must take your leave! I will bury these fools... I will bury it all! For the Saviourrr! ",
+      "Ah! My flesh is unimportant... "
+    ]
+  },
+  "Kanu": {
+    "deathCries": [
+      "What? Wha... no no - "
+    ]
+  },
+  "Kulemak": {
+    "deathCries": [
+      "Darkness... will prevail...",
+      "You will... suffer... in time...",
+      "The light... will extinguish...",
+      "We do not... forget...",
+      "The world will be devoured... by Darkness...",
+      "We will.... be reborn!",
+      "Now choose... your fate...",
+      "Tether... your soul... to me...",
+      "The Well... sees you...",
+      "You impress... even I...",
+      "Empower... my Vessel...",
+      "Death... is never the end...",
+      "You exhaust... my vessel... for now...",
+      "We must... recover..."
+    ]
+  },
+  "Cnaeus, of the Order": {
+    "deathCries": [
+      "The Saviour...",
+      "Utopia demands..."
+    ]
+  },
+  "Siora, Blade of the Mists": {
+    "deathCries": [
+      "The Mists remain..."
+    ]
+  },
+  "Lady Elswyth": {
+    "deathCries": [
+      "He waits... beyond the veil...",
+      "I am coming, my love...",
+      "Together... even in ruin..."
+    ]
+  },
+  "Azmadi, the Faridun Prince": {
+    "deathCries": [
+      "This was to be... my coronation...",
+      "A prince denied his throne...",
+      "My empire... unborn..."
+    ]
+  },
+  "Lythara, The Wayward Spear": {
+    "deathCries": [
+      "Argh... forgive me...",
+      "Argh... was I...?"
+    ]
+  },
+  "Elzarah, the Cobra Lord": {
+    "deathCries": [
+      "The Serpent Clan shall rise again...",
+      "Strike us down... we will return..."
+    ]
+  },
+  "Oswin, The Dread Warden": {
+    "deathCries": [
+      "The Thane will have your head...",
+      "He'll flay you slow...",
+      "Your kin will rot here too..."
+    ]
+  },
+  "Vruun, Marshal of Xesht": {
+    "deathCries": [
+      "The cycle... resumes...",
+      "We persist...",
+      "The void... consumes..."
+    ]
+  },
+  "Xipocado": {
+    "deathCries": [
+      "In... con... ceivable.",
+      "What... I miscalculated...",
+      "This... is not... right!"
+    ]
+  },
+  "Pakteni, The Flesh Surgeon": {
+    "deathCries": [
+      "My creation!",
+      "Avenge me..."
+    ]
+  },
+  "Atziri": {
+    "deathCries": [
+      "Ugh... Enough of this!",
+      "Ugh! Take me pochiti! I am yours! Give me eternity!"
+    ]
+  }
+}

@@ -4,7 +4,7 @@ import { Filter } from "./aggregate/filter";
 import { LogEvent } from './ingest/events';
 import { Emotion, Mascot } from './components/mascot';
 import { FilterComponent } from './components/filter';
-import { SearchComponent } from './components/search';
+import { LogSearchComponent } from './components/log-search';
 import { MapStatsComponent } from './components/map-stats';
 import { OverviewComponent } from './components/overview';
 import { AnalysisComponent } from './components/analysis';
@@ -13,26 +13,29 @@ import { CampaignComponent } from './components/campaign';
 import { MessagesComponent } from './components/messages';
 import { LogAggregationCube, aggregateCached, clearAggregationCache } from './aggregate/aggregation';
 import { logWorkerService } from './ingest/worker-service';
+import { TwitchComponent } from './components/twitch';
 
 import './assets/css/styles.css';
 import { BaseComponent } from './components/base-component';
 import { MapListComponent } from './components/map-list';
+import { createElementFromHTML } from './util';
+import { OmniSearchComponent } from './components/omni-search';
 
 export class App {
 
     private progressBar!: HTMLDivElement;
-    private overviewTabPane!: HTMLDivElement;
-    private mapsTabPane!: HTMLDivElement;
-    private mapStatsTabPane!: HTMLDivElement;
-    private searchLogTabPane!: HTMLDivElement;
-    private analysisTabPane!: HTMLDivElement;
+    private overviewTabPane!: HTMLElement;
+    private mapsTabPane!: HTMLElement;
+    private mapStatsTabPane!: HTMLElement;
+    private searchLogTabPane!: HTMLElement;
+    private analysisTabPane!: HTMLElement;
     private currentMaps: MapInstance[] = [];
     private currentEvents: LogEvent[] = [];
     private currentAggregation: LogAggregationCube | undefined = undefined;
     private mascot!: Mascot;
     private modalMascot!: Mascot;
     private filterComponent!: FilterComponent;
-    private searchComponent!: SearchComponent;
+    private searchComponent!: LogSearchComponent;
     private mapListComponent!:  MapListComponent;
     private mapStatsComponent!: MapStatsComponent;
     private overviewComponent!: OverviewComponent;
@@ -40,15 +43,15 @@ export class App {
     private fileSelectorComponent!: FileSelectorComponent;
     private selectedFile: File | null = null;
     private campaignComponent!: CampaignComponent;
-    private campaignTabPane!: HTMLDivElement;
+    private campaignTabPane!: HTMLElement;
     private messagesComponent!: MessagesComponent;
-    private messagesTabPane!: HTMLDivElement;
+    private messagesTabPane!: HTMLElement;
     private components: BaseComponent<any>[] = [];
     private currentComponent: BaseComponent<any> | null = null;
 
     // Properties to manage UI element visibility
     private tabNavElement!: HTMLUListElement;
-    private tabContentElement!: HTMLDivElement;
+    private tabContentElement!: HTMLElement;
     private progressModalInstance!: any;
 
     constructor() {
@@ -83,22 +86,13 @@ export class App {
         titleElement.className = 'display-2';
         headerContainer.appendChild(titleElement);
 
-        const githubButton = document.createElement('a');
-        githubButton.href = 'https://github.com/bear421/poe-map-log-viewer';
-        githubButton.target = '_blank';
-        githubButton.rel = 'noopener noreferrer';
-        githubButton.className = 'btn btn-outline-secondary ms-auto mt-2';
-        githubButton.style.textDecoration = 'none';
-
-        const githubIcon = document.createElement('i');
-        githubIcon.className = 'bi bi-github me-2';
-
-        const buttonText = document.createTextNode('View on GitHub');
-
-        githubButton.appendChild(githubIcon);
-        githubButton.appendChild(buttonText);
+        const githubButton = createElementFromHTML(`
+            <a href="https://github.com/bear421/poe-map-log-viewer" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary ms-auto mt-2" style="text-decoration: none;">
+                <i class="bi bi-github me-2"></i>
+                View on GitHub
+            </a>
+        `);
         headerContainer.appendChild(githubButton);
-
         container.prepend(headerContainer);
 
         this.filterComponent = new FilterComponent(async (filter: Filter) => {
@@ -117,7 +111,7 @@ export class App {
         });
         container.appendChild(this.fileSelectorComponent.getElement());
 
-        this.searchComponent = new SearchComponent((searchTerm: string) => {
+        this.searchComponent = new LogSearchComponent((searchTerm: string) => {
             this.searchLog(searchTerm);
         });
 
@@ -189,58 +183,30 @@ export class App {
         `;
         container.appendChild(this.tabNavElement);
 
-        this.tabContentElement = document.createElement('div');
-        this.tabContentElement.className = 'tab-content d-none';
-        this.tabContentElement.id = 'resultsTabContent';
-
-        this.overviewTabPane = document.createElement('div');
-        this.overviewTabPane.className = 'tab-pane fade show active p-3 border border-top-0 rounded-bottom';
-        this.overviewTabPane.id = 'overview-tab-pane';
-        this.overviewTabPane.setAttribute('role', 'tabpanel');
-        this.overviewTabPane.setAttribute('aria-labelledby', 'overview-tab');
-        this.overviewTabPane.setAttribute('tabindex', '0');
-        
-        this.analysisTabPane = document.createElement('div');
-        this.analysisTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.analysisTabPane.id = 'analysis-tab-pane';
-        this.analysisTabPane.setAttribute('role', 'tabpanel');
-        this.analysisTabPane.setAttribute('aria-labelledby', 'analysis-tab');
-        this.analysisTabPane.setAttribute('tabindex', '0');
-        
-        this.mapsTabPane = document.createElement('div');
-        this.mapsTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.mapsTabPane.id = 'maps-tab-pane';
-        this.mapsTabPane.setAttribute('role', 'tabpanel');
-        this.mapsTabPane.setAttribute('aria-labelledby', 'maps-tab');
-        this.mapsTabPane.setAttribute('tabindex', '0');
-
-        this.mapStatsTabPane = document.createElement('div');
-        this.mapStatsTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.mapStatsTabPane.id = 'map-stats-tab-pane';
-        this.mapStatsTabPane.setAttribute('role', 'tabpanel');
-        this.mapStatsTabPane.setAttribute('aria-labelledby', 'map-stats-tab');
-        this.mapStatsTabPane.setAttribute('tabindex', '0');
-
-        this.campaignTabPane = document.createElement('div');
-        this.campaignTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.campaignTabPane.id = 'campaign-tab-pane';
-        this.campaignTabPane.setAttribute('role', 'tabpanel');
-        this.campaignTabPane.setAttribute('aria-labelledby', 'campaign-tab');
-        this.campaignTabPane.setAttribute('tabindex', '0');
-
-        this.messagesTabPane = document.createElement('div');
-        this.messagesTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.messagesTabPane.id = 'messages-tab-pane';
-        this.messagesTabPane.setAttribute('role', 'tabpanel');
-        this.messagesTabPane.setAttribute('aria-labelledby', 'messages-tab');
-        this.messagesTabPane.setAttribute('tabindex', '0');
-
-        this.searchLogTabPane = document.createElement('div');
-        this.searchLogTabPane.className = 'tab-pane fade p-3 border border-top-0 rounded-bottom';
-        this.searchLogTabPane.id = 'search-log-tab-pane';
-        this.searchLogTabPane.setAttribute('role', 'tabpanel');
-        this.searchLogTabPane.setAttribute('aria-labelledby', 'search-log-tab');
-        this.searchLogTabPane.setAttribute('tabindex', '0');
+        this.tabContentElement = createElementFromHTML(`
+            <div class="tab-content d-none" id="resultsTabContent">
+        `);
+        this.overviewTabPane = createElementFromHTML(`
+            <div class="tab-pane fade show active p-3 border border-top-0 rounded-bottom" id="overview-tab-pane">
+        `);
+        this.analysisTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="analysis-tab-pane">
+        `);
+        this.mapsTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="maps-tab-pane">
+        `);
+        this.mapStatsTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="map-stats-tab-pane">
+        `);
+        this.campaignTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="campaign-tab-pane">
+        `);
+        this.messagesTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="messages-tab-pane">
+        `);
+        this.searchLogTabPane = createElementFromHTML(`
+            <div class="tab-pane fade p-3 border border-top-0 rounded-bottom" id="search-log-tab-pane">
+        `);
         this.searchLogTabPane.appendChild(this.searchComponent.getElement());
 
         this.tabContentElement.appendChild(this.overviewTabPane);
@@ -259,7 +225,11 @@ export class App {
         this.campaignComponent = new CampaignComponent(this.campaignTabPane);
         this.messagesComponent = new MessagesComponent(this.messagesTabPane);
         this.components = [this.overviewComponent, this.mapListComponent, this.mapStatsComponent, this.campaignComponent, this.messagesComponent, this.filterComponent, this.analysisComponent];  
+        const omniSearchComponent = new OmniSearchComponent(this, document.body);
+        this.components.push(omniSearchComponent);
         this.components.forEach(component => component.setApp(this));
+
+        // new TwitchComponent(headerContainer).setVisible(true);
 
         const importJsonInput = document.createElement('input');
         importJsonInput.type = 'file';
@@ -267,6 +237,13 @@ export class App {
         importJsonInput.style.display = 'none';
         importJsonInput.id = 'import-json-input';
         container.appendChild(importJsonInput);
+    }
+
+    getComponent<T extends BaseComponent<any>>(clazz: new (...args: any[]) => T): T {
+        const component = this.components.find(c => c instanceof clazz) as T;
+        if (!component) throw new Error(`component not found: ${clazz.name}`);
+
+        return component;
     }
 
     async searchLog(searchTerm: string, filter?: Filter) {
@@ -279,7 +256,7 @@ export class App {
         }
         this.showProgress("Searching Log File...");
         try {
-            const results = await logWorkerService.searchLog(new RegExp(searchTerm, 'i'), 1000, this.selectedFile, filter, (progress) => {
+            const results = await logWorkerService.searchLog(new RegExp(searchTerm, 'i'), 1000, this.selectedFile, filter?.userTsBounds?.[0], (progress) => {
                 this.updateProgressBar(progress.bytesRead, progress.totalBytes);
             });
             this.displaySearchLogResults(results.lines);
@@ -341,6 +318,25 @@ export class App {
         await informComponentOnTabChange('analysis-tab', this.analysisComponent);
         await informComponentOnTabChange('campaign-tab', this.campaignComponent);
         await informComponentOnTabChange('messages-tab', this.messagesComponent);
+    }
+
+    public showTabByName(name: string): void {
+        const id = {
+            'overview': 'overview-tab',
+            'analysis': 'analysis-tab',
+            'maps': 'maps-tab',
+            'map-stats': 'map-stats-tab',
+            'campaign': 'campaign-tab',
+            'messages': 'messages-tab',
+            'search-log': 'search-log-tab'
+        }[name];
+        if (!id) throw new Error(`unknown tab name: ${name}`);
+
+        const btn = document.getElementById(id);
+        if (!btn) throw new Error(`tab button not found: ${id}`);
+
+        const tabInstance = bootstrap.Tab.getOrCreateInstance(btn);
+        tabInstance.show();
     }
 
     private async handleData(maps: MapInstance[], events: LogEvent[]) {

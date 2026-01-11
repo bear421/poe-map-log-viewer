@@ -1,0 +1,442 @@
+{
+  "Gravicius": {
+    "deathCries": [
+      "I fought for God. Who do you fight for, exile?",
+      "My place is at God's side. Where will your journey end, exile?"
+    ]
+  },
+  "Piety": {
+    "deathCries": [
+      "Damn you!",
+      "This is what I get for trying to be a bloody hero. An honest death... the only redemption I was ever likely to get. You know, it's a question that's always haunted me... whose will be the last face I see. I like the answer. Go, my pretty champion. I want that fine arse of yours to be the last thing I see.",
+      "This is what I get for trying to be a bloody hero. Just before you murdered me in the Lunaris, Shadow, I thought you were about to steal my destiny from me. As it turns out, you gave me back my freedom. So go on, shadow boy, and do what you do best. Murder Malachai.",
+      "This is what I get for trying to be a bloody saviour. I've seen, felt... been things that you can't imagine, heretic, and I don't regret a damned moment of it. So go. Finish what we started. And when I find out if this God of yours is real or not, I'll be sure to let you know.",
+      "This is what I get for trying to be a bloody hero. Who'd have thought you'd be so suited to the role? I was convinced I'd made a fatal mistake in sparing your life in Axiom Prison. Fatal, yes, but a mistake? No. Go now, sister. It's up to you to teach Malachai the true definition of Nightmare. \r\n",
+      "This is what I get for trying to be a bloody hero. I was so sure that I was creating a prouder world, and I thought the Karui beneath such a future. I was wrong. Leave me, Marauder. I've got some explaining to do... to my Ancestors. You go and honour Malachai's head with a place on your belt.",
+      "You... you were born for this. But you've always known that, haven't you. I've strived my whole life to make something better, of the world, of myself. You have simply lived, and the irony is, that's all that either of us ever needed to do. So go, finish the hunt, Ranger. Do what comes so naturally to you.",
+      "This is what I get for trying to be a bloody hero. Not that long ago, you represented all that I hated. But there you stand, possessing the one thing I have always dreamed of. A chance to change the world. Go on then. I've played my part. I asked the difficult questions. Now it's up to you to get the answers."
+    ]
+  },
+  "Dominus": {
+    "deathCries": [
+      "This world is an illusion, exile."
+    ]
+  },
+  "Zana, Master Cartographer": {
+    "deathCries": [
+      "I'm so sorry father. I'm so sorry it came to this.",
+      "The man Sirus was and the entity that destroyed our homes are night and day. Whatever happened to him in the wake of The Elder's sealing stole the very essence of his being. When Sirus returned, he returned incomplete, missing that vital essence.\r\n\r\nNot long ago I might've held hope that we'd find that piece out there, that the true Sirus might be drifting through the Atlas, waiting for us to find him and bring him home. \r\n\r\nI know better now than to hope. Perhaps the Atlas has eroded that part of me, as well."
+    ]
+  },
+  "Maligaro, the Inquisitor": {
+    "deathCries": [
+      "You have murdered... an artist...",
+      "I could have made you... into a wonder...",
+      "You are the greatest form... I never sculpted..."
+    ]
+  },
+  "Daresso": {
+    "deathCries": [
+      "Sing for me, Merveil. Sing of glory and love..."
+    ]
+  },
+  "Izaro": {
+    "deathCries": [
+      "Triumphant at last!",
+      "You are free!",
+      "I die for the Empire!",
+      "The trap of tyranny is inescapable.",
+      "Delight in your gilded dungeon, ascendant.",
+      "Your destination is more dangerous than the journey, ascendant.",
+      "You killed my poor little Argus.",
+      "Goodbye, Argus. I couldn't have asked for a more faithful and loving companion.",
+      "Oh, Argus. I shall miss you."
+    ]
+  },
+  "Rigwald": {
+    "deathCries": [
+      "...First Ones, remember me.",
+      "The Greatwolf has left me!",
+      "Forgive me, Ezomyr.",
+      "There is nothing to regret."
+    ]
+  },
+  "The Shaper": {
+    "deathCries": [
+      "Failure. Ambivalence. Death. A final abyss of unending darkness."
+    ]
+  },
+  "Avarius": {
+    "deathCries": [
+      "I am... no more..."
+    ]
+  },
+  "Silk": {
+    "deathCries": [
+      "We have woven a tale together in days past. Perhaps we shall again? We make mighty stories, you and I, and now I have daunting task before me... the last in my great journey. \r\n\r\nNear to us, cast in shadow, a monster awaits. Black Death is his name, a beauteous eight-leg, twisted grotesque by the master of these loathsome halls. I wish to give this eight-leg the merciful peace he deserves, and to save what is still beautiful, the elixir that only Black Death can make.\r\n\r\nPlease, will you find him, kill this Black Death, take the eight-leg's venom for me? I may be fearsome warrior but Black Death's master has made him into a thing more monstrous than even I can best. Who knows? Perhaps Black Death is too strong even for you?",
+      "The Black Venom! Oh, Great Dreamer who has done great deeds, I shall see to it that my queen rewards you with honour and mercy when she rises up to claim what is hers. Yes, this elixir, so aged and potent, shall be life-giving draught that she sips upon first waking. It is my gift to her... my wedding gift!\r\n\r\nGreat Dreamer, you be wrapped in silken finery and made welcome at our wedding feast. Guest of honour, and oh what a feast we all shall enjoy!",
+      "I have climbed the great eight-leg web. I know the eight-legs like no other. This eight-leg, this Black Death, is one of the oldest and most fearsome eight-legs in all this land and beyond. To its shame, it was made pet, plaything, by the malicious master of this place. For years countless it grew in pain. Pain is all it knows, all it can understand, all it can give.\r\n\r\nEnd Black Death's pain, for all and once."
+    ]
+  },
+  "Sin": {
+    "deathCries": [
+      "May a new dawn arise!"
+    ]
+  },
+  "Drox, the Warlord": {
+    "deathCries": [
+      "Your strength... is the law...",
+      "My kingdom is yours... if you can keep it...",
+      "Time takes even the greatest of men...",
+      "Veritania... my kingdom for... Veritania..."
+    ]
+  },
+  "Al-Hezmin, the Hunter": {
+    "deathCries": [
+      "You've killed me a thousand times, but those were just dreams...",
+      "Molten One, save me from this unending nightmare!",
+      "Let me out... please, let me out...",
+      "I awaken from this nightmare... at last..."
+    ]
+  },
+  "Veritania, the Redeemer": {
+    "deathCries": [
+      "The end of the cycle of madness... until next time...",
+      "I thought myself better than you... but you and I are bound to waltz together forever...",
+      "My only consolation... is that I am not alone in this torture... see you soon...",
+      "You stand victorious, your heart's desire... the Atlas provides... your addiction..."
+    ]
+  },
+  "Baran, the Crusader": {
+    "deathCries": [
+      "Kirac... sent you? You must keep him out of the Atlas... I cannot be saved... he will find only his own doom, endlessly pursuing my rescue... he will end up... like me...\r\n\r\nTell Zana... she was right... to seal us away... Sirus must never... be...",
+      "Tell Zana... ... ...<italic>{demons}...",
+      "... tell my brother... that I cannot be saved...",
+      "Keep Kirac... out of the Atlas... at all costs...",
+      "A brief moment of sanity... it never lasts..."
+    ]
+  },
+  "Sirus, Awakener of Worlds": {
+    "deathCries": [
+      "At least I felt something...",
+      "You left me there, Zana... centuries alone in the Atlas... all I wanted was to feel something again...",
+      "Impressive... but now you will fight on <italic>{my} lands.",
+      "I feel... something... at last...",
+      "The Atlas will fuel me. Behold. ...What?! No!",
+      "I always knew it would be you... Zana... to make me feel something... one last... time..."
+    ]
+  },
+  "Oshabi": {
+    "deathCries": [
+      "I'm... undone...",
+      "Un-... natural...",
+      "Please... let this... end.",
+      "It... never... ends...",
+      "No more... no... more...",
+      "Break... the cycle..."
+    ]
+  },
+  "Vic Vox": {
+    "deathCries": [
+      "Brother!"
+    ]
+  },
+  "Vinny Vox": {
+    "deathCries": [
+      "Vic! No!"
+    ]
+  },
+  "Jamanra, The Great": {
+    "deathCries": [
+      "We will... rise... again..."
+    ]
+  },
+  "Admiral Darnaw": {
+    "deathCries": [
+      "Death from below!",
+      "That... damn... tyrant."
+    ]
+  },
+  "Friedrich Tarollo, Slave Merchant": {
+    "deathCries": [
+      "You... Stupid fools..."
+    ]
+  },
+  "Kadaris, Crimson Mayor": {
+    "deathCries": [
+      "Unlawful...",
+      "Meeting adjourned...",
+      "One with the crimson..."
+    ]
+  },
+  "Captain Clayborne, The Accursed": {
+    "deathCries": [
+      "Curses...",
+      "Death... will... find you.",
+      "Impossible...",
+      "My last... voyage...",
+      "You too... will... perish."
+    ]
+  },
+  "Ara, Sister of Light": {
+    "deathCries": [
+      "Sister--... I-...",
+      "I shall avenge, you, sister.",
+      "I... am... eclipsed."
+    ]
+  },
+  "Khor, Sister of Shadows": {
+    "deathCries": [
+      "You fought well, sister.",
+      "I am... done...",
+      "Dawn comes... at last..."
+    ]
+  },
+  "Ormud, Fiend of the Flood": {
+    "deathCries": [
+      "I... will... return...",
+      "You only delay...",
+      "Death... cannot stop... me.",
+      "Swirling death!"
+    ]
+  },
+  "The Maven": {
+    "deathCries": [
+      "Death made real.",
+      "Death will not be an escape."
+    ]
+  },
+  "Ciergan, Shadow Alchemist": {
+    "deathCries": [
+      "No... It's not... ready...",
+      "The work... must... (blehhhh)",
+      "So close... so...",
+      "M-... Madness..."
+    ]
+  },
+  "Ahuatotli, the Blind": {
+    "deathCries": [
+      "Atzi-... ah-...",
+      "Opil... Vaal...",
+      "Tocab--... atla-..."
+    ]
+  },
+  "Aul, the Crystal King": {
+    "deathCries": [
+      "Am-... amta...",
+      "Zurra... sha...",
+      "Ahkbo tel... zar."
+    ]
+  },
+  "The Black Knight": {
+    "deathCries": [
+      "Am-... amta...",
+      "Zurra... sha...",
+      "Ahkbo tel... zar.",
+      "You fight well. Partake of this bounty!",
+      "Satisfactory! Until next time, warrior!",
+      "You have shown yourself to be worthy."
+    ]
+  },
+  "Vorana, Last to Fall": {
+    "deathCries": [
+      "Death wind!",
+      "To the death!"
+    ]
+  },
+  "Uhtred": {
+    "deathCries": [
+      "Death is... no escape...",
+      "Olroth... lives..."
+    ]
+  },
+  "Medved": {
+    "deathCries": [
+      "You have... broken the Circle...",
+      "They built a temple... around the mirror...",
+      "Under the earth... to hide from the night sky..."
+    ]
+  },
+  "The Black Star": {
+    "deathCries": [
+      "The dark light fades...",
+      "How... unexpected..."
+    ]
+  },
+  "Lycia, Herald of the Scourge": {
+    "deathCries": [
+      "You have accomplished nothing... I have achieved eternal life...",
+      "You are only delaying the inevitable.",
+      "I cannot die. You know this.",
+      "Beidat beckons just beyond the door...",
+      "You've accomplished nothing.",
+      "*laughter*"
+    ]
+  },
+  "Navali": {
+    "deathCries": [
+      "Have no fear. The Water of Sight does not slay the living, just nearly so. You may resume your mortal life, such as it is, once you return your spirit to your body.",
+      "When you slew the Beast, you ended the Slumber of the Gods. Hinekora is finally awake, and the Halls of the Dead clamour with the joyous songs of our people. You cannot possibly understand the import of this change. The greater sum of our people, countless generations of Karui warriors, have never known their goddess. I myself have only ever spoken to her in her dreams. To hear her voice is to know that every sacrifice I made for my people was justified. This is the gift that you have given us... that you have given me.",
+      "How is it that a mortal defeated our Father of War in his domain? No, it was not solely you. Your alliance with the Thief of Virtue is a ghastly one. However, your prowess in combat cannot be denied. You have earned our respect, not our ire, for this victory. Such is our Way."
+    ]
+  },
+  "Tawhanuku": {
+    "deathCries": [
+      "Death from on high!",
+      "A traveler was walking through a sparse grove. He encountered Tawhoa, who was sitting and meditating. The traveler quietly joined him for a time, watching a seed fall from above and grow into a mighty oak over the course of a century. That oak dropped its own seed, and another titan grew. Eventually, a vast forest emerged around them. Tawhoa opened his eyes and asked if the traveler understood. He replied that he did, save for one thing: some seeds fell, but never grew at all. At this, Tawhoa looked past him. Hinekora was walking the same path. She picked up each seed that never became more, and carried them, with love, in a bowl formed from her dress. The traveler shed a single tear, for he finally understood."
+    ]
+  },
+  "Akoya": {
+    "deathCries": [
+      "My battle with Kaom began at sunrise. Our warriors were assembled on either side, ready to slaughter each other, but neither of us gave the sign. By dawn's light, we fought on the sand, axe against axe. Kaom was strong, but arrogant, which showed through in his fighting style. When he overextended himself, I made him pay for it in blood. However, his greater strength kept me on the defensive. Every hour, the <i>{hatungo} called a truce, and we drank, ate, and were tended to. By nightfall, Kaom and I were moving like turtles, guarding ourselves behind our axes and taking only the most calculated movements. Eventually, he overextended again, and I dealt him a heavy wound to his chest—but this was an acceptable sacrifice he had made on purpose. He broke my knee with the end of his axe handle, and that was it. He gave me a warrior's death, rather than leave me broken on the sands. I would not have had it any other way."
+    ]
+  },
+  "Ahuana": {
+    "deathCries": [
+      "I died in childbirth, which is considered a warrior's death. I died knowing my daughter would live on. Then, because I was here, I was able to see her grow and thrive. She visited me for advice often, and I treasure those memories. Now, she fights as one of my own in these Halls. Among others, <i>{her} daughter, and her daughter's daughter, also joined us. We now have dozens of descendants coming to us for wisdom. Life and death are strange partners. I have been here for far longer than I was alive, and my extended family only knows me as an ancestral spirit."
+    ]
+  },
+  "Kahuturoa": {
+    "deathCries": [
+      "Don't you know it's rude to ask a man about his death?"
+    ]
+  },
+  "Maata": {
+    "deathCries": [
+      "Alone among the warriors here, I lived my full life, and died of old age. I consider it a mark not of cowardice, but of a master strategist who was never defeated."
+    ]
+  },
+  "The King in the Mists": {
+    "deathCries": [
+      "So long as you know me, I will always exist...",
+      "Why do you hate us for wanting to exist?",
+      "This is not the end..."
+    ]
+  },
+  "Squire": {
+    "deathCries": [
+      "Glad you're still alive guv!",
+      "Whew, 'least you're still fine, Boss!",
+      "Were you... close?",
+      "Terrible business this.",
+      "Oh, terrible business this.",
+      "Poor bastard...",
+      "Ooh, poor bastard...",
+      "Fought well, they did.",
+      "Nice try Boss!",
+      "You'll get 'em next time!",
+      "Ya weren't going all-out, is all!",
+      "They just caught ya off-guard, is all!",
+      "Oh, they just caught ye off-guard, is all!",
+      "They just got lucky, is all!",
+      "Bah, they just got lucky, is all!",
+      "Poor sod...",
+      "Huh... Poor sod...",
+      "That's the way life goes...",
+      "An' that's the way life goes...",
+      "Barely knew ya...",
+      "Don't end up like them eh?",
+      "Oh, you're not goin' back in there are ya?",
+      "You're not goin' back in there are ya?",
+      "Ah, maybe it's a bit too much for ya?",
+      "Maybe it's a bit too much for ya.",
+      "Ya like dyin' or somethin?",
+      "You like dyin' or somethin?",
+      "It's alright to take a rest once in a while...",
+      "Hey - It's alright to take a rest once in a while...",
+      "Gah, poor sod.",
+      "Awh, poor sod.",
+      "Eh. Barely knew 'em...",
+      "Psch. Barely knew 'em...",
+      "There another one goes...",
+      "Ain't you meant to be a party?",
+      "What was it this time hmm?",
+      "As expected...",
+      "Yeah. As expected...",
+      "Whoa, to no one's surprise...",
+      "To no one's surprise...",
+      "Life ain't fair innit?",
+      "Well well well..."
+    ]
+  },
+  "Sasan, the Bandit Lord": {
+    "deathCries": [
+      "You don't know what you're doing...",
+      "The Kalguurans... Must be stopped...",
+      "You're making a mistake...",
+      "You ignorant bastard..."
+    ]
+  },
+  "Admiral Valerius": {
+    "deathCries": [
+      "A Captain always goes down with his ship...",
+      "Give me an admiral's burial..",
+      "The way of the sea..."
+    ]
+  },
+  "Incarnation of Dread": {
+    "deathCries": [
+      "Her dread... shall not be erased so easily..."
+    ]
+  },
+  "Incarnation of Neglect": {
+    "deathCries": [
+      "Madness... consumes..."
+    ]
+  },
+  "Incarnation of Fear": {
+    "deathCries": [
+      "Forgive me... I was not myself..."
+    ]
+  },
+  "Valdo": {
+    "deathCries": [
+      "Zana! Daughter! Forgive me!",
+      "Hear my voice! It is me, Valdo!",
+      "Zana! Zana! Zana!",
+      "Don't do this! You must go on...",
+      "Don't do this... You must go on!",
+      "Please! Abandon this endeavour!",
+      "Daughter... This is not the way...",
+      "No...NO!",
+      "Enough! I can't take this...",
+      "He will uncover the truth... Stop!",
+      "He is too close... Give up...",
+      "He is too close! Give up!",
+      "The Originator...",
+      "Who is the Originator?..."
+    ]
+  },
+  "The Neglected Flame": {
+    "deathCries": [
+      "You... left me there Zana... centuries alone... in.. the Atlas..."
+    ]
+  },
+  "The Deceitful God": {
+    "deathCries": [
+      "You deny... A God?"
+    ]
+  },
+  "The Cardinal of Fear": {
+    "deathCries": [
+      "My time... at last..."
+    ]
+  },
+  "It That Was Tul": {
+    "deathCries": [
+      "Ugh... another failure..."
+    ]
+  },
+  "It That Was Esh": {
+    "deathCries": [
+      "... another iteration!"
+    ]
+  },
+  "Vruun, Marshal of Xesht": {
+    "deathCries": [
+      "The cycle... resumes...",
+      "We persist...",
+      "The void... consumes..."
+    ]
+  }
+}

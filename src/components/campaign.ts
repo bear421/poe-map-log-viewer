@@ -1,10 +1,11 @@
-import { MapInstance, MapSpan } from '../ingest/log-tracker';
+import { AreaType, MapInstance } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
-import { getZoneInfo } from '../data/zone_table';
+import { getZoneInfo } from '../data/areas';
 import { MapListComponent } from './map-list';
 import { computeIfAbsent, createElementFromHTML } from '../util';
-import { LogAggregationCube, MapField } from '../aggregate/aggregation';
+import { LogAggregationCube } from '../aggregate/aggregation';
 import { binarySearchFindLastIx } from '../binary-search';
+import { MapField } from '../aggregate/map';
 
 interface ActDefinition {
     name: string;
@@ -39,21 +40,29 @@ export class CampaignComponent extends BaseComponent {
             this.actDefinitions.push({ name: `Act ${i + 1}`, maps: [], duration: 0 });
         }
         const characterInfo = data.filter.character ? data.characterAggregation.characters.find(c => c.name === data.filter.character) : undefined;
-        const campaignEndIx = characterInfo ? binarySearchFindLastIx(data.maps, (map) => map.span.start < characterInfo.campaignCompletedTs) : data.maps.length - 1;
+        const campaignEndIx = characterInfo && characterInfo.campaignCompletedTs > 0 ? binarySearchFindLastIx(data.maps, (map) => map.start < characterInfo.campaignCompletedTs) : data.maps.length - 1;
         for (let i = 0; i <= campaignEndIx; i++) {
             const map = data.maps[i];
             const zoneInfo = getZoneInfo(map.name, map.areaLevel);
             if (zoneInfo?.act) {
                 this.actDefinitions[zoneInfo.act - 1].maps.push(map);
+            } else if (map.areaType === AreaType.Labyrinth || map.areaType === AreaType.TrialSekhema || map.areaType === AreaType.TrialChaos) {
+                for (let j = this.actDefinitions.length - 1; j >= 0; j--) {
+                    if (this.actDefinitions[j].maps.length > 0) {
+                        this.actDefinitions[j].maps.push(map);
+                        break;
+                    }
+                }
             }
         }
         this.actDefinitions = this.actDefinitions.filter(a => a.maps.length > 0);
         const contentContainer = this.element.querySelector('#campaignActContent') as HTMLElement;
         for (const [index, act] of this.actDefinitions.entries()) {
             if (act.maps.length > 0) {
-                act.duration = act.maps.reduce((acc, map) => acc + MapSpan.mapTimePlusIdle(map.span), 0);
+                act.duration = act.maps.reduce((acc, map) => acc + map.getTime(), 0);
             }
             const mapListComponent = computeIfAbsent(this.mapListComponents, index, () => new MapListComponent(contentContainer, false, {field: MapField.startedTs, ascending: true}));
+            mapListComponent.setVisible(false);
             mapListComponent.setApp(this.app!);
             mapListComponent.updateData(data, act.maps);
         }

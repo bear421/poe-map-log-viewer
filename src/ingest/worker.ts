@@ -1,6 +1,6 @@
 import { LogTracker, MapInstance, Progress, LogLine } from './log-tracker';
-import { Filter } from "../aggregate/filter";
 import { LogEvent } from './events';
+import { TSRange } from '../aggregate/segmentation';
 
 interface RequestMessage {
     requestId: string;
@@ -17,7 +17,7 @@ export interface SearchRequest extends RequestMessage {
     file: File;
     pattern: RegExp;
     limit: number;
-    filter?: Filter;
+    tsBounds?: TSRange;
 }
 
 interface ReponseMessage {
@@ -98,7 +98,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 payload: { maps, events }
             } as IngestResponse);
         } else if (type === 'search') {
-            const { pattern, limit, filter } = e.data;
+            const { pattern, limit, tsBounds } = e.data;
             const onSearchProgress = (progress: Progress) => {
                 self.postMessage({
                     requestId,
@@ -107,11 +107,7 @@ self.onmessage = async (e: MessageEvent<IngestRequest | SearchRequest>) => {
                 } as ProgressResponse);
             }
 
-            const tsFilter = filter?.userTsBounds && filter.userTsBounds.length > 0 ? 
-                { lo: filter.userTsBounds[0].lo, hi: filter.userTsBounds[filter.userTsBounds.length - 1].hi } : 
-                undefined;
-            
-            const lines = await tracker.searchLogFile(pattern, limit, file, onSearchProgress, tsFilter);
+            const lines = await tracker.searchLogFile(pattern, limit, file, onSearchProgress, tsBounds);
             self.postMessage({
                 requestId,
                 type: 'search',

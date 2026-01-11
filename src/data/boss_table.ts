@@ -37,6 +37,9 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
         "greetings": new Set([" This is not a battle you can win, hatchling."]),
         "deathCries": new Set([" You deny us... escape from pain..."])
     },
+    "Lycia, Herald of the Scourge": {
+        "deathCries": new Set([" You are only delaying the inevitable.", " I cannot die. You know this.", " Beidat beckons just beyond the door...", " You've accomplished nothing.", " You have accomplished nothing... I have achieved eternal life... ", " *laughter*"])
+    },
     "The Searing Exarch": {
         "deathCries": new Set([" Improbable...!"])
     },
@@ -55,7 +58,7 @@ export const BOSS_TABLE: Record<string, { deathCries: Set<string>, alias?: strin
         "deathCries": new Set([" At least I felt something..."])
     },
     "The Maven": {
-        "deathCries": new Set([" I am being hurt!"])
+        "deathCries": new Set([" I am being hurt!", " Caretaker! To me!"])
     },
     "Aul, the Crystal King": {
         "deathCries": new Set([" Am-... amta..."])

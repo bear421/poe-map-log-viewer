@@ -28,12 +28,12 @@ export class FileSelectorComponent {
     private fileInputElement!: HTMLInputElement;
     private inputGroupElement!: HTMLDivElement;
     private pathHelperCardElement!: HTMLDivElement;
-    private pathHelperContentDiv!: HTMLDivElement; // To dynamically update content
+    private pathHelperContentDiv!: HTMLDivElement;
     private poe1SwitchElement!: HTMLInputElement;
     private poe2SwitchElement!: HTMLInputElement;
 
     private onFileSelected: (file: File) => void;
-    private selectedGame: 'poe1' | 'poe2' = 'poe2'; // Default to PoE2
+    private selectedGame: 'poe1' | 'poe2' = 'poe2';
 
     constructor(onFileSelectedCallback: (file: File) => void) {
         this.onFileSelected = onFileSelectedCallback;
@@ -77,7 +77,6 @@ export class FileSelectorComponent {
         
         const cardHeader = document.createElement('div');
         cardHeader.className = 'card-header';
-        // Header with title and game version switcher
         cardHeader.innerHTML = `
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-info-circle-fill text-primary me-2"></i>Looking for your Client.txt file?</h4>
@@ -91,11 +90,9 @@ export class FileSelectorComponent {
         `;
         this.pathHelperCardElement.appendChild(cardHeader);
         
-        // Store references to switch elements
         this.poe1SwitchElement = cardHeader.querySelector('#poe1Switch') as HTMLInputElement;
         this.poe2SwitchElement = cardHeader.querySelector('#poe2Switch') as HTMLInputElement;
         
-        // Set initial checked state based on this.selectedGame
         if (this.selectedGame === 'poe1') {
             this.poe1SwitchElement.checked = true;
         } else {
@@ -108,7 +105,6 @@ export class FileSelectorComponent {
         
         this.element.appendChild(this.pathHelperCardElement);
 
-        // Initial rendering of path helper content
         this.renderPathHelperContents();
     }
 
@@ -156,7 +152,6 @@ export class FileSelectorComponent {
     
     private setupCopyButtonListeners(container: HTMLElement): void {
         container.querySelectorAll('.copy-path-btn').forEach(button => {
-            // Remove existing listener to prevent duplicates if any
             const newButton = button.cloneNode(true) as HTMLButtonElement;
             button.parentNode?.replaceChild(newButton, button);
 
@@ -170,7 +165,6 @@ export class FileSelectorComponent {
         const input = button.previousElementSibling as HTMLInputElement;
         if (input && typeof input.select === 'function') {
             input.select();
-            // Modern clipboard API if available, fallback to execCommand
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(input.value).then(() => {
                     const originalText = button.textContent;
@@ -184,7 +178,7 @@ export class FileSelectorComponent {
                     }, 2000);
                 }).catch(err => {
                     console.error('Failed to copy text using navigator.clipboard: ', err);
-                    // Fallback to execCommand if permission denied or other error
+                    // fallback
                     this.execCommandCopy(button, input, originalText => {
                         button.textContent = originalText;
                          button.classList.add('btn-primary');

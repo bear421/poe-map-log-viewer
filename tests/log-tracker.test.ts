@@ -54,7 +54,7 @@ describe('LogTracker', () => {
         expect(completedMap.name).toBe("MapBeach");
         expect(completedMap.areaLevel).toBe(83);
         expect(completedMap.seed).toBe(12345);
-        expect(completedMap.span.end).toBeDefined();
+        expect(completedMap.end).toBeDefined();
     });
 
     test('should detect message from events', () => {

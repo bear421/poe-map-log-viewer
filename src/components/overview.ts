@@ -1,4 +1,3 @@
-import { MapSpan } from '../ingest/log-tracker';
 import {
     Chart,
     ArcElement,
@@ -15,6 +14,7 @@ import {
 import { BaseComponent } from './base-component';
 import { medianQuickSelect } from '../aggregate/aggregation';
 import { FrameBarrier } from '../util';
+import { MapMarkerType } from '../ingest/log-tracker';
 
 Chart.register(
     ArcElement, 
@@ -39,13 +39,15 @@ export class OverviewComponent extends BaseComponent {
         const agg = this.data!;
         const times = agg.maps.map(map => {
             try {
-                const mapTime = MapSpan.mapTime(map.span);
-                const loadTime = map.span.loadTime;
-                const hideoutTime = map.span.hideoutTime;
-                return { mapTime, loadTime, hideoutTime };
+                const m = map.getTimeMap();
+                const mapTime = m.get(MapMarkerType.map) ?? 0;
+                const loadTime = m.get(MapMarkerType.load) ?? 0;
+                const hideoutTime = m.get(MapMarkerType.hideout) ?? 0;
+                const afkTime = m.get(MapMarkerType.afk) ?? 0;
+                return { mapTime, loadTime, hideoutTime, afkTime };
             } catch (e) {
                 console.error("Error calculating map times for overview:", e, map);
-                return { mapTime: 0, loadTime: 0, hideoutTime: 0 };
+                return { mapTime: 0, loadTime: 0, hideoutTime: 0, afkTime: 0 };
             }
         });
 
@@ -54,7 +56,9 @@ export class OverviewComponent extends BaseComponent {
         await fb.yield();
         const medianLoadTime = times.length > 0 ? medianQuickSelect(times.map(t => t.loadTime)) : 0;
         await fb.yield();
-        const medianIdleTime = times.length > 0 ? medianQuickSelect(times.map(t => t.hideoutTime)) : 0;
+        const medianHideoutTime = times.length > 0 ? medianQuickSelect(times.map(t => t.hideoutTime)) : 0;
+        await fb.yield();
+        const medianAfkTime = times.length > 0 ? medianQuickSelect(times.map(t => t.afkTime)) : 0;
 
         const overviewRow = document.createElement('div');
         overviewRow.className = 'row';
@@ -71,20 +75,23 @@ export class OverviewComponent extends BaseComponent {
         const totals: TotalStat[] = [
             { label: 'Maps', value: agg.maps.length, iconClass: 'bi-globe text-dark', optional: false},
             { label: 'Sessions', value: oagg.totalSessions, iconClass: 'bi-power text-dark', optional: false },
-            { label: 'Unique maps', value: oagg.mapsUnique.length, iconClass: 'bi-gem text-unique', optional: true },
+            // { label: 'Unique maps', value: oagg.mapsUnique.length, iconClass: 'bi-gem text-unique', optional: true },
             { label: 'Delve Nodes', value: oagg.mapsDelve.length, iconClass: 'bi-diamond-half text-primary', optional: true },
-            { label: 'Pinnacle Boss kills', value: oagg.totalBossKills, iconClass: 'bi-trophy-fill text-warning', optional: true },
+            // { label: 'Pinnacle Boss kills', value: oagg.totalBossKills, iconClass: 'bi-trophy-fill text-warning', optional: true },
             { label: `Map time`, value: `${(oagg.totalMapTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-clock text-dark', optional: false },
             { label: `Hideout time`, value: `${(oagg.totalHideoutTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-house-fill text-primary', optional: false },
-            { label: `Load time`, value: `${(oagg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-stopwatch text-dark', optional: false },
+            { label: `AFK time`, value: `${(oagg.totalAFKTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-person-fill-slash text-danger', optional: false },
+            { label: `Load time`, value: `${(oagg.totalLoadTime / (1000 * 60 * 60)).toFixed(1)}h`, iconClass: 'bi-stopwatch text-dark', optional: true },
             { label: 'Deaths', value: oagg.totalDeaths, iconClass: 'bi-heartbreak-fill text-danger', optional: false },
             { label: 'Witnessed deaths', value: oagg.totalWitnessedDeaths, iconClass: 'bi-heartbreak-fill text-secondary', optional: false },
             { label: 'Items identified (bulk)', value: totalItemsIdentified, iconClass: 'bi-magic text-dark', optional: true },
+            /*
             { label: 'Trades (NPCs and Players)', value: oagg.totalTrades, iconClass: 'bi-currency-exchange text-warning', optional: false },
             { label: 'Item purchases attempted', value: oagg.totalBuysAttempted, iconClass: 'bi-cart-fill text-dark', optional: true },
             { label: 'Item sales attempted', value: oagg.totalSalesAttempted, iconClass: 'bi-tags-fill text-dark', optional: true }
+            */
         ];
-        const totalsHtml = totals.filter(t => !t.optional || typeof t.value !== 'number' || t.value !== 0).map(t => 
+        const totalsHtml = totals.filter(t => !t.optional || (typeof t.value !== 'number' || t.value !== 0) || (typeof t.value === 'string' && t.value === "0.0h")).map(t => 
             `
             <dt class="col-9"><i class="${t.iconClass} me-2"></i>${t.label}</dt>
             <dd class="col-3 text-end">${t.value}</dd>
@@ -130,20 +137,30 @@ export class OverviewComponent extends BaseComponent {
 
         const timeDistCtx = (this.element.querySelector('#timeDistributionChartOverview') as ChartItem);
         if (timeDistCtx && agg.maps.length > 0) { // Only render chart if there's data
+            const labels = ['Active map time', 'Hideout time'];
+            const data = [
+                medianMapTime / 1000,
+                medianHideoutTime / 1000,
+            ];
+            if (medianLoadTime > 0) {
+                labels.push('Load time');
+                data.push(medianLoadTime / 1000);
+            }
+            if (medianAfkTime > 0) {
+                labels.push('AFK time');
+                data.push(medianAfkTime / 1000);
+            }
             const chartConfig: ChartConfiguration = {
                 type: 'pie',
                 data: {
-                    labels: ['Active map time', 'Load time', 'Hideout time'],
+                    labels,
                     datasets: [{
-                        data: [
-                            medianMapTime / 1000,    // seconds
-                            medianLoadTime / 1000,   // seconds
-                            medianIdleTime / 1000    // seconds
-                        ],
+                        data,
                         backgroundColor: [
                             '#198754', // success
+                            '#0d6efd', // primary
                             '#212529', // dark
-                            '#0d6efd'  // primary
+                            '#dc3545'  // danger
                         ]
                     }]
                 },

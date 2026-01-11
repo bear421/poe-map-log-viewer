@@ -1,4 +1,4 @@
-import { TSRange } from './log-tracker';
+import { TSRange } from '../aggregate/segmentation';
 import { parseTsStrict } from './ts-parser';
 
 export interface ByteRange {

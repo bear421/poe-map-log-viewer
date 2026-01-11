@@ -1,4 +1,4 @@
-import { MapInstance, MapSpan, AreaType } from '../ingest/log-tracker';
+import { MapInstance, AreaType, MapMarkerType } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 import { MapListComponent } from './map-list';
 
@@ -25,7 +25,7 @@ export class MapStatsComponent extends BaseComponent {
         }>();
 
         maps.forEach(map => {
-            const mapTime = MapSpan.mapTime(map.span) / (1000 * 60); // minutes
+            const mapTime = map.getTime(new Set([MapMarkerType.map])) / (1000 * 60); // minutes
             const stats = mapStats.get(map.name) || {
                 label: MapInstance.label(map),
                 count: 0,

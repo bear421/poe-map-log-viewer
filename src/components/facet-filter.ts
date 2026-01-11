@@ -21,7 +21,7 @@ export class FacetFilterComponent extends BaseComponent {
             facet.selectedOptions.clear();
         }
         this.element.querySelectorAll('input.form-check-input').forEach(e => (e as HTMLInputElement).checked = false);
-        this.element.querySelectorAll('.overlay-filter-options-list.active').forEach(e => e.classList.remove('active'));
+        this.element.querySelectorAll('.overlay-options-list.active').forEach(e => e.classList.remove('active'));
         await this.applyFilters(true);
     }
 
@@ -49,8 +49,8 @@ export class FacetFilterComponent extends BaseComponent {
                         <span>${facet.name} <span class="selected-count"></span></span>
                         <i class="bi bi-chevron-down"></i>
                     </button>
-                    <div class="overlay-filter-options shadow-sm mt-1">
-                        <div class="overlay-filter-options-header row mb-2">
+                    <div class="overlay-options shadow-sm mt-1">
+                        <div class="options-header row mb-2">
                             <div class="col">
                                 <input type="text" placeholder="filter ..." class="form-control form-control-sm facet-filter-search">
                             </div>
@@ -63,7 +63,7 @@ export class FacetFilterComponent extends BaseComponent {
                                 }
                             </div>
                         </div>
-                        <div class="facet-filter-options-list"></div>
+                        <div class="options-list"></div>
                     </div>
                 </div>
             </div>
@@ -86,7 +86,7 @@ export class FacetFilterComponent extends BaseComponent {
             });
         });
 
-        const optionsContainer = facetContainer.querySelector('.overlay-filter-options') as HTMLDivElement;
+        const optionsContainer = facetContainer.querySelector('.overlay-options') as HTMLDivElement;
         const toggleButton = facetContainer.querySelector('.facet-filter-toggle') as HTMLButtonElement;
         toggleButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -105,7 +105,7 @@ export class FacetFilterComponent extends BaseComponent {
             e.stopPropagation();
         });
 
-        const optionsListContainer = facetContainer.querySelector('.facet-filter-options-list') as HTMLDivElement;
+        const optionsListContainer = facetContainer.querySelector('.options-list') as HTMLDivElement;
 
         const anyOption = this.createOptionElement({
             value: FacetOption.ANY_VALUE,
@@ -236,7 +236,7 @@ export class FacetFilterComponent extends BaseComponent {
             return {
                 prefixAnds,
                 suffixAnds,
-                currentTotal: BitSet.andAll(selection, this.data!.simpleFilterMapsBitSet)?.cardinality() ?? 0,
+                getCurrentTotal: memoize(() => BitSet.andAll(selection, this.data!.simpleFilterMapsBitSet)?.cardinality() ?? 0),
             };
         });
         const res = new Map<Facet<any>, () => Promise<void>>();
@@ -265,7 +265,7 @@ export class FacetFilterComponent extends BaseComponent {
                     if (isSelected) {
                         countBitSet = selection;
                     } else {
-                        const optionBitSet = facet.getBitsetIndex().get(option.value)!;
+                        const optionBitSet = facet.bitsetIndex.get(option.value)!;
                         let onSelectBitSet: BitSet | undefined;
                         switch (facet.operator) {
                             case 'AND':
@@ -287,7 +287,7 @@ export class FacetFilterComponent extends BaseComponent {
                     if (facet.countStyle === 'abs') {
                         count = onSelectTotal;
                     } else if (facet.countStyle === 'delta') {
-                        count = onSelectTotal - context.currentTotal;
+                        count = onSelectTotal - context.getCurrentTotal();
                     } else {
                         throw new Error(`unsupported count style: ${facet.countStyle}`);
                     }
@@ -322,7 +322,7 @@ export class FacetFilterComponent extends BaseComponent {
     private getCombinedBitsetForFacet(facet: Facet<any>, selected: Set<any>): BitSet | undefined {
         if (selected.size === 0) return undefined;
 
-        const bitsets = Array.from(selected).map(value => facet.getBitsetIndex().get(value)!);
+        const bitsets = Array.from(selected).map(value => facet.bitsetIndex.get(value));
         switch (facet.operator) {
             case 'AND':
                 return BitSet.andAll(...bitsets);

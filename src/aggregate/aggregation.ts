@@ -1,4 +1,4 @@
-import { AreaType, areaTypes, MapInstance, MapSpan } from "../ingest/log-tracker";
+import { AreaType, areaTypes, MapInstance, MapMarkerType } from "../ingest/log-tracker";
 import { Segmentation } from "./segmentation";
 import { Filter } from "./filter";
 import { CharacterAggregation, CharacterInfo, buildCharacterAggregation } from "./character";
@@ -6,11 +6,11 @@ import { LogEvent, AnyMsgEvent, EventName } from "../ingest/events";
 import { binarySearchFindFirstIx, binarySearchFindLastIx } from "../binary-search";
 import { computeIfAbsent, FrameBarrier, Measurement } from "../util";
 import { SplitCache } from "../split-cache";
-import { getGameVersion, getZoneInfo } from "../data/zone_table";
+import { getGameVersion, getZoneInfo } from "../data/areas";
 import { BitSet } from "../bitset";
-import { buildEventBitSetIndex } from "./event";
+import { buildEventBitSetIndex, buildSessionsSegmentation } from "./event";
 import { buildOverviewAggregation } from "./overview";
-import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, buildMapsBitSetIndex, IdentityCachingMapSorter, sortMaps } from "./map";
+import { buildAreaTypeBitSetIndex, buildMapNameBitSetIndex, buildMapsBitSetIndex, IdentityCachingMapSorter, MapOrder } from "./map";
 
 export const relevantEventNames = new Set<EventName>([
     "bossKill",
@@ -28,21 +28,11 @@ export const relevantEventNames = new Set<EventName>([
     "hideoutEntered",
     "afkModeOn",
     "afkModeOff",
+    "reflectingMist",
+    "namelessSeer",
+    "memoryTear",
 ]);
 
-
-export interface MapOrder {
-    field: MapField;
-    ascending: boolean;
-}
-
-export enum MapField {
-    name,
-    startedTs,
-    areaLevel,
-    mapTimePlusIdle,
-    startLevel,
-}
 
 export class LogAggregationCube {
     private _mapSorter = new IdentityCachingMapSorter();
@@ -54,10 +44,6 @@ export class LogAggregationCube {
 
     get gameVersion(): 1 | 2 {
         return this.base.gameVersion;
-    }
-
-    get reversedMaps(): MapInstance[] {
-        return this.getMapsSorted({field: MapField.startedTs, ascending: false});
     }
 
     getMapsSorted(order: MapOrder): MapInstance[] {
@@ -124,6 +110,7 @@ export interface BaseLogAggregation {
     readonly events: LogEvent[];
     readonly characterAggregation: CharacterAggregation;
     readonly eventBitSetIndex: Map<EventName, BitSet>;
+    readonly sessionsSegmentation: Segmentation;
     readonly areaTypeBitSetIndex: Map<AreaType, BitSet>;
     readonly mapNameBitSetIndex: Map<string, BitSet>;
     readonly areaTypes: AreaType[];
@@ -155,6 +142,7 @@ export interface OverviewAggregation {
     totalMapTime: number;
     totalLoadTime: number;
     totalHideoutTime: number;
+    totalAFKTime: number;
     totalBossKills: number;
     totalSessions: number;
 }
@@ -164,6 +152,9 @@ export enum Dimension {
     characterLevel,
     areaLevel,
     date,
+    hourOfDay,
+    hourOfSession,
+    dayOfWeek,
     none,
 }
 
@@ -181,6 +172,7 @@ export enum Metric {
     hideoutTime,
     campaignTime,
     loadTime,
+    afkTime,
 }
 
 interface MetricMeta {
@@ -202,6 +194,7 @@ export const metricMeta: Record<Metric, MetricMeta> = {
     [Metric.hideoutTime]: {type: "map", discrete: false},
     [Metric.campaignTime]: {type: "map", discrete: false},
     [Metric.loadTime]: {type: "map", discrete: false},
+    [Metric.afkTime]: {type: "map", discrete: false},
 }
 
 export enum Aggregation {
@@ -241,7 +234,8 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
         } else {
             maps = sfMaps;
         }
-        events = Filter.filterEvents(events, reassembledFilter);
+        // events = Filter.filterEvents(events, reassembledFilter);
+        events = Filter.filterEventsByMaps(events, maps);
     } else {
         // selected filter combination excludes all data
         maps = [];
@@ -263,23 +257,19 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
             }
             const characterAggregation = await buildCharacterAggregation(maps, events);
             const eventBitSetIndex = buildEventBitSetIndex(maps, events);
+            const sessionsSegmentation = buildSessionsSegmentation(maps);
             const areaTypeBitSetIndex = buildAreaTypeBitSetIndex(maps);
             const mapNameBitSetIndex = buildMapNameBitSetIndex(maps);
-            let filteredAreaTypes;
-            if (gameVersion === 2) {
-                filteredAreaTypes = areaTypes.filter(at => at !== AreaType.Labyrinth && at !== AreaType.Delve);
-            } else {
-                filteredAreaTypes = areaTypes.filter(at => at !== AreaType.Tower);
-            }
             base = {
                 gameVersion,
                 maps,
                 events,
                 characterAggregation,
                 eventBitSetIndex,
+                sessionsSegmentation,
                 areaTypeBitSetIndex,
                 mapNameBitSetIndex,
-                areaTypes: filteredAreaTypes
+                areaTypes
             };
         } catch (e) {
             console.error("failed to build base aggregation, limited functionality available", e);
@@ -289,6 +279,7 @@ export async function aggregate(maps: MapInstance[], events: LogEvent[], filter:
                 events,
                 characterAggregation: new CharacterAggregation(new Map(), [], new Map(), []),
                 eventBitSetIndex: new Map(),
+                sessionsSegmentation: [],
                 areaTypeBitSetIndex: new Map(),
                 mapNameBitSetIndex: new Map(),
                 areaTypes
@@ -340,8 +331,13 @@ const TRADE_PATTERNS = [
 export const TRADE_REGEX = new RegExp(`^(${TRADE_PATTERNS.join('|')})`);
 
 interface MetricsAggregator {
-    walkEvents(fn: (event: LogEvent, key: string | number) => number): Promise<void>;
-    walkMaps(fn: (map: MapInstance, key: string | number) => number): Promise<void>;
+    walkEvents(fn: (event: LogEvent) => number): Promise<void>;
+    walkMaps(fn: (map: MapInstance) => number): Promise<void>;
+}
+
+interface Accumulator {
+    add(value: number): void;
+    result(): number;
 }
 
 export async function aggregateBy(agg: LogAggregationCube, dimension: Dimension, metric: Metric, aggregation: Aggregation): Promise<Map<string | number, number>> {
@@ -359,13 +355,15 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
     const events = agg.events;
     let eventDimensionSegmentation: Map<string | number, Segmentation> | undefined;
     let metricAggregator: MetricsAggregator;
-    let dataMap = new Map<string | number, number[]>();
+    let dataMap = new Map<string | number, Accumulator>();
     const fb = new FrameBarrier();
-    const eventSegmentationMetricsAggregator = (eventDimensionSegmentation: Map<string | number, Segmentation>) => {
+    const accumulatorFn = getAccumulatorFn(aggregation);
+    const zeroAgnostic = aggregation === Aggregation.total;
+    function eventSegmentationMetricsAggregator(eventDimensionSegmentation: Map<string | number, Segmentation>) {
         return {
             walkEvents: async (fn: (event: LogEvent, key: string | number) => number) => {
                 for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
-                    const values: number[] = [];
+                    const accumulator = accumulatorFn();
                     for (const range of segmentation) {
                         const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= range.lo);
                         if (loIx === -1) continue;
@@ -378,35 +376,65 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
                             if (fb.shouldYield()) await fb.yield();
                             
                             const event = events[i];
-                            values.push(fn(event, key));
+                            accumulator.add(fn(event, key));
                         }
                     }
-                    dataMap.set(key, values);
+                    dataMap.set(key, accumulator);
                 }
             },
             walkMaps: async (fn: (map: MapInstance, key: string | number) => number) => {
                 for (const [key, segmentation] of eventDimensionSegmentation.entries()) {
-                    const values: number[] = [];
+                    const accumulator = accumulatorFn();
                     for (const range of segmentation) {
-                        const loIx = binarySearchFindFirstIx(agg.maps, (m) => m.span.start >= range.lo);
+                        const loIx = binarySearchFindFirstIx(agg.maps, (m) => m.start >= range.lo);
                         if (loIx === -1) continue;
         
                         const end = range.hi;
-                        const hiIx = end ? binarySearchFindLastIx(agg.maps, (m) => !m.span.end || m.span.end <= end) : agg.maps.length - 1;
+                        const hiIx = end ? binarySearchFindLastIx(agg.maps, (m) => !m.end || m.end <= end) : agg.maps.length - 1;
                         if (hiIx === -1) continue;
         
                         for (let i = loIx; i <= hiIx; i++) {
                             if (fb.shouldYield()) await fb.yield();
 
                             const map = agg.maps[i];
-                            values.push(fn(map, key));
+                            accumulator.add(fn(map, key));
                         }
                     }
-                    dataMap.set(key, values);
+                    dataMap.set(key, accumulator);
                 }
             }
         }
     }
+
+    function keyedMetricsAggregator<T extends string | number>(eventKeyFn: (event: LogEvent) => T, mapKeyFn: (map: MapInstance) => T, postWalk?: () => void) {
+        return {
+            walkEvents: async (fn: (event: LogEvent) => number) => {
+                for (const event of events) {
+                    if (fb.shouldYield()) await fb.yield();
+
+                    const value = fn(event);
+                    if (zeroAgnostic && value === 0) continue;
+
+                    const key = eventKeyFn(event);
+                    computeIfAbsent(dataMap, key, () => accumulatorFn()).add(value);
+                }
+                postWalk?.();
+            },
+            walkMaps: async (fn: (map: MapInstance) => number) => {
+                for (const map of agg.maps) {
+                    if (fb.shouldYield()) await fb.yield();
+
+                    const value = fn(map);
+                    if (zeroAgnostic && value === 0) continue;
+
+                    const key = mapKeyFn(map);
+                    computeIfAbsent(dataMap, key, () => accumulatorFn()).add(value);
+                }
+                postWalk?.();
+            }
+        }
+    }
+    
     switch (dimension) {
         case Dimension.character:
             eventDimensionSegmentation = agg.characterAggregation.guessSegmentations(fromCharacterLevel, toCharacterLevel, characters);
@@ -445,33 +473,58 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
             }
             metricAggregator = eventSegmentationMetricsAggregator(eventDimensionSegmentation);
             break;
+        case Dimension.hourOfDay:
+            for (let i = 0; i < 24; i++) {
+                dataMap.set(i, accumulatorFn());
+            }
+            metricAggregator = keyedMetricsAggregator(event => new Date(event.ts).getHours(), map => new Date(map.start).getHours());
+            break;
+        case Dimension.hourOfSession:
+            function getHourOfSession(ts: number): number {
+                const range = Segmentation.find(agg.base.sessionsSegmentation, ts);
+                if (!range) return -1;
+
+                return Math.floor((ts - range.lo) / 1000 / 3600);
+            }
+            metricAggregator = keyedMetricsAggregator(event => getHourOfSession(event.ts), map => getHourOfSession(map.start), () => {
+                dataMap = new Map([...dataMap.entries()].sort((a, b) => (a[0] as number) - (b[0] as number)));
+            });
+            break;
+        case Dimension.dayOfWeek:
+            const weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            for (let i = 1; i < 7; i++) {
+                dataMap.set(weekDays[i], accumulatorFn());
+            }
+            dataMap.set(weekDays[0], accumulatorFn());
+            metricAggregator = keyedMetricsAggregator(event => weekDays[new Date(event.ts).getDay()], map => weekDays[new Date(map.start).getDay()]);
+            break;
         case Dimension.areaLevel:
             metricAggregator = {
-                walkEvents: async (fn: (event: LogEvent, key: string | number) => number) => {
+                walkEvents: async (fn: (event: LogEvent) => number) => {
                     for (const map of agg.maps) {
-                        const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= map.span.start);
+                        const loIx = binarySearchFindFirstIx(events, (e) => e.ts >= map.start);
                         if (loIx === -1) continue;
 
-                        const end = map.span.end;
+                        const end = map.end;
                         const hiIx = end ? binarySearchFindLastIx(events, (e) => e.ts <= end) : events.length - 1;
                         if (hiIx === -1) continue;
 
-                        const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
+                        const accumulator = computeIfAbsent(dataMap, map.areaLevel, () => accumulatorFn());
                         for (let i = loIx; i <= hiIx; i++) {
                             if (fb.shouldYield()) await fb.yield();
 
-                            values.push(fn(events[i], map.areaLevel));
+                            accumulator.add(fn(events[i]));
                         }
                     }
                     // TODO do this cleaner and type-safer
                     dataMap = new Map([...dataMap.entries()].sort((a, b) => (a[0] as number) - (b[0] as number)));
                 },
-                walkMaps: async (fn: (map: MapInstance, key: string | number) => number) => {
+                walkMaps: async (fn: (map: MapInstance) => number) => {
                     for (const map of agg.maps) {
                         if (fb.shouldYield()) await fb.yield();
 
-                        const values = computeIfAbsent(dataMap, map.areaLevel, () => []);
-                        values.push(fn(map, map.areaLevel));
+                        const accumulator = computeIfAbsent(dataMap, map.areaLevel, () => accumulatorFn());
+                        accumulator.add(fn(map));
                     }
                     // TODO do this cleaner and type-safer
                     dataMap = new Map([...dataMap.entries()].sort((a, b) => (a[0] as number) - (b[0] as number)));
@@ -479,12 +532,29 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
             };
             break;
         case Dimension.none:
-            throw new Error("not yet supported");
+            const accumulator = accumulatorFn();
+            dataMap.set("none", accumulator);
+            metricAggregator = {
+                walkEvents: async (fn: (event: LogEvent) => number) => {
+                    for (const event of events) {
+                        if (fb.shouldYield()) await fb.yield();
+    
+                        accumulator.add(fn(event));
+                    }
+                },
+                walkMaps: async (fn: (map: MapInstance) => number) => {
+                    for (const map of agg.maps) {
+                        if (fb.shouldYield()) await fb.yield();
+    
+                        accumulator.add(fn(map));
+                    }
+                }
+            };
             break;
     }
     if (metricMeta[metric].type === "event") {
         let lastEventTs = 0;
-        await metricAggregator.walkEvents((event, _) => {
+        await metricAggregator.walkEvents((event) => {
             let found = false;
             switch (metric) {
                 case Metric.deaths:
@@ -523,53 +593,108 @@ async function aggregateBy0(agg: LogAggregationCube, dimension: Dimension, metri
             return found ? 1 : 0;
         });
     } else {
-        await metricAggregator.walkMaps((map, _) => {
+        await metricAggregator.walkMaps((map) => {
             switch (metric) {
                 case Metric.maps:
                     return 1;
                 case Metric.delveNodes:
                     return map.areaType === AreaType.Delve ? 1 : 0;
                 case Metric.totalTime:
-                    return MapSpan.mapTimePlusIdle(map.span);
+                    return map.getTime();
                 case Metric.mapTime:
-                    return MapSpan.mapTime(map.span);
+                    return map.getTime(new Set([MapMarkerType.map]));
                 case Metric.hideoutTime:
-                    return map.span.hideoutTime;
+                    return map.getTime(new Set([MapMarkerType.hideout]));
                 case Metric.loadTime:
-                    return map.span.loadTime;
+                    return map.getTime(new Set([MapMarkerType.load]));
+                case Metric.afkTime:
+                    return map.getTime(new Set([MapMarkerType.afk]));
                 case Metric.campaignTime:
                     // return agg.isCampaignMap(map) ? MapSpan.mapTimePlusIdle(map.span) : 0;
                     // FIXME should only count time until campaign is completed (per character), e.g. once the final zone is reached, stop counting campaign zones towards campaign time
                     const zoneInfo = getZoneInfo(map.name, map.areaLevel);
-                    return zoneInfo ? MapSpan.mapTimePlusIdle(map.span) : 0;
+                    return zoneInfo ? map.getTime() : 0;
                 default: throw new Error(`unsupported metric: ${metric}`);
             }
         });
     }
     const aggregatedData = new Map<string | number, number>();
-    for (const [key, values] of dataMap.entries()) {
-        switch(aggregation) {
-            case Aggregation.total:
-                aggregatedData.set(key, total(values));
-                break;
-            case Aggregation.average:
-                aggregatedData.set(key, average(values));
-                break;
-            case Aggregation.median:
-                aggregatedData.set(key, values.length === 0 ? 0 : medianQuickSelect(values));
-                break;
-            case Aggregation.exactMedian:
-                aggregatedData.set(key, values.length === 0 ? 0 : medianExact(values));
-                break;
-            case Aggregation.max:
-                aggregatedData.set(key, values.length === 0 ? 0 : max(values));
-                break;
-            case Aggregation.min:
-                aggregatedData.set(key, values.length === 0 ? 0 : min(values));
-                break;
-        }
+    for (const [key, accumulator] of dataMap.entries()) {
+        aggregatedData.set(key, accumulator.result());
     }
     return aggregatedData;
+}
+
+function getAccumulatorFn(aggregation: Aggregation): () => Accumulator {
+    class SumAcc implements Accumulator {
+        private sum = 0;
+        add(value: number): void {
+            this.sum += value;
+        }
+        result(): number {
+            return this.sum;
+        }
+    }
+    class AverageAcc implements Accumulator {
+        private sum = 0;
+        private count = 0;
+        add(value: number): void {
+            this.sum += value;
+            this.count++;
+        }
+        result(): number {
+            return this.sum / this.count;
+        }
+    }
+    class MinAcc implements Accumulator {
+        private min = Infinity;
+        add(value: number): void {
+            this.min = Math.min(this.min, value);
+        }
+        result(): number {
+            return this.min;
+        }
+    }
+    class MaxAcc implements Accumulator {
+        private max = -Infinity;
+        add(value: number): void {
+            this.max = Math.max(this.max, value);
+        }
+        result(): number {
+            return this.max;
+        }
+    }
+    abstract class ArrayAcc implements Accumulator {
+        protected values: number[] = [];
+        add(value: number): void {
+            this.values.push(value);
+        }
+        abstract result(): number;
+    }
+    class MedianAcc extends ArrayAcc {
+        result(): number {
+            return this.values.length !== 0 ? medianQuickSelect(this.values) : 0;
+        }
+    }
+    class ExactMedianAcc extends ArrayAcc {
+        result(): number {
+            return this.values.length !== 0 ? medianExact(this.values) : 0;
+        }
+    }
+    switch (aggregation) {
+        case Aggregation.total:
+            return () => new SumAcc();
+        case Aggregation.average:
+            return () => new AverageAcc();
+        case Aggregation.median:
+            return () => new MedianAcc();
+        case Aggregation.min:
+            return () => new MinAcc();
+        case Aggregation.max:
+            return () => new MaxAcc();
+        case Aggregation.exactMedian:
+            return () => new ExactMedianAcc();
+    }
 }
 
 export function medianExact(arr: number[]): number {

@@ -1,0 +1,7992 @@
+[
+  {
+    "_index": 0,
+    "Id": "NULL",
+    "Name": "NULL",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 9693,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 1,
+    "Id": "CharacterSelect",
+    "Name": "Character Select",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 18564,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 2,
+    "Id": "PersonalHideout",
+    "Name": "Your Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 14412,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 3,
+    "Id": "GuildHideout__",
+    "Name": "Your Guild Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 21134,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 4,
+    "Id": "CurrentTown",
+    "Name": "Current Town",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": -25443,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 5,
+    "Id": "HideoutCave",
+    "Name": "Submerged Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": 18005,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 6,
+    "Id": "HideoutShipgraveyard",
+    "Name": "Shipwreck Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": 7889,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 7,
+    "Id": "HideoutSpace",
+    "Name": "Celestial Nebula Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -30514,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 8,
+    "Id": "HideoutArenaGraveyardTrio",
+    "Name": "Entombed Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 30781,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 9,
+    "Id": "HideoutPillarsOfArun",
+    "Name": "Towering Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -492,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 10,
+    "Id": "HideoutAtziriArena",
+    "Name": "Corrupted Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -31184,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 11,
+    "Id": "HideoutInnocenceArena",
+    "Name": "Innocent Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -19926,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 12,
+    "Id": "HideoutShaperArena",
+    "Name": "Shaped Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -24046,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 13,
+    "Id": "HideoutKaomArena",
+    "Name": "Furious Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": 26625,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 14,
+    "Id": "HideoutDaressoArena",
+    "Name": "Champion's Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -15628,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 15,
+    "Id": "HideoutDominusArena",
+    "Name": "Indomitable Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -13455,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 16,
+    "Id": "HideoutPietyArena",
+    "Name": "Morbid Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -23555,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 17,
+    "Id": "HideoutLunarisSolarisArena",
+    "Name": "Eclipsed Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -28508,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 18,
+    "Id": "HideoutKitavaArenaAct10",
+    "Name": "Ravenous Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -29158,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 19,
+    "Id": "HideoutDoomguard",
+    "Name": "Doomguard Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11166,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 20,
+    "Id": "HideoutSunspire",
+    "Name": "Sunspire Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -27643,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 21,
+    "Id": "HideoutDarkwood",
+    "Name": "Darkwood Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 1739,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 22,
+    "Id": "HideoutArenaElder",
+    "Name": "Void Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26046,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 23,
+    "Id": "HideoutChiyouSpring",
+    "Name": "Chiyou Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -1654,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 24,
+    "Id": "HideoutBlankAbyss",
+    "Name": "Infinite Abyss Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -32671,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 25,
+    "Id": "HideoutBlankCity",
+    "Name": "Urban Sprawl Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26652,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 26,
+    "Id": "HideoutBlankClouds",
+    "Name": "Boundless Skies Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3769,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 27,
+    "Id": "HideoutBlankDesert",
+    "Name": "Endless Sands Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 29167,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 28,
+    "Id": "HideoutBlankDirt",
+    "Name": "Eternal Wasteland Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -31014,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 29,
+    "Id": "HideoutBlankGrass",
+    "Name": "Vast Plains Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 5889,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 30,
+    "Id": "HideoutBlankSea",
+    "Name": "All at Sea Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -7222,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 31,
+    "Id": "HideoutBlankSnow",
+    "Name": "Glacial Expanse Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 3594,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 32,
+    "Id": "HideoutThaumaturgy",
+    "Name": "Thaumaturgical Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 5469,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 33,
+    "Id": "HideoutYaochi",
+    "Name": "Yaochi Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11694,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 34,
+    "Id": "HideoutHumanoidPet",
+    "Name": "Humanoid Pet Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -442,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 35,
+    "Id": "HideoutRitualLeague",
+    "Name": "Ritualist's Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 22310,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 36,
+    "Id": "HideoutArenaMaven",
+    "Name": "Crucible Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 12991,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 37,
+    "Id": "HideoutHasina",
+    "Name": "Tavern Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 28095,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 38,
+    "Id": "HideoutAzuriteCave",
+    "Name": "Azurite Cavern Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24939,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 39,
+    "Id": "HideoutSynthesisHub",
+    "Name": "Synthesis Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 6681,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 40,
+    "Id": "HideoutVeritaniaArena",
+    "Name": "Redeemer's Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -13986,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 41,
+    "Id": "HideoutBlankBlack",
+    "Name": "Black Void Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 14166,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 42,
+    "Id": "HideoutTencentApocalypse",
+    "Name": "Cataclysmic Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 15139,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 43,
+    "Id": "HideoutOlrothArena",
+    "Name": "Ancestral Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 20743,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 44,
+    "Id": "HideoutLight",
+    "Name": "Timekeeper's Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -671,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 45,
+    "Id": "HideoutDark",
+    "Name": "Ghost-lit Graveyard Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 11848,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 46,
+    "Id": "HideoutArenaBlackStar_",
+    "Name": "Polaric Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 2056,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 47,
+    "Id": "HideoutArenaInfiniteHunger",
+    "Name": "Seething Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -14069,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 48,
+    "Id": "HideoutCosmicAtlas",
+    "Name": "Atlas Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 8758,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 49,
+    "Id": "HideoutArenaEaterOfWorlds",
+    "Name": "Tangled Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3659,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 50,
+    "Id": "HideoutArenaSearingExarch",
+    "Name": "Searing Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 95,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 51,
+    "Id": "HideoutBeaconOfSalvation",
+    "Name": "Beacon of Salvation Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 15656,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 52,
+    "Id": "HideoutCanopy",
+    "Name": "Canopy Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 21626,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 53,
+    "Id": "HideoutDreadnought",
+    "Name": "The Dreadnought Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 30315,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 54,
+    "Id": "HideoutFelled",
+    "Name": "Felled Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 13526,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 55,
+    "Id": "HideoutShrine",
+    "Name": "Shrine Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26805,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 56,
+    "Id": "HideoutLimestone",
+    "Name": "Limestone Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 12394,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 57,
+    "Id": "HideoutCanal",
+    "Name": "Canal Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5121,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 58,
+    "Id": "HideoutMonolith",
+    "Name": "Monolith Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -25850,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 59,
+    "Id": "HideoutTwisted",
+    "Name": "Twisted Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 15287,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 60,
+    "Id": "HideoutTranscendent",
+    "Name": "Transcendent Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -29436,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 61,
+    "Id": "HideoutHourglass",
+    "Name": "Hourglass Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 12797,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 62,
+    "Id": "HideoutChaos",
+    "Name": "Chaos Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 4360,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 63,
+    "Id": "HideoutSummit",
+    "Name": "Plateau of the Gods Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -6484,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 64,
+    "Id": "HideoutRacetrack",
+    "Name": "Vastiri Racecourse Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 382,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 65,
+    "Id": "HideoutShipwreck",
+    "Name": "Kraken's Cove Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 8363,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 66,
+    "Id": "HideoutFarmlands",
+    "Name": "Farmlands Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -29216,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 67,
+    "Id": "HideoutPrison",
+    "Name": "Prison Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -25719,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 68,
+    "Id": "HideoutShoreline",
+    "Name": "Shoreline Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 4638,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 69,
+    "Id": "HideoutArenaKulemak",
+    "Name": "Black Cathedral Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 9070,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 70,
+    "Id": "HideoutGrinding",
+    "Name": "Grinding Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3024,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 71,
+    "Id": "HideoutArcaneIsle",
+    "Name": "Arcane Isle Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 23536,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 72,
+    "Id": "HideoutSacrifice",
+    "Name": "Sacrifice Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -4384,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 73,
+    "Id": "HideoutVerdant",
+    "Name": "Verdant Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 31541,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 74,
+    "Id": "HideoutBlankUrban",
+    "Name": "Civic Square Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 1248,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 75,
+    "Id": "HideoutBlankMountain",
+    "Name": "Alpine Plateau Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -4682,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 76,
+    "Id": "HideoutBlankDesert2",
+    "Name": "Vastiri Plains Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 2292,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 77,
+    "Id": "HideoutBlankCrypt",
+    "Name": "Mausoleum Hideout",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 1368,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": true,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 78,
+    "Id": "Design",
+    "Name": "Gone Fishing",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 1,
+    "HASH16": 21868,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 79,
+    "Id": "Design_Lite",
+    "Name": "Design (Lite)",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 80,
+    "HASH16": -10720,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/ShaperMaps.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 80,
+    "Id": "BlackTest",
+    "Name": "All Black",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 1,
+    "HASH16": -15746,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 81,
+    "Id": "Programming",
+    "Name": "Programming World",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 80,
+    "HASH16": 22917,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 82,
+    "Id": "Programming_Lite",
+    "Name": "Programming World (Lite)",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 80,
+    "HASH16": -30719,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 83,
+    "Id": "KaruiShowcase",
+    "Name": "Heart of the Tribe",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 30,
+    "HASH16": -16512,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/4.0.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 84,
+    "Id": "G_login",
+    "Name": "Login Scene",
+    "Act": 1,
+    "IsTown": true,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 9348,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 85,
+    "Id": "G1_WorldMap",
+    "Name": "Act 1",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 27102,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 86,
+    "Id": "G2_WorldMap",
+    "Name": "Act 2",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 10094,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 87,
+    "Id": "G3_WorldMap",
+    "Name": "Act 3",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": -21120,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 88,
+    "Id": "G4_WorldMap",
+    "Name": "Act 4",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": -3848,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 89,
+    "Id": "G6_WorldMap",
+    "Name": "Interlude",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 1028,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 90,
+    "Id": "TN_WorldMap",
+    "Name": "Atlas",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 0,
+    "HASH16": 6064,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 91,
+    "Id": "G1_town",
+    "Name": "Clearfell Encampment",
+    "Act": 1,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 15,
+    "HASH16": 16240,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 92,
+    "Id": "G1_1",
+    "Name": "The Riverbank",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 1,
+    "HASH16": 3860,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 93,
+    "Id": "G1_2",
+    "Name": "Clearfell",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 2,
+    "HASH16": -26507,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 94,
+    "Id": "G1_3",
+    "Name": "Mud Burrow",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 3,
+    "HASH16": -25934,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 95,
+    "Id": "G1_4",
+    "Name": "The Grelwood",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 4,
+    "HASH16": -12438,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 96,
+    "Id": "G1_5",
+    "Name": "The Red Vale",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 5,
+    "HASH16": 17135,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 97,
+    "Id": "G1_6",
+    "Name": "The Grim Tangle",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 6,
+    "HASH16": 8667,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 98,
+    "Id": "G1_7",
+    "Name": "Cemetery of the Eternals",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 7,
+    "HASH16": -5871,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Graveyard.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 99,
+    "Id": "G1_8",
+    "Name": "Mausoleum of the Praetor",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 8,
+    "HASH16": -28278,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Graveyard.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 100,
+    "Id": "G1_9",
+    "Name": "Tomb of the Consort",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 8,
+    "HASH16": 11212,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Graveyard.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 101,
+    "Id": "G1_10",
+    "Name": "Root Hollow",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 15,
+    "HASH16": 26034,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 102,
+    "Id": "G1_11",
+    "Name": "Hunting Grounds",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 10,
+    "HASH16": -24297,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1147
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 103,
+    "Id": "G1_12",
+    "Name": "Freythorn",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 11,
+    "HASH16": -21367,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1147
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 104,
+    "Id": "G1_13_1",
+    "Name": "Ogham Farmlands",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 12,
+    "HASH16": -3894,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 105,
+    "Id": "G1_13_2",
+    "Name": "Ogham Village",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 13,
+    "HASH16": -27542,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 106,
+    "Id": "G1_14",
+    "Name": "The Manor Ramparts",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 14,
+    "HASH16": 24867,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 107,
+    "Id": "G1_15",
+    "Name": "Ogham Manor",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 15,
+    "HASH16": -15535,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 108,
+    "Id": "G2_town",
+    "Name": "The Ardura Caravan",
+    "Act": 2,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 32,
+    "HASH16": 27233,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Caravan.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 109,
+    "Id": "G2_1",
+    "Name": "Vastiri Outskirts",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 16,
+    "HASH16": -1585,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1148
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 110,
+    "Id": "G2_2",
+    "Name": "Traitor's Passage",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 19,
+    "HASH16": -27335,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 111,
+    "Id": "G2_3",
+    "Name": "The Halani Gates",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 20,
+    "HASH16": -1361,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 112,
+    "Id": "G2_3a",
+    "Name": "The Halani Gates",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -4782,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 113,
+    "Id": "G2_3s",
+    "Name": "The Halani Gates",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 20,
+    "HASH16": -4525,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 114,
+    "Id": "G2_4_1",
+    "Name": "Keth",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 21,
+    "HASH16": 14865,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 115,
+    "Id": "G2_4_2",
+    "Name": "The Lost City",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": 32556,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 116,
+    "Id": "G2_4_3",
+    "Name": "Buried Shrines",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 23,
+    "HASH16": -5985,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 117,
+    "Id": "G2_5_1",
+    "Name": "Mastodon Badlands",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 21,
+    "HASH16": -28951,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1148
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 118,
+    "Id": "G2_5_2",
+    "Name": "The Bone Pits",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": 31975,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1148
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 119,
+    "Id": "G2_6",
+    "Name": "Valley of the Titans",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 21,
+    "HASH16": -21594,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 120,
+    "Id": "G2_7",
+    "Name": "The Titan Grotto",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": -17565,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 121,
+    "Id": "G2_8",
+    "Name": "Deshar",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 28,
+    "HASH16": 12519,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 122,
+    "Id": "G2_8a",
+    "Name": "Deshar",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 28,
+    "HASH16": -14130,
+    "LoadingScreens": [],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 123,
+    "Id": "G2_9_1",
+    "Name": "Path of Mourning",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 29,
+    "HASH16": -13029,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 124,
+    "Id": "G2_9_2",
+    "Name": "The Spires of Deshar",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 30,
+    "HASH16": -20966,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 125,
+    "Id": "G2_10_1",
+    "Name": "Mawdun Quarry",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 17,
+    "HASH16": 28670,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 126,
+    "Id": "G2_10_2",
+    "Name": "Mawdun Mine",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 18,
+    "HASH16": -28414,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 127,
+    "Id": "G2_11",
+    "Name": "The Dreadnought's Wake",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 30,
+    "HASH16": -4171,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 128,
+    "Id": "G2_12_1",
+    "Name": "The Dreadnought",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 31,
+    "HASH16": -15414,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 129,
+    "Id": "G2_12_2",
+    "Name": "Dreadnought Vanguard",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 32,
+    "HASH16": -16761,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 130,
+    "Id": "G2_13",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": -5538,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1150
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 131,
+    "Id": "Sanctum_1",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -4291,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 132,
+    "Id": "Sanctum_1_Foyer_1",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 23273,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 133,
+    "Id": "Sanctum_1_Foyer_2",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 14529,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 134,
+    "Id": "Sanctum_1_Foyer_3",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -20244,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 135,
+    "Id": "Sanctum_2",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 32722,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 136,
+    "Id": "Sanctum_2_Foyer_1",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 23085,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 137,
+    "Id": "Sanctum_2_Foyer_2",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -16031,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 138,
+    "Id": "Sanctum_2_Foyer_3",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 18324,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 139,
+    "Id": "Sanctum_3",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 19697,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 140,
+    "Id": "Sanctum_3_Foyer_1",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -27971,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 141,
+    "Id": "Sanctum_3_Foyer_2",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -12674,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 142,
+    "Id": "Sanctum_3_Foyer_3",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -27333,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 143,
+    "Id": "Sanctum_4",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -19576,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 144,
+    "Id": "Sanctum_4_Foyer_1",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 17675,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 145,
+    "Id": "Sanctum_4_Foyer_2",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -22515,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 146,
+    "Id": "Sanctum_4_Foyer_3",
+    "Name": "Trial of the Sekhemas",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -26084,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 147,
+    "Id": "G3_town",
+    "Name": "Ziggurat Encampment",
+    "Act": 3,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 44,
+    "HASH16": -3603,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 148,
+    "Id": "G3_1",
+    "Name": "Sandswept Marsh",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 33,
+    "HASH16": 31468,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 149,
+    "Id": "G3_2_1",
+    "Name": "Infested Barrens",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 35,
+    "HASH16": -4228,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 150,
+    "Id": "G3_2_2",
+    "Name": "The Matlan Waterways",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 39,
+    "HASH16": 22464,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 151,
+    "Id": "G3_3",
+    "Name": "Jungle Ruins",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 34,
+    "HASH16": -27079,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 152,
+    "Id": "G3_4",
+    "Name": "The Venom Crypts",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 35,
+    "HASH16": 32723,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 153,
+    "Id": "G3_5",
+    "Name": "Chimeral Wetlands",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 36,
+    "HASH16": 14056,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 154,
+    "Id": "G3_6_1",
+    "Name": "Jiquani's Machinarium",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 37,
+    "HASH16": -18411,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 155,
+    "Id": "G3_6_2",
+    "Name": "Jiquani's Sanctum",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 38,
+    "HASH16": 21926,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 156,
+    "Id": "G3_7",
+    "Name": "The Azak Bog",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 36,
+    "HASH16": 21758,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 157,
+    "Id": "G3_8",
+    "Name": "The Drowned City",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 40,
+    "HASH16": -29986,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 158,
+    "Id": "G3_9",
+    "Name": "The Molten Vault",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 41,
+    "HASH16": -19848,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 159,
+    "Id": "G3_10",
+    "Name": "The Trial of Chaos",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 38,
+    "HASH16": -18707,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/ChaosTempleTrial.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 160,
+    "Id": "G3_10_Airlock",
+    "Name": "The Temple of Chaos",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 38,
+    "HASH16": 20596,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/ChaosTempleTrial.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 161,
+    "Id": "G3_11",
+    "Name": "Apex of Filth",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 41,
+    "HASH16": 18969,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 162,
+    "Id": "G3_12",
+    "Name": "Temple of Kopec",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 42,
+    "HASH16": -18124,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 163,
+    "Id": "G3_14",
+    "Name": "Utzaal",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 43,
+    "HASH16": -29633,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 164,
+    "Id": "G3_15",
+    "Name": "Library of Kamasa",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 43,
+    "HASH16": -23082,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      63,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 165,
+    "Id": "G3_16",
+    "Name": "Aggorat",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 44,
+    "HASH16": -5479,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 166,
+    "Id": "G3_17",
+    "Name": "The Black Chambers",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 45,
+    "HASH16": -31884,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 167,
+    "Id": "G4_town",
+    "Name": "Kingsmarch",
+    "Act": 4,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": -11229,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 168,
+    "Id": "G4_ship",
+    "Name": "[DNT] Ship",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 1,
+    "HASH16": 4218,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 169,
+    "Id": "G4_1_1",
+    "Name": "Isle of Kin",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": 18343,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 170,
+    "Id": "G4_1_2",
+    "Name": "Volcanic Warrens",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 47,
+    "HASH16": 25933,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 171,
+    "Id": "G4_2_1",
+    "Name": "Kedge Bay",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": -4036,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 172,
+    "Id": "G4_2_2",
+    "Name": "Journey's End",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 47,
+    "HASH16": -19260,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 173,
+    "Id": "G4_3_1",
+    "Name": "Whakapanu Island",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": 23315,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 174,
+    "Id": "G4_3_2",
+    "Name": "Singing Caverns",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 47,
+    "HASH16": 29346,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 175,
+    "Id": "G4_4_1",
+    "Name": "Eye of Hinekora",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": 4539,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 176,
+    "Id": "G4_4_2",
+    "Name": "Halls of the Dead",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 47,
+    "HASH16": 13467,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 177,
+    "Id": "G4_4_3",
+    "Name": "Trial of the Ancestors",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 51,
+    "HASH16": -1813,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 178,
+    "Id": "G4_5_1",
+    "Name": "Abandoned Prison",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": 13729,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 179,
+    "Id": "G4_5_2",
+    "Name": "Solitary Confinement",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 47,
+    "HASH16": -22457,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 180,
+    "Id": "G4_6",
+    "Name": "[DNT-UNUSED] Vahi Loa",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 45,
+    "HASH16": 9785,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 181,
+    "Id": "G4_7",
+    "Name": "Shrike Island",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 46,
+    "HASH16": -21290,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 182,
+    "Id": "G4_8a",
+    "Name": "Arastas",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 52,
+    "HASH16": 18492,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 183,
+    "Id": "G4_8b",
+    "Name": "Arastas",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 52,
+    "HASH16": -301,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1146
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 184,
+    "Id": "G4_9_",
+    "Name": "Isle of Decay",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": -28026,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 185,
+    "Id": "G4_10",
+    "Name": "The Excavation",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 52,
+    "HASH16": 20240,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 186,
+    "Id": "G4_11_1a",
+    "Name": "Ngakanu",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": -3805,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 187,
+    "Id": "G4_11_1b",
+    "Name": "Ngakanu",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": 1757,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 188,
+    "Id": "G4_11_2",
+    "Name": "Heart of the Tribe",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": -32397,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 189,
+    "Id": "G4_12",
+    "Name": "[DNT-UNUSED] Precursor Forge",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": 19560,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 190,
+    "Id": "G4_13",
+    "Name": "Plunder's Point",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": 7171,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 191,
+    "Id": "G4_14",
+    "Name": "Brinerot Cove",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 53,
+    "HASH16": -23011,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 192,
+    "Id": "P1_Town",
+    "Name": "The Refuge",
+    "Act": 6,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 64,
+    "HASH16": 5700,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 193,
+    "Id": "P1_1",
+    "Name": "Scorched Farmlands",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 54,
+    "HASH16": 28064,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1175
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 194,
+    "Id": "P1_2",
+    "Name": "Stones of Serle",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 54,
+    "HASH16": -7521,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 195,
+    "Id": "P1_3",
+    "Name": "The Blackwood",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -14200,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/OldForest.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 196,
+    "Id": "P1_4",
+    "Name": "Holten",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -1693,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Graveyard.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 197,
+    "Id": "P1_5",
+    "Name": "Wolvenhold",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": 11530,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 198,
+    "Id": "P1_6",
+    "Name": "Holten Estate",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": 14933,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Village.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1134,
+      1149
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 199,
+    "Id": "P2_Town",
+    "Name": "The Khari Bazaar",
+    "Act": 6,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 64,
+    "HASH16": -11291,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Caravan.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 200,
+    "Id": "P2_1",
+    "Name": "The Khari Crossing",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 54,
+    "HASH16": -8857,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 201,
+    "Id": "P2_2",
+    "Name": "Pools of Khatal",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -16493,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 202,
+    "Id": "P2_3",
+    "Name": "Sel Khari Sanctuary ",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -31604,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 203,
+    "Id": "P2_4",
+    "Name": "[DNT] River Barrens",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -21736,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 204,
+    "Id": "P2_5",
+    "Name": "The Galai Gates",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": 9102,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 205,
+    "Id": "P2_6",
+    "Name": "Qimah",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": -12971,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 206,
+    "Id": "P2_7",
+    "Name": "Qimah Reservoir",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": -18902,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 207,
+    "Id": "P3_Town",
+    "Name": "The Glade",
+    "Act": 6,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 64,
+    "HASH16": -13370,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 208,
+    "Id": "P3_1",
+    "Name": "Ashen Forest",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 54,
+    "HASH16": 13830,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1147
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 209,
+    "Id": "P3_2",
+    "Name": "Kriar Village",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 54,
+    "HASH16": 21051,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1147
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 210,
+    "Id": "P3_3",
+    "Name": "Glacial Tarn",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": -1670,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1147
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 211,
+    "Id": "P3_4",
+    "Name": "Howling Caves",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 55,
+    "HASH16": 26066,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 212,
+    "Id": "P3_5",
+    "Name": "Kriar Peaks",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": 24900,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 213,
+    "Id": "P3_6",
+    "Name": "Etched Ravine",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": -21841,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 214,
+    "Id": "P3_7",
+    "Name": "The Cuachic Vault",
+    "Act": 6,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 56,
+    "HASH16": -28630,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 215,
+    "Id": "MapLeaguePortal",
+    "Name": "The Realmgate",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 28941,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 216,
+    "Id": "MapVoidReliquary",
+    "Name": "The Reliquary Vault",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24730,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 217,
+    "Id": "MapRustbowl",
+    "Name": "Rustbowl",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3471,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 218,
+    "Id": "MapBackwash",
+    "Name": "Backwash",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -8928,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 219,
+    "Id": "MapBurialBog",
+    "Name": "Burial Bog",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11987,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 220,
+    "Id": "MapInferno",
+    "Name": "Inferno",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5693,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 221,
+    "Id": "MapWetlands",
+    "Name": "Wetlands",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -25567,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1134,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 222,
+    "Id": "MapBloomingField",
+    "Name": "Blooming Field",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5160,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1068,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 223,
+    "Id": "MapCrimsonShores",
+    "Name": "Crimson Shores",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26330,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1066,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 224,
+    "Id": "MapCenotes",
+    "Name": "Cenotes",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -28729,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 225,
+    "Id": "MapSavanna",
+    "Name": "Savannah",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 2467,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 226,
+    "Id": "MapFortress",
+    "Name": "Fortress",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24986,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 227,
+    "Id": "MapPenitentiary",
+    "Name": "Penitentiary",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5495,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1072,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 228,
+    "Id": "MapLostTowers",
+    "Name": "Lost Towers",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -6948,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1075,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 229,
+    "Id": "MapBloodwood",
+    "Name": "Bloodwood",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 23951,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 230,
+    "Id": "MapSandspit",
+    "Name": "Sandspit",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 27971,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1066,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 231,
+    "Id": "MapForge",
+    "Name": "Forge",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 28068,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 232,
+    "Id": "MapSulphuricCaverns",
+    "Name": "Sulphuric Caverns",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 10429,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1071,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 233,
+    "Id": "MapMire",
+    "Name": "Mire",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -222,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 234,
+    "Id": "MapAugury",
+    "Name": "Augury",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -32319,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 235,
+    "Id": "MapWoodland",
+    "Name": "Woodland",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 19067,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 236,
+    "Id": "MapSump",
+    "Name": "Sump",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24670,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 237,
+    "Id": "MapWillow",
+    "Name": "Willow",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11170,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 238,
+    "Id": "MapHive",
+    "Name": "Hive",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -16649,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 239,
+    "Id": "MapHeadland",
+    "Name": "Headland",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 28568,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1071,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 240,
+    "Id": "MapLoftySummit",
+    "Name": "Lofty Summit",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11202,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 241,
+    "Id": "MapNecropolis",
+    "Name": "Necropolis",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 7491,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1072,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 242,
+    "Id": "MapCrypt",
+    "Name": "Crypt",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 32391,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1071,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 243,
+    "Id": "MapHiddenGrotto",
+    "Name": "Hidden Grotto",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 18157,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1070,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 244,
+    "Id": "MapSteamingSprings",
+    "Name": "Steaming Springs",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -9186,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1068,
+      1069,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 245,
+    "Id": "MapSeepage",
+    "Name": "Seepage",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 6675,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 246,
+    "Id": "MapRiverside",
+    "Name": "Riverside",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -31815,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 247,
+    "Id": "MapRavine",
+    "Name": "Ravine",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -6841,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 248,
+    "Id": "MapSpiderWoods",
+    "Name": "Spider Woods",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3788,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 249,
+    "Id": "MapMarrow",
+    "Name": "Marrow",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -29437,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 250,
+    "Id": "MapGrimhaven",
+    "Name": "Grimhaven",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -60,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1072,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 251,
+    "Id": "MapVaalVillage",
+    "Name": "Vaal Village",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 14616,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 252,
+    "Id": "MapVaalOutskirts",
+    "Name": "Vaal Outskirts",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 14489,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      312,
+      173,
+      1063,
+      169,
+      1061,
+      1065,
+      54,
+      74,
+      122,
+      50,
+      62,
+      323,
+      127,
+      709,
+      75,
+      56,
+      1060,
+      224,
+      1064,
+      705,
+      76,
+      79,
+      1062,
+      313,
+      113,
+      399,
+      102,
+      65,
+      73,
+      49,
+      710,
+      1057,
+      708,
+      51,
+      1058,
+      95,
+      707,
+      704,
+      706,
+      69,
+      311,
+      310,
+      66,
+      53,
+      1059
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 253,
+    "Id": "MapSlick",
+    "Name": "Slick",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 28476,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 254,
+    "Id": "MapVaalCity",
+    "Name": "Vaal City",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -27623,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 255,
+    "Id": "MapSteppe",
+    "Name": "Steppe",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 16117,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 256,
+    "Id": "MapSwampTower",
+    "Name": "Sinking Spire",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 17902,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1075,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 257,
+    "Id": "MapRockpools",
+    "Name": "Rockpools",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -32194,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1132,
+      1066
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 258,
+    "Id": "MapCreek",
+    "Name": "Creek",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -26165,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 259,
+    "Id": "MapDerelictMansion",
+    "Name": "Derelict Mansion",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 10075,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1134,
+      1149,
+      1070
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 260,
+    "Id": "MapOutlands",
+    "Name": "Outlands",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 7969,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 261,
+    "Id": "MapBastille",
+    "Name": "Bastille",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -13808,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 262,
+    "Id": "MapDecay",
+    "Name": "Decay",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -8212,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1070,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 263,
+    "Id": "MapMineshaft",
+    "Name": "Mineshaft",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 8497,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1071,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 264,
+    "Id": "MapDeserted",
+    "Name": "Deserted",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -31123,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 265,
+    "Id": "MapOasis",
+    "Name": "Oasis",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -32653,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 266,
+    "Id": "MapBastion",
+    "Name": "Bastion",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11641,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 267,
+    "Id": "MapAlpineRidge",
+    "Name": "Alpine Ridge",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 15378,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1075,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 268,
+    "Id": "MapSunTemple",
+    "Name": "Sun Temple",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 20136,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 269,
+    "Id": "MapChannel",
+    "Name": "Channel",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -24550,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 270,
+    "Id": "MapVaalFoundry",
+    "Name": "Molten Vault",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5278,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1071,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 271,
+    "Id": "MapVaalFactory",
+    "Name": "The Assembly",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 690,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 272,
+    "Id": "MapMesa",
+    "Name": "Mesa",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 19863,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1075,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 273,
+    "Id": "MapBluff",
+    "Name": "Bluff",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 4192,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1075,
+      1068,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 274,
+    "Id": "MapPerch",
+    "Name": "Perch",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 10906,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 275,
+    "Id": "MapKarst",
+    "Name": "Karst",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -19944,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 276,
+    "Id": "MapTerrace",
+    "Name": "Terrace",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -2267,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 277,
+    "Id": "MapPlantation",
+    "Name": "Plantation",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -20066,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 278,
+    "Id": "MapAzmerianRanges",
+    "Name": "Azmerian Ranges",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 23755,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1067,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 279,
+    "Id": "MapEpitaph",
+    "Name": "Epitaph",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -9811,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1068,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 280,
+    "Id": "MapReservoir",
+    "Name": "Reservoir",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -4176,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 281,
+    "Id": "MapRupture",
+    "Name": "Rupture",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 27215,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1070,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 282,
+    "Id": "MapOvergrown",
+    "Name": "Overgrown",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -18839,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1069,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 283,
+    "Id": "MapCaldera",
+    "Name": "Caldera",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -22848,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 284,
+    "Id": "MapChasm",
+    "Name": "Chasm",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -7156,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 285,
+    "Id": "MapSpring_",
+    "Name": "Spring",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 16577,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 286,
+    "Id": "MapSevenWaters",
+    "Name": "Confluence",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -15006,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 287,
+    "Id": "MapCavernCity",
+    "Name": "Sacred Reservoir",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -11771,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133,
+      1151
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 288,
+    "Id": "MapTrenches",
+    "Name": "Trenches",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -16688,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1070,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 289,
+    "Id": "MapFrozenFalls",
+    "Name": "Frozen Falls",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 22867,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 290,
+    "Id": "MapTidalCaverns",
+    "Name": "[DNT-Unused] Tidal Caverns",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24913,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 291,
+    "Id": "MapSwarm",
+    "Name": "Swarm",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5598,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 292,
+    "Id": "MapWaywardIsle",
+    "Name": "Wayward Isle",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -23953,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 293,
+    "Id": "MapStronghold",
+    "Name": "Stronghold",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 22688,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 294,
+    "Id": "MapPort",
+    "Name": "Port",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -18388,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 295,
+    "Id": "MapCliffside",
+    "Name": "Cliffside",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 9182,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1068,
+      1069,
+      1067,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 296,
+    "Id": "MapSinkhole",
+    "Name": "Sinkhole",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26370,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 297,
+    "Id": "MapFlotsam",
+    "Name": "Flotsam",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -30990,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169,
+      1066,
+      1068,
+      1069,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 298,
+    "Id": "MapUniqueUntaintedParadise",
+    "Name": "Untainted Paradise",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 6552,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 299,
+    "Id": "MapUniqueVault",
+    "Name": "Vaults of Kamasa",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -29617,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 300,
+    "Id": "MapUniqueCastaway",
+    "Name": "Castaway",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 24975,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 301,
+    "Id": "MapUniqueMegalith",
+    "Name": "The Ezomyte Megaliths",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -26532,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 302,
+    "Id": "MapUniqueLake",
+    "Name": "The Fractured Lake",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 4024,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1066
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 303,
+    "Id": "MapUniqueSelenite",
+    "Name": "The Silent Cave",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 19166,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 304,
+    "Id": "MapUniqueMerchant01_Chimeral",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -16314,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 305,
+    "Id": "MapUniqueMerchant01_Oasis",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 26681,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 306,
+    "Id": "MapUniqueMerchant01_Sandswept",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -19633,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 307,
+    "Id": "MapUniqueMerchant02_Crimson",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 27663,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 308,
+    "Id": "MapUniqueMerchant02_Farmland",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -23059,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 309,
+    "Id": "MapUniqueMerchant02_Riverbank",
+    "Name": "Merchant's Campsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -12578,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 310,
+    "Id": "MapUniqueMerchant03_Beach",
+    "Name": "Moment of Zen",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 2955,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 311,
+    "Id": "MapUniqueMerchant03_Tropical",
+    "Name": "Moment of Zen",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 19514,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 312,
+    "Id": "MapUniqueMerchant03_Raft",
+    "Name": "Moment of Zen",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 10001,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 313,
+    "Id": "MapUniqueMerchant04_PirateShip",
+    "Name": "The Voyage",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 528,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 314,
+    "Id": "MapUniqueWildwood",
+    "Name": "The Viridian Wildwood",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -18408,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 315,
+    "Id": "MapUniqueFreight_",
+    "Name": "Freight",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -983,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 316,
+    "Id": "MapUberBoss_IronCitadel",
+    "Name": "The Iron Citadel",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": -22768,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1072,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 317,
+    "Id": "MapUberBoss_CopperCitadel",
+    "Name": "The Copper Citadel",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": -13623,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1073,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 318,
+    "Id": "MapUberBoss_StoneCitadel",
+    "Name": "The Stone Citadel",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": 23173,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1074,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 319,
+    "Id": "MapUberBoss_JadeCitadel",
+    "Name": "The Jade Isles",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -14361,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1161,
+      1066,
+      1070,
+      1145
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 320,
+    "Id": "MapUberBoss_Monolith",
+    "Name": "The Burning Monolith",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 82,
+    "HASH16": 26079,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      312,
+      173,
+      1063,
+      169,
+      1061,
+      1065,
+      54,
+      74,
+      122,
+      50,
+      62,
+      323,
+      127,
+      709,
+      75,
+      56,
+      1060,
+      224,
+      1064,
+      705,
+      76,
+      79,
+      1062,
+      313,
+      113,
+      399,
+      102,
+      65,
+      73,
+      49,
+      710,
+      1057,
+      708,
+      51,
+      1058,
+      95,
+      707,
+      704,
+      706,
+      69,
+      311,
+      310,
+      66,
+      53,
+      1059
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 321,
+    "Id": "MapUberBoss_FallenStar",
+    "Name": "[DNT] The Fallen Star",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 82,
+    "HASH16": 851,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      312,
+      173,
+      1063,
+      169,
+      1061,
+      1065,
+      54,
+      74,
+      122,
+      50,
+      62,
+      323,
+      127,
+      709,
+      75,
+      56,
+      1060,
+      224,
+      1064,
+      705,
+      76,
+      79,
+      1062,
+      313,
+      113,
+      399,
+      102,
+      65,
+      73,
+      49,
+      710,
+      1057,
+      708,
+      51,
+      1058,
+      95,
+      707,
+      704,
+      706,
+      69,
+      311,
+      310,
+      66,
+      53,
+      1059
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 322,
+    "Id": "MapUberBoss_Delirium",
+    "Name": "[DNT] Delirium Pinnacle",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 82,
+    "HASH16": -29039,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      312,
+      173,
+      1063,
+      169,
+      1061,
+      1065,
+      54,
+      74,
+      122,
+      50,
+      62,
+      323,
+      127,
+      709,
+      75,
+      56,
+      1060,
+      224,
+      1064,
+      705,
+      76,
+      79,
+      1062,
+      313,
+      113,
+      399,
+      102,
+      65,
+      73,
+      49,
+      710,
+      1057,
+      708,
+      51,
+      1058,
+      95,
+      707,
+      704,
+      706,
+      69,
+      311,
+      310,
+      66,
+      53,
+      1059
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 323,
+    "Id": "MapUberBoss_Ritual",
+    "Name": "[DNT] Ritual Pinnacle",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 82,
+    "HASH16": 16034,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      312,
+      173,
+      1063,
+      169,
+      1061,
+      1065,
+      54,
+      74,
+      122,
+      50,
+      62,
+      323,
+      127,
+      709,
+      75,
+      56,
+      1060,
+      224,
+      1064,
+      705,
+      76,
+      79,
+      1062,
+      313,
+      113,
+      399,
+      102,
+      65,
+      73,
+      49,
+      710,
+      1057,
+      708,
+      51,
+      1058,
+      95,
+      707,
+      704,
+      706,
+      69,
+      311,
+      310,
+      66,
+      53,
+      1059
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 324,
+    "Id": "MapHideoutFelled_Claimable",
+    "Name": "Felled Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -6460,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 325,
+    "Id": "MapHideoutLimestone_Claimable",
+    "Name": "Limestone Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5897,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1066,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 326,
+    "Id": "MapHideoutShrine_Claimable",
+    "Name": "Shrine Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -23216,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 327,
+    "Id": "MapHideoutCanal_Claimable",
+    "Name": "Canal Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 27095,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 328,
+    "Id": "ExpeditionLogBook_Peninsula",
+    "Name": "[DNT-UNUSED] Craggy Peninsula",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 27874,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 329,
+    "Id": "ExpeditionLogBook_Tropical",
+    "Name": "Lush Isle",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -4425,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 330,
+    "Id": "ExpeditionLogBook_Tundra",
+    "Name": "Frigid Bluffs",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -13217,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1132
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 331,
+    "Id": "ExpeditionLogBook_Atoll",
+    "Name": "Barren Atoll",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -15366,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 332,
+    "Id": "ExpeditionLogBook_Digsite",
+    "Name": "[DNT-UNUSED] Exhumed Ruins",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -1695,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 333,
+    "Id": "ExpeditionLogBook_Reef",
+    "Name": "[DNT-UNUSED] Bleached Shoals",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -23172,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 334,
+    "Id": "ExpeditionLogBook_Wastes",
+    "Name": "[DNT-UNUSED] Scorched Cay",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -32563,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1161
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 335,
+    "Id": "ExpeditionLogBook_Causeway",
+    "Name": "[DNT-UNUSED] Basalt Coast",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 21272,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 336,
+    "Id": "ExpeditionLogBook_Basin",
+    "Name": "[DNT-UNUSED] Stagnant Basin",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 21072,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 337,
+    "Id": "ExpeditionLogBook_Gully",
+    "Name": "[DNT-UNUSED] Sloughed Gully",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -3508,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 338,
+    "Id": "ExpeditionLogBook_Prairie",
+    "Name": "[DNT-UNUSED] Grazed Prairie",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 31598,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 339,
+    "Id": "ExpeditionSubArea_Cavern",
+    "Name": "Smuggler's Den",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -16939,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 340,
+    "Id": "ExpeditionSubArea_Kalguur",
+    "Name": "Kalguuran Tomb",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -5934,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 341,
+    "Id": "ExpeditionSubArea_OlrothBoss",
+    "Name": "Kalguuran Tomb",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -31673,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 342,
+    "Id": "ExpeditionSubArea_UhtredBoss",
+    "Name": "Kalguuran Tomb",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -10871,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 343,
+    "Id": "ExpeditionSubArea_Precursor",
+    "Name": "[DNT-UNUSED] Precursor Vault",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 32683,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 344,
+    "Id": "ExpeditionSubArea_Shrike",
+    "Name": "Rancid Nest",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 13654,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 345,
+    "Id": "ExpeditionSubArea_Siren",
+    "Name": "Hidden Aquifer",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 18387,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 346,
+    "Id": "ExpeditionSubArea_Volcano",
+    "Name": "Sulphur Mines",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -24892,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 347,
+    "Id": "ExpeditionLeagueBoss",
+    "Name": "Kalguuran Tomb",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": -7673,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 348,
+    "Id": "Delirium_Act1Town",
+    "Name": "Clearfell Lumbermill",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": -15815,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 349,
+    "Id": "Delirium_Act3Town",
+    "Name": "Sunken Pyramid",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -30685,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 350,
+    "Id": "BreachDomain_01",
+    "Name": "Twisted Domain",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": 10413,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 351,
+    "Id": "RitualLeagueBoss",
+    "Name": "Crux of Nothingness",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": -2563,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": true
+  },
+  {
+    "_index": 352,
+    "Id": "Abyss_Intro",
+    "Name": "Lightless Passage",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": 27559,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AlternateWellofSoulsLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 353,
+    "Id": "Abyss_Hub",
+    "Name": "The Well of Souls",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 22,
+    "HASH16": -8617,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AlternateWellofSoulsLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 354,
+    "Id": "Abyss_Depths1",
+    "Name": "Abyssal Depths",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -6491,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 355,
+    "Id": "Abyss_Depths2",
+    "Name": "Abyssal Depths",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": -23643,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 356,
+    "Id": "Abyss_Depths3",
+    "Name": "Abyssal Depths",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 22,
+    "HASH16": 4748,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 357,
+    "Id": "Abyss_Boss1",
+    "Name": "Lightless Void",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 79,
+    "HASH16": 28039,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 358,
+    "Id": "Abyss_Boss2",
+    "Name": "Dark Domain",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 79,
+    "HASH16": -17053,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 359,
+    "Id": "Abyss_Pinnacle",
+    "Name": "The Black Cathedral",
+    "Act": 2,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 80,
+    "HASH16": 14566,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/TheBlackCathedralLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 360,
+    "Id": "KaruiBossShowcase",
+    "Name": "Karui Boss Showcase",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 30,
+    "HASH16": -21757,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/4.0.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 361,
+    "Id": "BossRush_Area1",
+    "Name": "Boss Rush Area 1",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 35,
+    "HASH16": 2279,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 362,
+    "Id": "BossRush_Area2",
+    "Name": "Boss Rush Area 2",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 35,
+    "HASH16": -32631,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 363,
+    "Id": "BossRush_Area3",
+    "Name": "Boss Rush Area 3",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 35,
+    "HASH16": 5068,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 364,
+    "Id": "G_Endgame_Town",
+    "Name": "The Ziggurat Refuge",
+    "Act": 10,
+    "IsTown": true,
+    "HasWaypoint": true,
+    "AreaLevel": 65,
+    "HASH16": 6510,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 365,
+    "Id": "MapHideoutFarmlands_Claimable",
+    "Name": "Farmlands Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 5906,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 366,
+    "Id": "MapHideoutPrison_Claimable",
+    "Name": "Prison Hideout",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 5178,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1070,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 367,
+    "Id": "MapHideoutShoreline_Claimable",
+    "Name": "Shoreline Hideout",
+    "Act": 4,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 46,
+    "HASH16": -13238,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 368,
+    "Id": "MapArroyo",
+    "Name": "Arroyo",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -26220,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 369,
+    "Id": "MapOrnateChambers",
+    "Name": "Ornate Chambers",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 22831,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1133,
+      1067
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 370,
+    "Id": "MapCanyon",
+    "Name": "Canyon",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -30552,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1071,
+      1067,
+      1133
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 371,
+    "Id": "MapRazedFields",
+    "Name": "Razed Fields",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 8301,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 372,
+    "Id": "MapRugosa",
+    "Name": "Rugosa",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 864,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1066,
+      1161,
+      169
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 373,
+    "Id": "MapRiverhold",
+    "Name": "Riverhold",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": -19368,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1069,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 374,
+    "Id": "MapExcavation",
+    "Name": "Digsite",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 23376,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1068,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 375,
+    "Id": "MapIceCave",
+    "Name": "Ice Cave",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 1421,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1134
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 376,
+    "Id": "MapVaalVault",
+    "Name": "Sealed Vault",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 31071,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57,
+      1067,
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 377,
+    "Id": "IncursionTemplePresent",
+    "Name": "Lost Temple",
+    "Act": 1,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 32307,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 378,
+    "Id": "IncursionTemple",
+    "Name": "Atziri's Temple",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 46,
+    "HASH16": 12955,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      1132,
+      1152
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 379,
+    "Id": "MapMezzanine",
+    "Name": "Mezzanine",
+    "Act": 10,
+    "IsTown": false,
+    "HasWaypoint": false,
+    "AreaLevel": 65,
+    "HASH16": 21144,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
+    ],
+    "IsMapArea": true,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [
+      57
+    ],
+    "IsUniqueMapArea": false
+  },
+  {
+    "_index": 380,
+    "Id": "IncursionHub",
+    "Name": "Vaal Ruins",
+    "Act": 3,
+    "IsTown": false,
+    "HasWaypoint": true,
+    "AreaLevel": 2,
+    "HASH16": -28231,
+    "LoadingScreens": [
+      "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
+    ],
+    "IsMapArea": false,
+    "MaxLevel": 100,
+    "IsHideout": false,
+    "Tags": [],
+    "IsUniqueMapArea": false
+  }
+]

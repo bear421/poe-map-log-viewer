@@ -1,8 +1,8 @@
 import { RingBuffer } from "../ringbuffer";
 import { clearOffsetCache, parseTs, parseUptimeMillis } from "./ts-parser";
 import { EventDispatcher } from "./event-dispatcher";
-import { getZoneInfo } from "../data/zone_table";
-import { BOSS_TABLE } from "../data/boss_table";
+import { getZoneInfo } from "../data/areas";
+import { BOSSES } from "../data/boss";
 import { Feature, isFeatureSupportedAt } from "../data/log-versions";
 import { TSRange } from "../aggregate/segmentation";
 import {
@@ -32,6 +32,9 @@ import {
     BonusGainedEvent,
     AFKModeOnEvent,
     AFKModeOffEvent,
+    ReflectingMistEvent,
+    NamelessSeerEvent,
+    MemoryTearEvent,
 } from "./events";
 import { createApproximateFileSlice } from "./file-ts-scan";
 
@@ -57,7 +60,7 @@ export class AreaInfo {
     }
 
     get isHideoutOrTown(): boolean {
-        return this.seed === 1 || this.name === "KalguuranSettlersLeague";
+        return this.seed === 1 || this.name === "KalguuranSettlersLeague" || this.name === "HeistHub";
     }
 
 }
@@ -93,121 +96,29 @@ export class XPSnapshot {
     }
 }
 
-export class MapSpan {
-    start: number;
-    end?: number;
-    areaEnteredAt: number | null;
-    lastInteraction: number | null;
-    hideoutStartTime: number | null;
-    hideoutExitTime: number | null;
-    hideoutTime: number;
-    loadTime: number; 
-    pauseTime: number;
-    pausedAt: number | null;
-    preloadTs: number | null = null;
-    preloadUptimeMillis: number | null = null;
+export enum MapMarkerType {
+    map,
+    load,
+    hideout,
+    afk,
+    pause,
+    complete,
+}
 
+class MapMarker {
+    /**
+     * @param type - the type of marker
+     * @param ts - when this marker was started. if ts is imprecise (seconds precision as in the log file), uptimeMillis and uptimeId may be provided to increase precision
+     * @param uptimeMillis - current uptime of user OS as indicated in the log file, possibly supplied via GetTickCount (sysinfoapi.h). 
+     * may only be used as deltas between markers with the same uptimeId
+     * @param uptimeId - any "LOG FILE OPENING" log will increment the uptimeId, this technically doesn't align perfectly with uptimeMillis (more than one client launch per OS boot)
+     */
     constructor(
-        start: number,
-        end?: number,
-        areaEnteredAt: number | null = null,
-        lastInteraction: number | null = null,
-        hideoutStartTime: number | null = null,
-        hideoutExitTime: number | null = null,
-        hideoutTime: number = 0,
-        loadTime: number = 0,
-        pauseTime: number = 0
-    ) {
-        if (end && end < start) {
-            throw new Error("end time cannot be before start time");
-        }
-
-        this.start = start;
-        this.end = end;
-        this.areaEnteredAt = areaEnteredAt;
-        this.lastInteraction = lastInteraction;
-        this.hideoutStartTime = hideoutStartTime;
-        this.hideoutExitTime = hideoutExitTime;
-        this.hideoutTime = hideoutTime;
-        this.loadTime = loadTime;
-        this.pauseTime = pauseTime;
-        this.pausedAt = null;
-    }
-
-    mapTime(end?: number): number {
-        return MapSpan.mapTime(this, end);
-    }
-
-    /**
-     * @returns time spent in the map, including idle time. i.e. duration between generation of this and the next map
-     */
-    static mapTimePlusIdle(span: MapSpan, end?: number): number {
-        return MapSpan.baseTime(span, end);
-    }
-
-    /**
-     * @returns time spent in the map, excluding idle time
-     */
-    static mapTime(span: MapSpan, end?: number): number {
-        const baseTime = MapSpan.baseTime(span, end);
-        const compactTime = baseTime - MapSpan.idleTime(span);
-        if (compactTime < 0) {
-            throw new Error(`invariant: map time minus idle time is negative: ${compactTime} (${JSON.stringify(span)})`);
-        }
-        return compactTime;
-    }
-
-    private static baseTime(span: MapSpan, end?: number): number {
-        if (!end) {
-            end = span.end;
-        }
-        if (!end) {
-            if (span.hideoutStartTime) {
-                end = span.hideoutStartTime;
-            } else if (span.pausedAt) {
-                end = span.pausedAt;
-            } else {
-                end = Date.now();
-            }
-        }
-        const baseTime = end - span.start;
-        if (baseTime < 0) {
-            throw new Error(`invariant: map time is negative: ${baseTime}`);
-        }
-        return baseTime;
-    }
-
-    idleTime(): number {
-        return MapSpan.idleTime(this);
-    }
-
-    /**
-     * @returns time spent in hideout + loading + pausing
-     */
-    static idleTime(span: MapSpan): number {
-        return span.hideoutTime + span.loadTime + span.pauseTime;
-    }
-
-    addToLoadTime(loadTime: number): void {
-        if (loadTime < 0) {
-            throw new Error("loadTime must be positive");
-        }
-        this.loadTime += loadTime;
-    }
-
-    addToHideoutTime(hideoutTime: number): void {
-        if (hideoutTime < 0) {
-            throw new Error("hideoutTime must be positive");
-        }
-        this.hideoutTime += hideoutTime;
-    }
-
-    addToPauseTime(pauseTime: number): void {
-        if (pauseTime < 0) {
-            throw new Error("pauseTime must be positive");
-        }
-        this.pauseTime += pauseTime;
-    }
+        readonly type: MapMarkerType, 
+        readonly ts: number, 
+        readonly uptimeMillis?: number, 
+        readonly uptimeId?: number,
+    ) {}
 }
 
 export enum AreaType {
@@ -217,7 +128,10 @@ export enum AreaType {
     Town,
     Sanctum,
     Labyrinth,
+    TrialSekhema,
+    TrialChaos,
     Logbook,
+    Heist,
     Tower,
     Delve,
     Unknown
@@ -254,10 +168,25 @@ export const areaTypeMeta: Record<AreaType, { name: string, icon: string, color:
         icon: "bi-compass",
         color: "text-dark"
     },
+    [AreaType.TrialSekhema]: {
+        name: "Trial of Sekhema",
+        icon: "bi-compass",
+        color: "text-dark"
+    },
+    [AreaType.TrialChaos]: {
+        name: "Trial of Chaos",
+        icon: "bi-compass",
+        color: "text-dark"
+    },
     [AreaType.Logbook]: {
         name: "Logbook",
         icon: "bi-book",
         color: "text-dark"  
+    },
+    [AreaType.Heist]: {
+        name: "Heist",
+        icon: "bi-building-fill",
+        color: "text-dark"
     },
     [AreaType.Tower]: {
         name: "Tower",
@@ -278,41 +207,27 @@ export const areaTypeMeta: Record<AreaType, { name: string, icon: string, color:
 
 export const areaTypes = Object.values(AreaType).filter(v => typeof v === 'number') as AreaType[];
 
-enum MapState {
-    LOADING,
-    ENTERED,
-    UNLOADING,
-    EXITED,
-    COMPLETED
-}
-
 export class MapInstance {
     id: number;
-    span: MapSpan;
     name: string;
     areaLevel: number;
     seed: number;
     areaType: AreaType;
     hasBoss: boolean = false;
     isUnique: boolean;
-    state: MapState;
+    markers: MapMarker[] = [];
 
     constructor(
         id: number,
-        span: MapSpan,
         name: string,
         areaLevel: number,
         seed: number,
     ) {
-        if (!name?.trim()) {
-            throw new Error("name must be a non-empty string");
-        }
-        if (areaLevel < 0) {
-            throw new Error("areaLevel must be a positive integer");
-        }
+        if (!name?.trim()) throw new Error("name must be a non-empty string");
+
+        if (areaLevel < 0) throw new Error("areaLevel must be a positive integer");
 
         this.id = id;
-        this.span = span;
         this.name = name;
         this.areaLevel = areaLevel;
         this.seed = seed;
@@ -323,6 +238,28 @@ export class MapInstance {
             "mapbluff",
             "mapswamptower"
         ];
+        const zoneInfo = getZoneInfo(name, areaLevel);
+        if (zoneInfo) {
+            this.isUnique = zoneInfo.isUnique;
+            if (zoneInfo.isHideout) {
+                this.areaType = AreaType.Hideout;
+                return;
+            } else if (zoneInfo.isTown) {
+                this.areaType = AreaType.Town;
+                return;
+            } else if (zoneInfo.isMapArea) {
+                this.areaType = AreaType.Map;
+                return;
+            } else if ("Trial of the Sekhemas" == zoneInfo.label) {
+                this.areaType = AreaType.TrialSekhema;
+                return;
+            } else if ("Trial of Chaos" == zoneInfo.label) {
+                this.areaType = AreaType.TrialChaos;
+                return;
+            }
+        } else {
+            this.isUnique = false;
+        }
         const lowerName = name.toLowerCase();
         if (seed > 1) {
             if (towerMaps.includes(lowerName)) {
@@ -337,6 +274,8 @@ export class MapInstance {
                 this.areaType = AreaType.Sanctum;
             } else if (lowerName.startsWith("expeditionlogbook")) {
                 this.areaType = AreaType.Logbook;
+            } else if (lowerName.startsWith("heist")) {
+                this.areaType = AreaType.Heist;
             } else if (MAP_NAME_LABYRINTH.test(lowerName)) {
                 this.areaType = AreaType.Labyrinth;
             } else if (MAP_NAME_CAMPAIGN.test(lowerName)) {
@@ -353,65 +292,69 @@ export class MapInstance {
                 this.areaType = AreaType.Hideout;
             }
         }
-        this.isUnique = lowerName.startsWith("mapunique");
-        this.state = MapState.LOADING;
     }
 
-    inHideout(): boolean {
-        return this.span.hideoutStartTime !== null;
+    get start(): number {
+        return this.markers[0].ts;
     }
 
-    inMap(): boolean {
-        return !this.inHideout();
+    get end(): number {
+        return this.lastMarker.ts;
     }
 
-    enterHideout(ts: number): void {
-        this.span.hideoutStartTime = ts;
-        this.span.hideoutExitTime = null;
-        this.state = MapState.UNLOADING;
+    get lastMarker(): MapMarker {
+        return this.markers[this.markers.length - 1];
     }
 
-    exitHideout(ts: number): void {
-        if (this.span.hideoutStartTime) {
-            this.span.addToHideoutTime(ts - this.span.hideoutStartTime);
-        }
-        this.span.hideoutStartTime = null;
-        this.span.hideoutExitTime = ts;
-        this.state = MapState.LOADING;
+    appendMarker(marker: MapMarker): void {
+        if (this.lastMarker?.type === MapMarkerType.complete) throw new Error(`map is already complete: ${JSON.stringify(this.markers)}`);
+
+        this.markers.push(marker);
     }
 
-    applyLoadedAt(ts: number, uptimeMillis: number): number {
-        let delta;
-        {
-            const tsDelta = ts - this.span.preloadTs!;
-            const uptimeDelta = uptimeMillis - this.span.preloadUptimeMillis!;
-            if (Math.abs(uptimeDelta - tsDelta) <= 1000) {
-                delta = uptimeDelta;
-            } else {
-                logger.warn(`tsDelta and uptimeDelta are too different: ${tsDelta} ${uptimeDelta} - using tsDelta instead`);
-                delta = tsDelta;
-            }
-        }
-        if (this.state === MapState.LOADING) {
-            this.state = MapState.ENTERED;
-        } else if (this.state === MapState.UNLOADING) {
-            this.span.hideoutStartTime! += delta;
-            this.state = MapState.EXITED;
-        } else {
-            throw new Error(`illegal state: ${this.state}, only call addLoadTime in LOADING or UNLOADING state`);
-        }
-        this.span.addToLoadTime(delta);
-        return delta;
+    resumePriorMarker(start: number, uptimeMillis?: number, uptimeId?: number): void {
+        if (this.markers.length < 2) throw new Error(`cannot resume prior marker because there are less than 2 markers: ${JSON.stringify(this.markers)}`);
+
+        const priorMarker = this.markers[this.markers.length - 2];
+        this.markers.push(new MapMarker(priorMarker.type, start, uptimeMillis, uptimeId));
+    }
+
+    getTime(types?: Set<MapMarkerType>, precision: MapTimePrecision = MapTimePrecision.milliseconds, end?: number): number {
+        return MapInstance.getTime(this, types, precision, end);
+    }
+
+    getTimeMap(precision: MapTimePrecision = MapTimePrecision.milliseconds): Map<MapMarkerType, number> {
+        return MapInstance.getTimeMap(this, precision);
     }
     
     static label(map: MapInstance): string {
+        const zoneInfo = getZoneInfo(map.name, map.areaLevel);
+        if (zoneInfo) return zoneInfo.label;
+
         switch (map.areaType) {
             case AreaType.Campaign:
-                return getZoneInfo(map.name, map.areaLevel)?.label ?? "Campaign " + map.name;
+                return "Campaign " + map.name;
             case AreaType.Town:
-                return getZoneInfo(map.name, map.areaLevel)?.label ?? "Town " + map.name;
+                return "Town " + map.name;
             case AreaType.Labyrinth:
-                return "Labyrinth " + map.name.substring(0, 1);
+                let difficulty;
+                switch (map.name.substring(0, 1)) {
+                    case "1":
+                        difficulty = "Normal";
+                        break;
+                    case "2":
+                        difficulty = "Cruel";
+                        break;
+                    case "3":
+                        difficulty = "Merciless";
+                        break;
+                    case "E":
+                        difficulty = "Uber";
+                        break;
+                    default:
+                        difficulty = "Unknown";
+                }
+                return "Labyrinth " + difficulty;
         }
         const name = map.name.replace(/(^MapUnique)|(^MapWorlds)|(^Map)|(_NoBoss$)/gi, '');
         const words = name.match(/[A-Z][a-z]*|[a-z]+/g) || [];
@@ -465,8 +408,70 @@ export class MapInstance {
 
 }
 
+export enum MapTimePrecision {
+    seconds,
+    milliseconds,
+}
+
+export namespace MapInstance {
+    /**
+     * note that the marker MapMarkerType.complete cannot be excluded
+     */
+    export function getTime(mapOrMarkers: MapInstance | MapMarker[], types?: Set<MapMarkerType>, precision: MapTimePrecision = MapTimePrecision.milliseconds, end?: number): number {
+        const markers = Array.isArray(mapOrMarkers) ? mapOrMarkers : mapOrMarkers.markers;
+        let tailDelta = 0;
+        if (end) {
+            const tailMarker = markers[markers.length - 1];
+            if (tailMarker.type === MapMarkerType.complete) throw new Error(`markers already completed: ${JSON.stringify(markers)}`);
+
+            if (!types || types.has(tailMarker.type)) {
+                tailDelta = end - tailMarker.ts;
+                if (tailDelta < 0) throw new Error(`end timestamp precedes prior marker: ${end} < ${tailMarker.ts}`);
+            }
+        }
+        if (!types) {
+            return getDelta(markers[0], markers[markers.length - 1], precision) + tailDelta;
+        }
+        let time = 0;
+        for (let i = 0; i < markers.length - 1; i++) {
+            const marker = markers[i], nextMarker = markers[i + 1];
+            // marker.ts until nextMarker.ts is the span solely of the marker, therefore we don't care about the next marker's type
+            if (types.has(marker.type)) {
+                time += getDelta(marker, nextMarker, precision);
+            }
+        }
+        return time + tailDelta;
+    }
+
+    export function getDelta(marker: MapMarker, nextMarker: MapMarker, precision: MapTimePrecision): number {
+        const tsDelta = nextMarker.ts - marker.ts;
+        if (precision === MapTimePrecision.seconds || nextMarker.uptimeId !== marker.uptimeId || !marker.uptimeMillis || !nextMarker.uptimeMillis) {
+            return tsDelta;
+        } else {
+            const uptimeDelta = nextMarker.uptimeMillis - marker.uptimeMillis;
+            const diff = Math.abs(uptimeDelta - tsDelta);
+            if (diff <= 2000) {
+                return uptimeDelta;
+            } else {
+                // logger.warn(`tsDelta and uptimeDelta are too different[${marker.type}]: ${diff}ms (${tsDelta}ms, ${uptimeDelta}ms) - using tsDelta instead`);
+                return tsDelta;
+            }
+        }
+    };
+
+    export function getTimeMap(mapOrMarkers: MapInstance | MapMarker[], precision: MapTimePrecision = MapTimePrecision.milliseconds): Map<MapMarkerType, number> {
+        const markers = Array.isArray(mapOrMarkers) ? mapOrMarkers : mapOrMarkers.markers;
+        const res = new Map<MapMarkerType, number>();
+        for (let i = 0; i < markers.length - 1; i++) {
+            const marker = markers[i], nextMarker = markers[i + 1];
+            res.set(marker.type, (res.get(marker.type) ?? 0) + getDelta(marker, nextMarker, precision));
+        }
+        return res;
+    }
+}
+
 // example 2024/12/06 18:02:40 ***** LOG FILE OPENING *****
-const LOG_FILE_OPEN_REGEX = /\*\*\*\*\* LOG FILE OPENING \*\*\*\*\*$/;
+const LOG_FILE_OPEN_REGEX = /\*\*\*\*\* LOG FILE OPENING \*\*\*\*\*\s+$/;
 // example 2024/12/06 21:38:54 35930140 403248f7 [INFO Client 1444] [SHADER] Delay: ON
 const POST_LOAD_REGEX = /^\[SHADER\] Delay/;
 
@@ -489,13 +494,17 @@ enum EventCG {
     MsgLocal,
     AFKModeOn,
     AFKModeOff,
+    ReflectingMist,
+    NamelessSeer,
+    MemoryTear,
 }
 
 /**
  * common prefix between all examples, note that the prefix "ends" with a space: 
- *                  2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] 
+ *                    2024/12/18 16:07:27 368045718 3ef2336f [INFO Client 18032] 
  * example logs:
  * MsgFrom            @From Player1: Hi, I would like to buy your Victory Grip, Pearl Ring listed for 5 divine in Standard (stash tab "Q1"; position: left 20, top 19)
+ * MsgFrom            @From <gTag> Player1: meow
  * MsgTo              @To Player1: Hi, I would like to buy your Chalybeous Sapphire Ring of Triumph listed for 1 exalted in Standard (stash tab "~price 1 exalted"; position: left 1, top 19)
  * MsgParty           Generating level 1 area "G1_1" with seed 2665241567
  * TradeAccepted      : Trade accepted.
@@ -524,14 +533,15 @@ enum EventCG {
  * MsgLocal           Player1: hello
  * AFKModeOn          : AFK mode is now ON. Autoreply "?"
  * AFKModeOff         : AFK mode is now OFF.
+ * ReflectingMist     : A Reflecting Mist has manifested nearby.
+ * NamelessSeer       : The Nameless Seer has appeared nearby.
  */
 
 // if spaces are eventually allowed in character names, "[^ ]+" portions of patterns need to be changed to ".+"
 // very important to fail fast on those patterns, e.g. avoid starting off with wildcard matches
-// optional capturing groups BEFORE the named capturing group are not supported within the composite regex
 const EVENT_PATTERNS = [
-    `@From (?<g${EventCG.MsgFrom}>[^ ]+): (.*)`,
-    `@To (?<g${EventCG.MsgTo}>[^ ]+): (.*)`,
+    `@From  ?(?:<([^>]+)> )?(?<g${EventCG.MsgFrom}>[^ ]+): (.*)`,
+    `@To  ?(?<g${EventCG.MsgTo}>[^ ]+): (.*)`,
     `%(?<g${EventCG.MsgParty}>[^ ]+): (.*)`,
     `Generating level (?<g${EventCG.Generating}>\\d+) area \"(.+?)\"(?:.*seed (\\d+))?`,
     `: (?<g${EventCG.TradeAccepted}>Trade accepted\\.)`,
@@ -542,12 +552,15 @@ const EVENT_PATTERNS = [
     `: (?<g${EventCG.LevelUp}>[^ ]+) \\(([^)]+)\\) is now level (\\d+)`,
     `: You have received (?<g${EventCG.PassiveGained}>[0-9a-zA-Z]+) ?(Weapon Set )?Passive Skill Point`, 
     `: ((?:You)|(?:[^ ]+?)) have received (?<g${EventCG.BonusGained}>.+)`, // 2024 legacy format and new format
-    `(?<g${EventCG.MsgBoss}>${Object.keys(BOSS_TABLE).join("|")}):(.*)`,
+    `(?<g${EventCG.MsgBoss}>${Object.keys(BOSSES).join("|")}):(.*)`, // match boss names explicitly for significant speedup; would have to match spaces in MsgLocal's character name otherwise
     `(?!Error|Duration|#)(?<g${EventCG.MsgLocal}>[^\\]\\[ ]+):(.*)`,
     `Successfully allocated passive skill id: (?<g${EventCG.PassiveAllocated}>[^ ]+), name: (.+)`,
     `Successfully unallocated passive skill id: (?<g${EventCG.PassiveUnallocated}>[^ ]+), name: (.+)`,
     `: (?<g${EventCG.AFKModeOn}>)AFK mode is now ON\\.`,
     `: (?<g${EventCG.AFKModeOff}>)AFK mode is now OFF\\.`,
+    `: (?<g${EventCG.ReflectingMist}>)A Reflecting Mist has manifested nearby\\.`,
+    `: (?<g${EventCG.NamelessSeer}>)The Nameless Seer has appeared nearby\\.`,
+    `(?<g${EventCG.MemoryTear}>)Eagon Caeserius: (?:Go on, Exile - approach the tear\\.|Look, Exile - a fresh tear!|Here, Exile! Another tear!)`,
 ];
 
 const COMPOSITE_EV_REGEX = new RegExp(`^(?:` + EVENT_PATTERNS.map(p => `(${p})`).join("|") + `)`);
@@ -590,11 +603,16 @@ export class LogTracker {
     private mapId: number = 0;
     public eventDispatcher = new EventDispatcher();
     private recentMaps: RingBuffer<MapInstance>;
+    private recentEvents: RingBuffer<LogEvent>;
     private currentMap: MapInstance | null;
+    private currentAreaInfo: AreaInfo | null;
+    private currentUptimeId: number = -1;
 
     constructor() {
         this.recentMaps = new RingBuffer<MapInstance>(100);
+        this.recentEvents = new RingBuffer<LogEvent>(100);
         this.currentMap = null;
+        this.currentAreaInfo = null;
     }
 
     async ingestLogFile(file: File, onProgress?: (progress: Progress) => void, checkIntegrity: boolean = false, tsFilter?: TSRange): Promise<boolean> {
@@ -753,7 +771,7 @@ export class LogTracker {
             reader.releaseLock();
             clearOffsetCache();
             const tookSeconds = ((performance.now() - then) / 1000).toFixed(2);
-            const totalMiB = progress.totalBytes / 1024 / 1024;
+            const totalMiB = progress.bytesRead / 1024 / 1024;
             console.info(`Search tested ${(totalMiB).toFixed(1)} MiB of logs in ${tookSeconds} seconds`);
         }
     }
@@ -761,7 +779,6 @@ export class LogTracker {
     /**
      * Process a single log line.
      * @param line - The log line to process.
-     * @param filter - The filter to apply to the log line.
      * @returns false, if the filter would reject subsequent lines (toMillis filtering).
      */
     processLogLine(line: string): boolean {
@@ -783,15 +800,15 @@ export class LogTracker {
             if (LOG_FILE_OPEN_REGEX.test(line)) {
                 ts ??= parseTs(line);
                 if (ts) {
-                    this.dispatchEvent(LogFileOpenEvent.of(ts));
+                    const uptimeId = ++this.currentUptimeId;
+                    this.dispatchEvent(LogFileOpenEvent.of(ts, uptimeId));
                 }
             }
             return true;
         }
 
         const remainder = line.substring(rIx + 2);
-        const postLoadMatch = (this.currentMap && (this.currentMap.state === MapState.LOADING || this.currentMap.state === MapState.UNLOADING)) 
-            && POST_LOAD_REGEX.exec(remainder);
+        const postLoadMatch = (this.currentMap?.lastMarker?.type === MapMarkerType.load) && POST_LOAD_REGEX.exec(remainder);
         if (postLoadMatch) {
             ts ??= parseTs(line);
             if (!ts) {
@@ -799,7 +816,7 @@ export class LogTracker {
                 return true;
             }
             const uptimeMillis = parseUptimeMillis(line);
-            const delta = this.currentMap!.applyLoadedAt(ts, uptimeMillis);
+            const delta = this.applyLoadedAt(ts, uptimeMillis);
             this.dispatchEvent(AreaPostLoadEvent.of(ts, delta, uptimeMillis));
         } else {
             const m = COMPOSITE_EV_REGEX.exec(remainder);
@@ -816,7 +833,7 @@ export class LogTracker {
             const offset = COMPOSITE_PATTERN_OFFSETS[eventCG];
             switch (eventCG) {
                 case EventCG.MsgFrom:
-                    this.dispatchEvent(MsgFromEvent.of(ts, m[offset], m[offset + 1]));
+                    this.dispatchEvent(MsgFromEvent.of(ts, m[offset + 1], m[offset + 2], m[offset]));
                     break;
                 case EventCG.MsgTo:
                     this.dispatchEvent(MsgToEvent.of(ts, m[offset], m[offset + 1]));
@@ -827,13 +844,14 @@ export class LogTracker {
                 case EventCG.MsgLocal:
                     const localName = m[offset];
                     if (localName.startsWith("&")) {
+                        // TODO properly support new tag format
                         this.dispatchEvent(MsgGuildEvent.of(ts, localName.substring(1), m[offset + 1]));
                     } else {
                         this.dispatchEvent(MsgLocalEvent.of(ts, localName, m[offset + 1]));
                     }
                     break;
                 case EventCG.MsgBoss:
-                    const boss = BOSS_TABLE[m[offset]];
+                    const boss = BOSSES[m[offset]];
                     if (boss) {
                         if (boss.deathCries.has(m[offset + 1])) {
                             if (this.currentMap) {
@@ -852,13 +870,15 @@ export class LogTracker {
                     // FIXME all map timing events should try to use millisecond precision
                     // otherwise, map times can drift by up to a second for every measured ts
                     // can result in overall drift of 1-3 minutes for entire campaign
-                    this.enterArea(new AreaInfo(
+                    const areaInfo = new AreaInfo(
                         ts,
                         uptimeMillisGen, 
                         areaLevel,
                         mapName,
                         mapSeed
-                    ));
+                    );
+                    this.enterArea(areaInfo);
+                    this.currentAreaInfo = areaInfo;
                     break;
                 case EventCG.Slain:
                     if (this.currentMap) {
@@ -900,31 +920,36 @@ export class LogTracker {
                     this.dispatchEvent(ItemsIdentifiedEvent.of(ts, parseInt(m[offset])));
                     break;
                 case EventCG.AFKModeOn:
+                    // don't attribute afk time to any map for now if the prior map was a stale map
+                    this.currentMap && this.appendMarker(MapMarkerType.afk, ts, parseUptimeMillis(line));
                     this.dispatchEvent(AFKModeOnEvent.of(ts));
                     break;
                 case EventCG.AFKModeOff:
+                    // don't attribute afk time to any map for now if the prior map was a stale map
+                    this.currentMap && this.currentMap.resumePriorMarker(ts, parseUptimeMillis(line), this.currentUptimeId);
                     this.dispatchEvent(AFKModeOffEvent.of(ts));
                     break;
+                case EventCG.ReflectingMist:
+                    this.dispatchEvent(ReflectingMistEvent.of(ts));
+                    break;
+                case EventCG.NamelessSeer:
+                    this.dispatchEvent(NamelessSeerEvent.of(ts));
+                    break;
+                case EventCG.MemoryTear:
+                    this.dispatchEvent(MemoryTearEvent.of(ts));
+                    break;
             }
-            this.informInteraction(ts);
             return true;
         }
         return true;
     }
 
     processEOF(): void {
-        // TODO EOF map can undercount mapTime because hideoutStartTime precedes trailing POSTLOAD event
-        const currentMap = this.currentMap;
-        if (currentMap) {
-            const end = Math.max(
-                currentMap.span.hideoutStartTime ?? 0, 
-                currentMap.span.lastInteraction ?? 0, 
-                currentMap.span.pausedAt ?? 0
-            );
-            if (end && end > currentMap.span.start) {
-                this.completeMap(currentMap, end);
-                this.currentMap = null;
-            }
+        try {
+            this.currentMap && this.completeStaleMap();
+        } catch (e) {
+            logger.error(`error completing stale map`, e);
+            this.currentMap = null;
         }
     }
 
@@ -932,101 +957,116 @@ export class LogTracker {
         let currentMap = this.currentMap;
         {
             const prevMap = currentMap || this.recentMaps.last();
-            if (prevMap && areaInfo.ts <= prevMap.span.start && prevMap.seed !== areaInfo.seed) {
-                const delta = (areaInfo.ts - prevMap.span.start);
+            if (prevMap && areaInfo.ts <= prevMap.start && prevMap.seed !== areaInfo.seed) {
+                const delta = (areaInfo.ts - prevMap.start);
                 // TODO sometimes kind of a false positive, this can happen within the same second (area failed to load + player spamming??)
                 //  in which case it would be more correct to discard the prior map
-                logger.warn(`new areas must be ingested chronologically, discarding current map: ${areaInfo.ts} (${areaInfo.name}) <= ${prevMap.span.start} (${prevMap.name}) (offset: ${delta / 1000}s).`);
+                logger.warn(`new areas must be ingested chronologically, discarding current map (offset: ${delta / 1000}s).`, areaInfo, prevMap);
                 this.currentMap = null;
                 return;
             }
         }
         if (currentMap && currentMap.seed !== areaInfo.seed) {
-            // stale map handling, could possibly be made more accurate using client uptime millis
-            const mapTime = currentMap.span.mapTime(areaInfo.ts);
-            if (mapTime > STALE_MAP_THRESHOLD) {
-                let endTime: number;
-                if (currentMap.span.hideoutStartTime) {
-                    // player exited client while in hideout
-                    endTime = currentMap.span.hideoutStartTime;
-                } else {
-                    // player exited client while in map
-                    const lastInteraction = currentMap.span.lastInteraction;
-                    if (lastInteraction) {
-                        if (lastInteraction > currentMap.span.start) {
-                            endTime = lastInteraction;
-                        } else {
-                            logger.warn(`unable to determine stale map's end time: ${JSON.stringify(currentMap)}`);
-                            endTime = areaInfo.ts;
-                        }
-                    } else if (currentMap.span.hideoutStartTime) {
-                        endTime = currentMap.span.hideoutStartTime;
-                    } else {
-                        logger.warn(`unable to determine stale map's end time: ${JSON.stringify(currentMap)}`);
-                        endTime = areaInfo.ts;
-                    }
-                }
-                this.completeMap(currentMap, endTime);
-                currentMap = this.currentMap = null;
+            const delta = areaInfo.ts - currentMap.lastMarker!.ts;
+            if (delta > STALE_MAP_THRESHOLD) {
+                this.completeStaleMap();
+                currentMap = null;
             }
         }
 
         if (areaInfo.isHideoutOrTown) {
             if (currentMap) {
-                currentMap.enterHideout(areaInfo.ts);
-                currentMap.span.preloadTs = areaInfo.ts;
-                currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
+                this.appendMarker(MapMarkerType.load, areaInfo.ts, areaInfo.uptimeMillis, areaInfo);
                 this.dispatchEvent(HideoutEnteredEvent.of(areaInfo.ts, areaInfo.name));
             }
             return;
         }
 
         if (currentMap) {
-            currentMap.span.areaEnteredAt = areaInfo.ts;
-            currentMap.span.preloadTs = areaInfo.ts;
-            currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
-            if (currentMap.inHideout()) {
-                currentMap.exitHideout(areaInfo.ts);
+            if (this.currentAreaInfo?.isHideoutOrTown) {
+                this.appendMarker(MapMarkerType.load, areaInfo.ts, areaInfo.uptimeMillis, areaInfo);
                 this.dispatchEvent(HideoutExitedEvent.of(areaInfo.ts));
             }
             if (areaInfo.seed === currentMap.seed) {
+                this.appendMarker(MapMarkerType.load, areaInfo.ts, areaInfo.uptimeMillis, areaInfo);
                 this.dispatchEvent(MapReenteredEvent.of(areaInfo.ts));
                 return;
             }
             // player entered a map with a different seed, this can be inaccurate if player entered a map of another party member
-            this.completeMap(currentMap, areaInfo.ts);
+            this.completeMap(currentMap, areaInfo.ts, areaInfo.uptimeMillis, this.currentUptimeId);
         }
 
         this.currentMap = new MapInstance(
             this.mapId++,
-            new MapSpan(areaInfo.ts),
             areaInfo.name,
             areaInfo.level,
             areaInfo.seed
         );
-        this.currentMap.span.preloadTs = areaInfo.ts;
-        this.currentMap.span.preloadUptimeMillis = areaInfo.uptimeMillis;
+        this.appendMarker(MapMarkerType.load, areaInfo.ts, areaInfo.uptimeMillis, areaInfo);
         this.dispatchEvent(MapEnteredEvent.of(areaInfo.ts));
     }
 
+    private applyLoadedAt(ts: number, uptimeMillis: number): number {
+        const map = this.currentMap;
+        if (!map) throw new Error("no current map to apply loaded at");
+
+        if (map.lastMarker?.type !== MapMarkerType.load) throw new Error(`expected map to be in LOAD state, but was in ${map.lastMarker?.type}`);
+
+        const prevMarker = map.lastMarker;
+        const newMarker = this.appendMarker(this.currentAreaInfo?.isHideoutOrTown ? MapMarkerType.hideout : MapMarkerType.map, ts, uptimeMillis);
+        return MapInstance.getDelta(prevMarker, newMarker, MapTimePrecision.milliseconds);
+    }
+
     private dispatchEvent(event: LogEvent) {
+        this.recentEvents.push(event);
         this.eventDispatcher.emit(event);
     }
 
-    informInteraction(ts: number): void {
-        // FIXME should also count during hideout to get more accurate campaign times (and hideout times)
-        if (this.inMap()) {
-            this.currentMap!.span.lastInteraction = ts;
+    private appendMarker(type: MapMarkerType, ts: number, uptimeMillis?: number, pendingAreaInfo?: AreaInfo): MapMarker {
+        if (!this.currentMap) throw new Error("no current map to append marker to");
+
+        if (type === MapMarkerType.load && !isFeatureSupportedAt(Feature.PostLoadIndicator, ts) && pendingAreaInfo) {
+            type = pendingAreaInfo.isHideoutOrTown ? MapMarkerType.hideout : MapMarkerType.map;
         }
+        const marker = new MapMarker(type, ts, uptimeMillis, this.currentUptimeId);
+        this.currentMap.appendMarker(marker);
+        return marker;
     }
 
-    private completeMap(map: MapInstance, endTime: number): void {
+    private completeMap(map: MapInstance, endTime: number, uptimeMillis?: number, uptimeId?: number): void {
         if (!map) throw new Error("no current map to complete");
 
-        map.span.end = endTime;
-        map.state = MapState.COMPLETED;
+        map.appendMarker(new MapMarker(MapMarkerType.complete, endTime, uptimeMillis, uptimeId));
         this.recentMaps.push(map);
-        this.dispatchEvent(MapCompletedEvent.of(map.span.start, map));
+        this.dispatchEvent(MapCompletedEvent.of(endTime, map));
+    }
+
+    private completeStaleMap(): void {
+        const map = this.currentMap;
+        if (!map) throw new Error("no current map to complete");
+
+        const prevMarker = map.lastMarker!;
+        let prevEvent: LogEvent | undefined;
+        for (const event of this.recentEvents) {
+            if (event.name === "logFileOpen" && event.ts > prevMarker.ts) {
+                break;
+            }
+            prevEvent = event;
+        }
+        if (!prevEvent || prevMarker.ts > prevEvent.ts) {
+            if (map.markers.findLast(m => m.type === MapMarkerType.map || m.type === MapMarkerType.hideout)?.type === MapMarkerType.map) {
+                logger.warn(`stale map detected, client was exited while inside the map: ${JSON.stringify(map)}`);
+            } else {
+                // unaccounted time is the remaining hideout time after the hideout was entered
+                // this may include hideout time of another, prior hideout, e.g.:
+                // [MAP] => [DESERT HIDEOUT] => [MENAGERIE HIDEOUT] => [DESERT HIDEOUT] => [?]
+                // (only this last block's hideout time would be unaccounted for)
+                this.completeMap(map, prevMarker.ts, prevMarker.uptimeMillis, prevMarker.uptimeId);
+            }
+        } else {
+            this.completeMap(map, prevEvent.ts);
+        }
+        this.currentMap = null;
     }
 
     // real time functions, no utility for analysis of logs
@@ -1035,41 +1075,20 @@ export class LogTracker {
         return this.currentMap;
     }
 
-    inHideout(): boolean {
-        return this.currentMap ? this.currentMap.inHideout() : true;
-    }
-
-    inMap(): boolean {
-        return !this.inHideout();
-    }
-
     pause(): void {
         const currentMap = this.currentMap;
-        if (currentMap && currentMap.inMap() && !currentMap.span.pausedAt) {
-            currentMap.span.pausedAt = Date.now();
+        if (currentMap && currentMap.lastMarker.type !== MapMarkerType.pause) {
+            this.appendMarker(MapMarkerType.pause, Date.now());
         }
     }
 
     unpause(): void {
         const currentMap = this.currentMap;
-        if (!currentMap?.span.pausedAt) {
-            return;
-        }
-
-        if (currentMap.inMap()) {
-            const pauseDelta = Date.now() - currentMap.span.pausedAt;
-            currentMap.span.addToPauseTime(pauseDelta);
-            logger.info(`Unpaused with delta ${pauseDelta}`);
-        } else {
-            const hideoutStartTime = currentMap.span.hideoutStartTime;
-            if (hideoutStartTime && hideoutStartTime > currentMap.span.pausedAt) {
-                // don't double dip and don't count time during hideout as pause time, count it as hideout time
-                const pauseDelta = hideoutStartTime - currentMap.span.pausedAt;
-                currentMap.span.addToPauseTime(pauseDelta);
-            } else {
-                logger.warn(`invariant: unpausing hideout with paused_at ${currentMap.span.pausedAt} and hideout_start_time ${hideoutStartTime}`);
+        if (currentMap && currentMap.markers.length >= 2) {
+            const lastMarker = currentMap.markers[currentMap.markers.length - 1];
+            if (lastMarker?.type === MapMarkerType.pause) {
+                currentMap.resumePriorMarker(Date.now());
             }
         }
-        currentMap.span.pausedAt = null;
     }
 }

@@ -7,7 +7,7 @@ import { binarySearchFindLast, binarySearchFindLastIx, binarySearchRange } from 
 import { computeIfAbsent } from "../util";
 import { isFeatureSupportedAt, Feature } from "../data/log-versions";
 import { Segmentation } from "./segmentation";
-import { getZoneInfo } from "../data/zone_table";
+import { getZoneInfo } from "../data/areas";
 
 export interface CharacterInfo {
     name: string;
@@ -143,7 +143,7 @@ export async function buildCharacterAggregation(_: MapInstance[], events: LogEve
             }
             // backtrack to ANY prior event. if we take ts both character would share an event / map (WRONG!)
             // it is unusual, perhaps even impossible for prevTs to not be found, but just in case:
-            // ts - 1 is fair enough and prevents character from including the initial breach event
+            // ts - 1 is fair enough and prevents character from including the initial beach event
             const prevTs = binarySearchFindLast(events, (e) => e.ts < ts, 0, eventLoopIndex)?.ts ?? ts - 1;
             if (prevTs < levelLikePrev.ts) {
                 throw new Error(`illegal state: prevTs < levelLikePrev.ts for character ${character} at ts ${ts}`);
@@ -152,7 +152,7 @@ export async function buildCharacterAggregation(_: MapInstance[], events: LogEve
                 throw new Error(`illegal state: prevCharacter === character: ${levelLikePrev.detail.character} === ${character} at ts ${ts}`);
             }
             if (prev.ts > prevTs) {
-                // prior character event is after supplied threshold ts, should only be possible for a fresh character after it's levelUp(2) event
+                // prior character event is after supplied threshold ts, should only be possible for a fresh character after its levelUp(2) event
                 // in the case of death or msg events AFTER character creation but BEFORE the levelUp(2) event
                 const ix = binarySearchFindLastIx(characterTsIndex, (e) => e.ts < prevTs);
                 if (ix === -1) throw new Error(`illegal state: no prior event found for character ${character} at ts ${prevTs}`);

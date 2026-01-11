@@ -1,4 +1,4 @@
-export class SearchComponent {
+export class LogSearchComponent {
     private element: HTMLDivElement;
     private searchInput!: HTMLInputElement;
     private onSearch: (searchTerm: string) => void;

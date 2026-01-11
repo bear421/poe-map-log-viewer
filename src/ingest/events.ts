@@ -1,4 +1,4 @@
-import { getZoneInfo } from "../data/zone_table";
+import { getZoneInfo } from "../data/areas";
 import { MapInstance, XPSnapshot } from "./log-tracker";
 
 export interface LogEventBase {
@@ -18,10 +18,13 @@ export interface LogEventMeta<T extends LogEvent = LogEvent, Args extends any[] 
 
 export interface LogFileOpenEvent extends LogEventBase {
     name: "logFileOpen";
+    detail: {
+        uptimeId: number;
+    };
 }
 export namespace LogFileOpenEvent {
-    export function of(ts: number): LogFileOpenEvent {
-        return { name: "logFileOpen", ts };
+    export function of(ts: number, uptimeId: number): LogFileOpenEvent {
+        return { name: "logFileOpen", detail: { uptimeId }, ts };
     }
     export const name = 'Log file opened';
     export const icon = 'bi-file-earmark-text-fill';
@@ -163,7 +166,7 @@ export interface MsgFromEvent extends MsgEvent {
     name: "msgFrom";
 }
 export namespace MsgFromEvent {
-    export function of(ts: number, character: string, msg: string): MsgFromEvent {
+    export function of(ts: number, character: string, msg: string, guild?: string): MsgFromEvent {
         return { name: "msgFrom", detail: { character, msg }, ts };
     }
     export const name = 'Whisper sent';
@@ -480,6 +483,51 @@ export namespace AFKModeOffEvent {
     }
 }
 
+export interface ReflectingMistEvent extends LogEventBase {
+    name: "reflectingMist";
+}
+export namespace ReflectingMistEvent {
+    export function of(ts: number): ReflectingMistEvent {
+        return { name: "reflectingMist", ts };
+    }
+    export const name = 'Reflecting Mist';
+    export const icon = 'bi-magic';
+    export const color = 'text-dark';
+    export function label(): string {
+        return `Reflecting Mist`;
+    }
+}
+
+export interface NamelessSeerEvent extends LogEventBase {
+    name: "namelessSeer";
+}
+export namespace NamelessSeerEvent {
+    export function of(ts: number): NamelessSeerEvent {
+        return { name: "namelessSeer", ts };
+    }
+    export const name = 'Nameless Seer';
+    export const icon = 'bi-eye-fill';
+    export const color = 'text-dark';
+    export function label(): string {
+        return `Nameless Seer`;
+    }
+}
+
+export interface MemoryTearEvent extends LogEventBase {
+    name: "memoryTear";
+}
+export namespace MemoryTearEvent {
+    export function of(ts: number): MemoryTearEvent {
+        return { name: "memoryTear", ts };
+    }
+    export const name = 'Memory Tear';
+    export const icon = 'bi-lightning-charge';
+    export const color = 'text-dark';
+    export function label(): string {
+        return `Memory Tear`;
+    }
+}
+
 export interface XPSnapshotEvent extends LogEventBase {
     name: "xpSnapshot";
     detail: {
@@ -530,6 +578,9 @@ export const eventMeta = {
     afkModeOn: AFKModeOnEvent,
     afkModeOff: AFKModeOffEvent,
     xpSnapshot: XPSnapshotEvent,
+    reflectingMist: ReflectingMistEvent,
+    namelessSeer: NamelessSeerEvent,
+    memoryTear: MemoryTearEvent,
 } as const;
 
 export type EventName = keyof typeof eventMeta;
