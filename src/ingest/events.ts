@@ -166,7 +166,7 @@ export interface MsgFromEvent extends MsgEvent {
     name: "msgFrom";
 }
 export namespace MsgFromEvent {
-    export function of(ts: number, character: string, msg: string, guild?: string): MsgFromEvent {
+    export function of(ts: number, character: string, msg: string): MsgFromEvent {
         return { name: "msgFrom", detail: { character, msg }, ts };
     }
     export const name = 'Whisper sent';
