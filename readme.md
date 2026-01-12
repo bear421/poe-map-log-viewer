@@ -10,21 +10,25 @@ All processing is done client side for privacy / performance purposes.
 2. select your `Client.txt` file
 3. View your aggregated data
 
-## Run locally
-
-```bash
-npm run dev
-``` 
-
 ## technical tidbits
 
 - in general, the information supplied by the log file is quite sparse and some stats are inferred on a best effort basis
-- load time is attributed to the entered map
-- when entering the hideout (i.e. leaving the map), the load time is attributed to the current map
 - time spans are (typically) measured with a precision of ~60ms
 - inaccurate results if user changed system date/time; log file must be chronologically ordered
 - legacy PoE 1 map logs "You have entered Strand" (~2020 and before) currently not supported
 - legacy PoE 1 and briefly PoE 2 "@player1 xyz" message fromat (sender / receiver ambiguous) currently not supported
+
+## developement
+
+### run locally
+```bash
+npm run dev
+``` 
+
+### generate ggpk data
+```bash
+npm run gen-ggpk
+``` 
 
 ## Disclaimer
 
