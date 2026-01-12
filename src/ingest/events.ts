@@ -159,6 +159,7 @@ interface MsgEvent extends CharacterEvent {
     detail: {
         character: string;
         msg: string;
+        guild?: string;
     };
 }
 
@@ -166,8 +167,8 @@ export interface MsgFromEvent extends MsgEvent {
     name: "msgFrom";
 }
 export namespace MsgFromEvent {
-    export function of(ts: number, character: string, msg: string): MsgFromEvent {
-        return { name: "msgFrom", detail: { character, msg }, ts };
+    export function of(ts: number, character: string, msg: string, guild?: string): MsgFromEvent {
+        return { name: "msgFrom", detail: { character, msg, guild }, ts };
     }
     export const name = 'Whisper sent';
     export const icon = 'bi-chat-fill';
