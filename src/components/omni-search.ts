@@ -5,7 +5,7 @@ import { binarySearchFindExact, binarySearchFindExactIx } from '../binary-search
 import { MapListComponent } from './map-list';
 import { FilterComponent } from './filter';
 import { MapInstance } from '../ingest/log-tracker';
-declare var bootstrap: any;
+import * as bootstrap from 'bootstrap';
 
 type ParsedRange = { from?: Date; to?: Date };
 

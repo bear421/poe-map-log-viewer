@@ -256,11 +256,12 @@ export function toBitFlags(flags: Iterable<number>): number {
     return res;
 }
 
-declare const Popper: any;
+import { createPopper, Instance } from '@popperjs/core';
+
 export class DynamicTooltip {
     private tooltipElement: HTMLElement;
     private popperTarget: HTMLElement;
-    private popperInstance: any;
+    private popperInstance: Instance;
     private tooltipInner: HTMLElement;
     
     constructor(tooltipBody: string) {
@@ -276,7 +277,7 @@ export class DynamicTooltip {
         const virtualRef = { 
             getBoundingClientRect: () => this.popperTarget.getBoundingClientRect()
         };
-        this.popperInstance = Popper.createPopper(virtualRef, this.tooltipElement, {
+        this.popperInstance = createPopper(virtualRef, this.tooltipElement, {
             placement: 'top',
             modifiers: [
                 {

@@ -7,8 +7,7 @@ import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
 import { TSRange } from '../aggregate/segmentation';
 import { getZoneInfo } from '../data/areas';
-
-declare var bootstrap: any;
+import * as bootstrap from 'bootstrap';
 
 export class MapDetailComponent extends BaseComponent {
     private modalElement: HTMLElement | null = null;

@@ -1,4 +1,3 @@
-declare var bootstrap: any;
 import { LogLine, MapInstance, Progress } from './ingest/log-tracker';
 import { Filter } from "./aggregate/filter";
 import { LogEvent } from './ingest/events';
@@ -15,7 +14,9 @@ import { LogAggregationCube, aggregateCached, clearAggregationCache } from './ag
 import { logWorkerService } from './ingest/worker-service';
 import { TwitchComponent } from './components/twitch';
 
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/css/styles.css';
+import * as bootstrap from 'bootstrap';
 import { BaseComponent } from './components/base-component';
 import { MapListComponent } from './components/map-list';
 import { createElementFromHTML } from './util';

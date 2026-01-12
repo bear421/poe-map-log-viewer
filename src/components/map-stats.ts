@@ -1,8 +1,7 @@
 import { MapInstance, AreaType, MapMarkerType } from '../ingest/log-tracker';
 import { BaseComponent } from './base-component';
 import { MapListComponent } from './map-list';
-
-declare var bootstrap: any; 
+import * as bootstrap from 'bootstrap'; 
 
 export class MapStatsComponent extends BaseComponent {
 
