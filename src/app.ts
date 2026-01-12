@@ -14,6 +14,7 @@ import { LogAggregationCube, aggregateCached, clearAggregationCache } from './ag
 import { logWorkerService } from './ingest/worker-service';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 import './assets/css/styles.css';
 import * as bootstrap from 'bootstrap';
 import { BaseComponent } from './components/base-component';
