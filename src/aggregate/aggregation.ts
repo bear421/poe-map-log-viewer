@@ -129,14 +129,6 @@ export interface OverviewAggregation {
      * total number of trades, includes both trades with NPCs and players
      */
     totalTrades: number;
-    /**
-     * total number of buys attempted from players. based on whispers sent
-     */
-    totalBuysAttempted: number;
-    /**
-     * total number of sales attempted to players. based on whispers received
-     */
-    totalSalesAttempted: number;
     totalDeaths: number;
     totalWitnessedDeaths: number;
     totalMapTime: number;

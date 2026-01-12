@@ -23,7 +23,7 @@ class ZoneInfo {
 function parseAreas(areas: any[]): Record<string, ZoneInfo> {
     return Object.fromEntries(areas.map((o) => [
         o.Id,
-        new ZoneInfo(o.Name, o.Act, o.AreaLevel, o.IsTown, o.IsHideout, o.IsUnique, o.Id == "Karui Shores" || o.Id == "The Ziggurat Refuge")
+        new ZoneInfo(o.Name, o.Act, o.AreaLevel, o.IsMapArea, o.IsTown, o.IsHideout, o.IsUniqueMapArea, o.Id == "2_11_endgame_town" || o.Id == "G_Endgame_Town")
     ]));
 }
 

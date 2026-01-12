@@ -10,7 +10,6 @@
     "HASH16": 9693,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -26,7 +25,6 @@
     "HASH16": 18564,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -42,7 +40,6 @@
     "HASH16": 14412,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -58,7 +55,6 @@
     "HASH16": 21134,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -74,7 +70,6 @@
     "HASH16": -25443,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -92,7 +87,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [
       169
@@ -112,7 +106,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [
       169
@@ -132,7 +125,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -150,7 +142,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -168,7 +159,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -186,7 +176,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -204,7 +193,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -222,7 +210,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -240,7 +227,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -258,7 +244,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -276,7 +261,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -294,7 +278,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -312,7 +295,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -330,7 +312,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -348,7 +329,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [
       169
@@ -368,7 +348,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -386,7 +365,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [
       169
@@ -406,7 +384,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -424,7 +401,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -442,7 +418,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -460,7 +435,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -478,7 +452,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -496,7 +469,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -514,7 +486,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -532,7 +503,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -550,7 +520,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -568,7 +537,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -586,7 +554,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -604,7 +571,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -622,7 +588,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -640,7 +605,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -658,7 +622,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -676,7 +639,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -694,7 +656,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -712,7 +673,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -730,7 +690,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -748,7 +707,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -766,7 +724,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [
       169
@@ -786,7 +743,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -804,7 +760,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -822,7 +777,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -840,7 +794,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -858,7 +811,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -876,7 +828,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -894,7 +845,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -912,7 +862,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -930,7 +879,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -948,7 +896,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -966,7 +913,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -984,7 +930,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1002,7 +947,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1020,7 +964,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1038,7 +981,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1056,7 +998,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1074,7 +1015,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1092,7 +1032,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1110,7 +1049,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1128,7 +1066,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1146,7 +1083,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1164,7 +1100,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1182,7 +1117,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1200,7 +1134,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1218,7 +1151,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1236,7 +1168,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1254,7 +1185,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1272,7 +1202,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1290,7 +1219,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1308,7 +1236,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1326,7 +1253,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1344,7 +1270,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1362,7 +1287,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1380,7 +1304,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1398,7 +1321,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": true,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1416,7 +1338,6 @@
       "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -1436,7 +1357,6 @@
       "Art/Textures/Interface/LoadingImages/ShaperMaps.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -1456,7 +1376,6 @@
       "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1474,7 +1393,6 @@
       "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -1494,7 +1412,6 @@
       "Art/Textures/Interface/LoadingImages/HelenaHideout.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -1514,7 +1431,6 @@
       "Art/Textures/Interface/LoadingImages/4.0.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -1534,7 +1450,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1552,7 +1467,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1570,7 +1484,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1588,7 +1501,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1606,7 +1518,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1624,7 +1535,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1642,7 +1552,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1660,7 +1569,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -1678,7 +1586,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1699,7 +1606,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1720,7 +1626,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1741,7 +1646,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1762,7 +1666,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1783,7 +1686,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1804,7 +1706,6 @@
       "Art/Textures/Interface/LoadingImages/Graveyard.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1825,7 +1726,6 @@
       "Art/Textures/Interface/LoadingImages/Graveyard.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1846,7 +1746,6 @@
       "Art/Textures/Interface/LoadingImages/Graveyard.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1867,7 +1766,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1888,7 +1786,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1909,7 +1806,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1930,7 +1826,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1951,7 +1846,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1972,7 +1866,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -1993,7 +1886,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -2014,7 +1906,6 @@
       "Art/Textures/Interface/LoadingImages/Caravan.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2032,7 +1923,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2053,7 +1943,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2074,7 +1963,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2095,7 +1983,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2116,7 +2003,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2137,7 +2023,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2158,7 +2043,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2179,7 +2063,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2200,7 +2083,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2221,7 +2103,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2242,7 +2123,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2263,7 +2143,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2284,7 +2163,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2303,7 +2181,6 @@
     "HASH16": -14130,
     "LoadingScreens": [],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2324,7 +2201,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2345,7 +2221,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2366,7 +2241,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2387,7 +2261,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2408,7 +2281,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2429,7 +2301,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2450,7 +2321,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2471,7 +2341,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -2492,7 +2361,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2510,7 +2378,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2528,7 +2395,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2546,7 +2412,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2564,7 +2429,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2582,7 +2446,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2600,7 +2463,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2618,7 +2480,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2636,7 +2497,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2654,7 +2514,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2672,7 +2531,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2690,7 +2548,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2708,7 +2565,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2726,7 +2582,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2744,7 +2599,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2762,7 +2616,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -2780,7 +2633,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -2800,7 +2652,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2821,7 +2672,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2843,7 +2693,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2865,7 +2714,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2886,7 +2734,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2907,7 +2754,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2929,7 +2775,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -2951,7 +2796,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -2973,7 +2817,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -2995,7 +2838,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3017,7 +2859,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -3039,7 +2880,6 @@
       "Art/Textures/Interface/LoadingImages/ChaosTempleTrial.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -3061,7 +2901,6 @@
       "Art/Textures/Interface/LoadingImages/ChaosTempleTrial.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3082,7 +2921,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3104,7 +2942,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -3126,7 +2963,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3148,7 +2984,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       63,
@@ -3170,7 +3005,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3192,7 +3026,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3214,7 +3047,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -3234,7 +3066,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -3254,7 +3085,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3275,7 +3105,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3296,7 +3125,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3318,7 +3146,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3340,7 +3167,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3362,7 +3188,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3384,7 +3209,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3406,7 +3230,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3428,7 +3251,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -3446,7 +3268,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3468,7 +3289,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3490,7 +3310,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3511,7 +3330,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3532,7 +3350,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3553,7 +3370,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3575,7 +3391,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3596,7 +3411,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1161
@@ -3616,7 +3430,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3637,7 +3450,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3659,7 +3471,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Sailing.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3681,7 +3492,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -3699,7 +3509,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3720,7 +3529,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -3741,7 +3549,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -3759,7 +3566,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3780,7 +3586,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3801,7 +3606,6 @@
       "Art/Textures/Interface/LoadingImages/OldForest.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3822,7 +3626,6 @@
       "Art/Textures/Interface/LoadingImages/Graveyard.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3843,7 +3646,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3864,7 +3666,6 @@
       "Art/Textures/Interface/LoadingImages/Village.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1134,
@@ -3885,7 +3686,6 @@
       "Art/Textures/Interface/LoadingImages/Caravan.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -3903,7 +3703,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -3924,7 +3723,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -3945,7 +3743,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -3966,7 +3763,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -3987,7 +3783,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -4008,7 +3803,6 @@
       "Art/Textures/Interface/LoadingImages/CaravanLandscape.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -4029,7 +3823,6 @@
       "Art/Textures/Interface/LoadingImages/TrialofSekhemas.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1133,
@@ -4050,7 +3843,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -4068,7 +3860,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4089,7 +3880,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4110,7 +3900,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4131,7 +3920,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4152,7 +3940,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4173,7 +3960,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4194,7 +3980,6 @@
       "Art/Textures/Interface/LoadingImages/Act3Sacrifice.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -4215,7 +4000,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -4233,7 +4017,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -4253,7 +4036,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4275,7 +4057,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4298,7 +4079,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4320,7 +4100,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4342,7 +4121,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4365,7 +4143,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4388,7 +4165,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4410,7 +4186,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4433,7 +4208,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4456,7 +4230,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4478,7 +4251,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4501,7 +4273,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4524,7 +4295,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4546,7 +4316,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4568,7 +4337,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4591,7 +4359,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4614,7 +4381,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4637,7 +4403,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4661,7 +4426,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4683,7 +4447,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4705,7 +4468,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4727,7 +4489,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4749,7 +4510,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4773,7 +4533,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4795,7 +4554,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4818,7 +4576,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4841,7 +4598,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4865,7 +4621,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4889,7 +4644,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4913,7 +4667,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4935,7 +4688,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4958,7 +4710,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -4980,7 +4731,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5003,7 +4753,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5026,7 +4775,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5049,7 +4797,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5114,7 +4861,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5137,7 +4883,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5160,7 +4905,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5182,7 +4926,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5205,7 +4948,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5227,7 +4969,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5249,7 +4990,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5274,7 +5014,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5297,7 +5036,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5320,7 +5058,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5344,7 +5081,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5368,7 +5104,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5390,7 +5125,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5413,7 +5147,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5435,7 +5168,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5458,7 +5190,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5481,7 +5212,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5504,7 +5234,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5528,7 +5257,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5551,7 +5279,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5574,7 +5301,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5597,7 +5323,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5619,7 +5344,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5641,7 +5365,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5663,7 +5386,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5684,7 +5406,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5707,7 +5428,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5731,7 +5451,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5752,7 +5471,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5775,7 +5493,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5798,7 +5515,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5821,7 +5537,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5843,7 +5558,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5866,7 +5580,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5889,7 +5602,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5912,7 +5624,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5935,7 +5646,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5957,7 +5667,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5978,7 +5687,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -5999,7 +5707,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6022,7 +5729,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6045,7 +5751,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6067,7 +5772,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6093,7 +5797,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6116,7 +5819,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6141,7 +5843,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6161,7 +5862,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6181,7 +5881,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6201,7 +5900,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6221,7 +5919,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6242,7 +5939,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6263,7 +5959,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6283,7 +5978,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6303,7 +5997,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6323,7 +6016,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6343,7 +6035,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6363,7 +6054,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6383,7 +6073,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6403,7 +6092,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6423,7 +6111,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6443,7 +6130,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6463,7 +6149,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6483,7 +6168,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -6503,7 +6187,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6525,7 +6208,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6547,7 +6229,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6569,7 +6250,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6593,7 +6273,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6658,7 +6337,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6723,7 +6401,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6788,7 +6465,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6853,7 +6529,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6875,7 +6550,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6897,7 +6571,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6919,7 +6592,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -6941,7 +6613,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -6962,7 +6633,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -6983,7 +6653,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7004,7 +6673,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7025,7 +6693,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7046,7 +6713,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7067,7 +6733,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7088,7 +6753,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7109,7 +6773,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7130,7 +6793,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7151,7 +6813,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169,
@@ -7172,7 +6833,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7190,7 +6850,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7208,7 +6867,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7226,7 +6884,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7244,7 +6901,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7262,7 +6918,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7280,7 +6935,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7298,7 +6952,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7316,7 +6969,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -7336,7 +6988,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7354,7 +7005,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7372,7 +7022,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7390,7 +7039,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -7410,7 +7058,6 @@
       "Art/Textures/Interface/LoadingImages/AlternateWellofSoulsLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7428,7 +7075,6 @@
       "Art/Textures/Interface/LoadingImages/AlternateWellofSoulsLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7446,7 +7092,6 @@
       "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7464,7 +7109,6 @@
       "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7482,7 +7126,6 @@
       "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7500,7 +7143,6 @@
       "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7518,7 +7160,6 @@
       "Art/Textures/Interface/LoadingImages/AbyssalLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7536,7 +7177,6 @@
       "Art/Textures/Interface/LoadingImages/TheBlackCathedralLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7554,7 +7194,6 @@
       "Art/Textures/Interface/LoadingImages/4.0.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -7574,7 +7213,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7595,7 +7233,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7616,7 +7253,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7637,7 +7273,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false
@@ -7655,7 +7290,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7677,7 +7311,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7699,7 +7332,6 @@
       "Art/Textures/Interface/LoadingImages/Act4Trade.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       169
@@ -7719,7 +7351,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7741,7 +7372,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7764,7 +7394,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7787,7 +7416,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7809,7 +7437,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7832,7 +7459,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7855,7 +7481,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7877,7 +7502,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7899,7 +7523,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57,
@@ -7922,7 +7545,6 @@
       "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -7943,7 +7565,6 @@
       "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       1132,
@@ -7964,7 +7585,6 @@
       "Art/Textures/Interface/LoadingImages/AtlasLoadingScreen.dds"
     ],
     "IsMapArea": true,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [
       57
@@ -7984,7 +7604,6 @@
       "Art/Textures/Interface/LoadingImages/AtziriLoadingScreen.dds"
     ],
     "IsMapArea": false,
-    "MaxLevel": 100,
     "IsHideout": false,
     "Tags": [],
     "IsUniqueMapArea": false

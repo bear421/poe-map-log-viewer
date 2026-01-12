@@ -134,7 +134,7 @@ export enum AreaType {
     Heist,
     Tower,
     Delve,
-    Unknown
+    Other
 }
 
 export const areaTypeMeta: Record<AreaType, { name: string, icon: string, color: string }> = {
@@ -198,8 +198,8 @@ export const areaTypeMeta: Record<AreaType, { name: string, icon: string, color:
         icon: "bi-diamond-half",
         color: " text-primary"
     },
-    [AreaType.Unknown]: {   
-        name: "Unknown",
+    [AreaType.Other]: {   
+        name: "Other",
         icon: "bi-question-circle",
         color: "text-dark"
     }
@@ -283,7 +283,7 @@ export class MapInstance {
             } else if (lowerName.startsWith("delve")) {
                 this.areaType = AreaType.Delve;
             } else {
-                this.areaType = AreaType.Unknown;
+                this.areaType = AreaType.Other;
             }
         } else {
             if (MAP_NAME_TOWN.test(name)) {
@@ -403,7 +403,7 @@ export class MapInstance {
                 return AreaType.Hideout;
             }
         }
-        return AreaType.Unknown;
+        return AreaType.Other;
     }
 
 }

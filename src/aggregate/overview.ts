@@ -1,10 +1,10 @@
 import { FrameBarrier } from "../util";
 import { AreaType, MapInstance, MapMarkerType } from "../ingest/log-tracker";
-import { OverviewAggregation, TRADE_REGEX, LogAggregationCube } from "./aggregation";
+import { OverviewAggregation, LogAggregationCube } from "./aggregation";
 import { BitSet } from "../bitset";
 
 export async function  buildOverviewAggregation(agg: LogAggregationCube): Promise<OverviewAggregation> {
-    let totalBuysAttempted = 0, totalSalesAttempted = 0, totalTrades = 0;
+    let totalTrades = 0;
     let totalDeaths = 0, totalWitnessedDeaths = 0;
     let totalBossKills = 0;
     let totalSessions = 0;
@@ -25,16 +25,6 @@ export async function  buildOverviewAggregation(agg: LogAggregationCube): Promis
             }
         }
         switch (event.name) {
-            case "msgFrom":
-                if (TRADE_REGEX.test(event.detail.msg)) {
-                    totalSalesAttempted++;
-                }
-                break;
-            case "msgTo":
-                if (TRADE_REGEX.test(event.detail.msg)) {
-                    totalBuysAttempted++;
-                }
-                break;
             case "tradeAccepted":
                 totalTrades++;
                 break;
@@ -81,8 +71,6 @@ export async function  buildOverviewAggregation(agg: LogAggregationCube): Promis
         mapsUnique,
         mapsDelve,
         totalTrades,
-        totalBuysAttempted,
-        totalSalesAttempted,
         totalDeaths,
         totalWitnessedDeaths,
         totalMapTime,

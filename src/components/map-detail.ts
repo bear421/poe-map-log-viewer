@@ -6,6 +6,7 @@ import { BaseComponent } from './base-component';
 import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
 import { TSRange } from '../aggregate/segmentation';
+import { getZoneInfo } from '../data/areas';
 
 declare var bootstrap: any;
 
@@ -234,6 +235,7 @@ export class MapDetailComponent extends BaseComponent {
                             <div class="col">
                                 <pre>Attributed character event: ${JSON.stringify(characterEvent, null, 2)}</pre>
                                 <pre>Character info: ${JSON.stringify(this.data!.characterAggregation.characters.find(c => c.name === characterEvent?.detail.character), null, 2)}</pre>
+                                <pre>Zone info: ${JSON.stringify(getZoneInfo(map.name, map.areaLevel), null, 2)}</pre>
                             </div>
                         </div>
                     </div>
