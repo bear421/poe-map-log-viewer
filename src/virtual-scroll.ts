@@ -1,5 +1,3 @@
-import { createElementFromHTML } from "./util";
-
 export type VirtualScrollRenderCallback = (startIndex: number, endIndex: number) => void;
 
 export class VirtualScroll {

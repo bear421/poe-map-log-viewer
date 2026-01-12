@@ -1,10 +1,6 @@
 import { BaseComponent } from './base-component';
 import { createElementFromHTML } from '../util';
 import { App } from '../app';
-import { binarySearchFindExact, binarySearchFindExactIx } from '../binary-search';
-import { MapListComponent } from './map-list';
-import { FilterComponent } from './filter';
-import { MapInstance } from '../ingest/log-tracker';
 import * as bootstrap from 'bootstrap';
 
 type ParsedRange = { from?: Date; to?: Date };
@@ -115,56 +111,6 @@ export class OmniSearchComponent extends BaseComponent<HTMLDivElement> {
             return;
         }
         this.setVisible(false);
-    }
-
-    private parseQuery(q: string) {
-        enum Token {
-            from = 'from',
-            to = 'to',
-            tab = 'tab',
-            map = 'map',
-        };
-        const parts = q.split(new RegExp(`((${Object.values(Token).join('|')}:)(^\\s+)\\s*)+`, 'i'));
-        if (parts.length === 0) return null;
-
-        let from: { date: Date; label: string } | null = null;
-        let to: { date: Date; label: string } | null = null;
-
-        for (let i = 1; i < parts.length; i += 2) {
-            const token = parts[i];
-            const value = parts[i + 1];
-            switch (token) {
-                case Token.from:
-                    from = this.parseDateLike(value);
-                    break;
-                case Token.to:
-                    to = this.parseDateLike(value);
-                    break;
-                case Token.map:
-                    let maps: MapInstance[];
-                    if (value.includes("-")) {
-                        const [loId, hiId] = value.split(/\s*-\s*/).map(v => parseInt(v, 10));
-                        const loIx = binarySearchFindExactIx(this.data.maps, (m) => m.id - loId);
-                        const hiIx = binarySearchFindExactIx(this.data.maps, (m) => m.id - hiId);
-                        if (loIx >= 0 && hiIx >= 0) {
-                            maps = this.data!.maps.slice(loIx, hiIx + 1);
-                        } else {
-                            maps = [];
-                        }
-                    } else {
-                        const values = value.split(/\s*,\s/);
-                        maps = values
-                            .map(v => parseInt(v, 10))
-                            .map(id => binarySearchFindExact(this.data.maps, (m) => id - m.id))
-                            .filter(m => m !== undefined);
-                    }
-                    // TODO create temp map overlay
-                    break;
-            }
-        }
-        const filterComponent = this.app.getComponent(FilterComponent);
-        filterComponent.getFilter();
-        filterComponent.updateFilter();
     }
 
     private detectTab(q: string): { key: string; label: string } | null {

@@ -3,7 +3,7 @@ import { ContiguousArray } from "../util";
 import { LogEvent, LevelUpEvent, SetCharacterEvent, AnyCharacterEvent } from "../ingest/events";
 import { MapInstance } from "../ingest/log-tracker";
 import { FrameBarrier } from "../util";
-import { binarySearchFindLast, binarySearchFindLastIx, binarySearchRange } from "../binary-search";
+import { binarySearchFindLast, binarySearchFindLastIx } from "../binary-search";
 import { computeIfAbsent } from "../util";
 import { isFeatureSupportedAt, Feature } from "../data/log-versions";
 import { Segmentation } from "./segmentation";

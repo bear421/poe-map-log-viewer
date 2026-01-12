@@ -12,7 +12,6 @@ import { CampaignComponent } from './components/campaign';
 import { MessagesComponent } from './components/messages';
 import { LogAggregationCube, aggregateCached, clearAggregationCache } from './aggregate/aggregation';
 import { logWorkerService } from './ingest/worker-service';
-import { TwitchComponent } from './components/twitch';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/css/styles.css';

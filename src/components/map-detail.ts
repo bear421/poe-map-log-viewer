@@ -5,7 +5,6 @@ import { LogAggregationCube } from '../aggregate/aggregation';
 import { BaseComponent } from './base-component';
 import { logWorkerService } from '../ingest/worker-service';
 import { createElementFromHTML } from '../util';
-import { TSRange } from '../aggregate/segmentation';
 import { getZoneInfo } from '../data/areas';
 import * as bootstrap from 'bootstrap';
 
