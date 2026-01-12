@@ -120,7 +120,7 @@ async function exportWorldAreas() {
 }
 
 async function exportBossTable() {
-    const nonCombatNames = new Set(["The Hooded One", "Balbala, the Advisor"]);
+    const nonCombatNames = new Set(["The Hooded One", "Balbala, the Advisor", "Sekhema Asala"]);
     const aliases = {
         "Mortimer": "The Bloated Miller",
     };
@@ -142,7 +142,7 @@ async function exportBossTable() {
             "NPCs"
         ]);
         const bosses = {};
-        const deathCryRegex = /(?<!Player)death/i;
+        const deathCryRegex = /(?<!Player)Death/;
         for (const row of npcAudioRows) {
             const text = row.Text;
             if (!text) continue;
@@ -163,7 +163,7 @@ async function exportBossTable() {
                 if (alias) {
                     boss.alias = alias;
                 }
-                boss.deathCries.add(text);
+                boss.deathCries.add(text.trim());
             }
         }
         for (const bossName of Object.keys(bosses)) {
