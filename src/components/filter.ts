@@ -55,11 +55,11 @@ export class FilterComponent extends BaseComponent {
                             </div>
                             <div class="col-md-2">
                                 <label for="fromDateFilter" class="form-label">From Date</label>
-                                <input type="date" class="form-control border-dark" id="fromDateFilter">
+                                <input type="datetime-local" class="form-control border-dark" id="fromDateFilter">
                             </div>
                             <div class="col-md-2">
                                 <label for="toDateFilter" class="form-label">To Date</label>
-                                <input type="date" class="form-control border-dark" id="toDateFilter">
+                                <input type="datetime-local" class="form-control border-dark" id="toDateFilter">
                             </div>
                         </div>
                         <div class="facets row my-3"></div>
@@ -253,12 +253,10 @@ export class FilterComponent extends BaseComponent {
         let lo = -Infinity, hi = Infinity;
         if (fromDateInput) {
             const fromDate = new Date(fromDateInput);
-            fromDate.setHours(0, 0, 0, 0);
             lo = fromDate.getTime();
         }
         if (toDateInput) {
             const toDate = new Date(toDateInput);
-            toDate.setHours(23, 59, 59, 999);
             hi = toDate.getTime();
         }
         if (lo !== -Infinity || hi !== Infinity) {
@@ -308,11 +306,13 @@ export class FilterComponent extends BaseComponent {
                     break;
                 case 'last7Days':
                     fromDate.setDate(now.getDate() - 7);
+                    fromDate.setHours(0, 0, 0, 0);
                     (this.element.querySelector('#fromDateFilter') as HTMLInputElement).value = this.formatDate(fromDate);
                     (this.element.querySelector('#toDateFilter') as HTMLInputElement).value = '';
                     break;
                 case 'last30Days':
                     fromDate.setDate(now.getDate() - 30);
+                    fromDate.setHours(0, 0, 0, 0);
                     (this.element.querySelector('#fromDateFilter') as HTMLInputElement).value = this.formatDate(fromDate);
                     (this.element.querySelector('#toDateFilter') as HTMLInputElement).value = '';
                     break;
@@ -349,7 +349,9 @@ export class FilterComponent extends BaseComponent {
         const year = date.getFullYear();
         const month = (date.getMonth() + 1).toString().padStart(2, '0');
         const day = date.getDate().toString().padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 
     private resetFilters(): void {
